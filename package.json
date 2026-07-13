@@ -1,6 +1,6 @@
 {
   "name": "@andrewpopov/admin-kit",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Router-neutral, capability-driven React admin UI primitives. Apps own routes, transport, policy, authorization enforcement, and custom sections.",
   "author": "Andrew Popov",
   "license": "MIT",
@@ -43,9 +43,11 @@
     "react": ">=18"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.7",
+    "jsdom": "^29.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "typescript": "^5.5.0",

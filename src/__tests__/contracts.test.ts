@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   defineAdminConsole,
+  validateAdminApiKeyCreated,
   defineAdminUsersAdapter,
   normalizeAdminFailure,
   validateAdminFeatureFlagsSnapshot,
@@ -233,5 +234,40 @@ describe("admin adapter helpers", () => {
     );
     expect(page).toMatchObject({ page: 2, pageSize: 25, total: 2 });
     expect(Object.isFrozen(page.items)).toBe(true);
+  });
+});
+
+describe("API-key secret boundary", () => {
+  it("accepts a secret only on a validated create or rotate response", () => {
+    const created = validateAdminApiKeyCreated({
+      key: {
+        id: "key-1",
+        name: "Automation",
+        maskedKey: "ak_…1234",
+        state: "active",
+        scopes: ["read"],
+        createdAt: "2026-07-13T00:00:00.000Z",
+      },
+      secret: "ak_live_once",
+    });
+
+    expect(created.secret).toBe("ak_live_once");
+    expect(Object.isFrozen(created)).toBe(true);
+  });
+
+  it("rejects empty one-time secrets before a panel can reveal them", () => {
+    expect(() =>
+      validateAdminApiKeyCreated({
+        key: {
+          id: "key-1",
+          name: "Automation",
+          maskedKey: "ak_…1234",
+          state: "active",
+          scopes: [],
+          createdAt: "2026-07-13T00:00:00.000Z",
+        },
+        secret: " ",
+      }),
+    ).toThrow(/one-time secret/i);
   });
 });

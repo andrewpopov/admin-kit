@@ -100,8 +100,9 @@ won precedence.
 
 ### API keys
 
-`ApiKeysPanel` lists only safe metadata. A raw key secret can enter the panel
-only as a create or rotate response; it is never part of `AdminApiKey`, so a
+`ApiKeysPanel` lists only safe metadata and supports create, rotation, and
+revocation confirmations. A raw key secret can enter the panel only as a
+validated create or rotate response; it is never part of `AdminApiKey`, so a
 list response cannot accidentally re-reveal it.
 
 ## Release requirements

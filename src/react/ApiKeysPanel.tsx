@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import {
   type AdminApiKey,
   type AdminApiKeysAdapter,
+  validateAdminApiKeyCreated,
   validateAdminApiKeys,
 } from "../core";
+import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
 import { AdminPanelStateView } from "./AdminPanelState";
 
 export interface ApiKeysPanelProps<CreateInput> {
@@ -20,6 +22,9 @@ export function ApiKeysPanel<CreateInput>({
   const [secret, setSecret] = useState<string>();
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState<string>();
+  const [confirmation, setConfirmation] = useState<
+    { action: "revoke" | "rotate"; key: AdminApiKey } | undefined
+  >();
   const load = async () => {
     setError(undefined);
     try {
@@ -48,7 +53,7 @@ export function ApiKeysPanel<CreateInput>({
   const create = async () => {
     setPending("create");
     try {
-      const result = await adapter.create(createInput);
+      const result = validateAdminApiKeyCreated(await adapter.create(createInput));
       setSecret(result.secret);
       await load();
     } catch (reason) {
@@ -59,15 +64,26 @@ export function ApiKeysPanel<CreateInput>({
       setPending(undefined);
     }
   };
-  const revoke = async (keyId: string) => {
-    if (!window.confirm("Revoke this API key? This cannot be undone.")) return;
-    setPending(keyId);
+  const confirmAction = async () => {
+    if (!confirmation) return;
+    const { action, key } = confirmation;
+    setConfirmation(undefined);
+    setPending(key.id);
     try {
-      await adapter.revoke({ keyId });
+      if (action === "revoke") {
+        await adapter.revoke({ keyId: key.id });
+      } else if (adapter.rotate) {
+        const result = validateAdminApiKeyCreated(
+          await adapter.rotate({ keyId: key.id }),
+        );
+        setSecret(result.secret);
+      }
       await load();
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : "Unable to revoke API key.",
+        reason instanceof Error
+          ? reason.message
+          : `Unable to ${action} API key.`,
       );
     } finally {
       setPending(undefined);
@@ -104,17 +120,41 @@ export function ApiKeysPanel<CreateInput>({
               </p>
             </div>
             {key.state === "active" ? (
-              <button
-                type="button"
-                disabled={pending === key.id}
-                onClick={() => void revoke(key.id)}
-              >
-                Revoke
-              </button>
+              <div className="admin-kit__key-actions">
+                {adapter.rotate ? (
+                  <button
+                    type="button"
+                    disabled={pending === key.id}
+                    onClick={() => setConfirmation({ action: "rotate", key })}
+                  >
+                    Rotate
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  disabled={pending === key.id}
+                  onClick={() => setConfirmation({ action: "revoke", key })}
+                >
+                  Revoke
+                </button>
+              </div>
             ) : null}
           </li>
         ))}
       </ul>
+      <AdminConfirmationDialog
+        open={Boolean(confirmation)}
+        title={confirmation?.action === "rotate" ? "Rotate API key" : "Revoke API key"}
+        description={
+          confirmation?.action === "rotate"
+            ? "The current credential will stop working. Copy the replacement secret immediately after rotating it."
+            : "This credential will stop working immediately and cannot be restored."
+        }
+        confirmLabel={confirmation?.action === "rotate" ? "Rotate key" : "Revoke key"}
+        danger={confirmation?.action === "revoke"}
+        onCancel={() => setConfirmation(undefined)}
+        onConfirm={() => void confirmAction()}
+      />
     </section>
   );
 }
