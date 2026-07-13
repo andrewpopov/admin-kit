@@ -83,6 +83,15 @@ const users = defineAdminUsersAdapter({
 });
 ```
 
+### Feature flags
+
+`FeatureFlagsPanel` and `AdminFeatureFlagsAdapter` require the host to declare
+each flag's effective source and store health. A flag controlled by an
+environment value, a default, or a store-error policy is shown as read-only;
+the panel never suggests a toggle can change it. After a successful mutation,
+the panel reloads the host snapshot rather than assuming the requested value
+won precedence.
+
 ## Release requirements
 
 Before migrating an application, compare behavior against its local admin

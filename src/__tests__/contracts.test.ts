@@ -3,6 +3,8 @@ import {
   defineAdminConsole,
   defineAdminUsersAdapter,
   normalizeAdminFailure,
+  validateAdminFeatureFlagsSnapshot,
+  type AdminFeatureFlagsSnapshot,
   type AdminUserSummary,
 } from "../core";
 import { createAdminPageFixture } from "../testing";
@@ -39,6 +41,71 @@ describe("defineAdminConsole", () => {
   ])("rejects invalid configuration", (definition, message) => {
     expect(() => defineAdminConsole(definition)).toThrow(message);
   });
+});
+
+describe("feature flag snapshots", () => {
+  it("keeps Sano store flags and Bewks-style fallback flags distinct", () => {
+    const sano = validateAdminFeatureFlagsSnapshot({
+      storeHealth: "healthy",
+      flags: [
+        {
+          key: "allow_signups",
+          label: "Allow signups",
+          enabled: true,
+          source: "store",
+          mutable: true,
+        },
+      ],
+    });
+    const bewksFallback = validateAdminFeatureFlagsSnapshot({
+      storeHealth: "unavailable",
+      storeHealthDetail:
+        "Settings database is unavailable; defaults are active.",
+      flags: [
+        {
+          key: "new_user_registration",
+          label: "New user registration",
+          enabled: true,
+          source: "store-error-policy",
+          mutable: false,
+        },
+      ],
+    });
+
+    expect(sano.flags[0]?.mutable).toBe(true);
+    expect(bewksFallback.flags[0]?.source).toBe("store-error-policy");
+  });
+
+  const misleadingSnapshots: readonly [AdminFeatureFlagsSnapshot, RegExp][] = [
+    [
+      {
+        storeHealth: "healthy",
+        flags: [
+          {
+            key: "a",
+            label: "A",
+            enabled: true,
+            source: "environment",
+            mutable: true,
+          },
+        ],
+      },
+      /cannot be mutable/i,
+    ],
+    [
+      { storeHealth: "healthy", storeHealthDetail: "nope", flags: [] },
+      /must not report/i,
+    ],
+  ];
+
+  it.each(misleadingSnapshots)(
+    "rejects a misleading effective-state presentation",
+    (snapshot, message) => {
+      expect(() => validateAdminFeatureFlagsSnapshot(snapshot)).toThrow(
+        message,
+      );
+    },
+  );
 });
 
 describe("defineAdminUsersAdapter", () => {
