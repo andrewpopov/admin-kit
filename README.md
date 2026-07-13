@@ -32,7 +32,7 @@ npm install github:andrewpopov/admin-kit#v0.1.0
 application; the components also work with host-owned styling.
 
 ```ts
-import '@andrewpopov/admin-kit/styles.css';
+import "@andrewpopov/admin-kit/styles.css";
 ```
 
 ## Controlled shell
@@ -40,14 +40,14 @@ import '@andrewpopov/admin-kit/styles.css';
 The host owns the active section and maps it to any URL or router shape.
 
 ```tsx
-import { AdminConsole } from '@andrewpopov/admin-kit/react';
+import { AdminConsole } from "@andrewpopov/admin-kit/react";
 
 <AdminConsole
   activeSection={section}
   onSectionChange={setSection}
   sections={[
-    { id: 'users', label: 'Users', render: () => <UsersPanel /> },
-    { id: 'settings', label: 'Settings', render: () => <SettingsPanel /> },
+    { id: "users", label: "Users", render: () => <UsersPanel /> },
+    { id: "settings", label: "Settings", render: () => <SettingsPanel /> },
   ]}
 />;
 ```
@@ -58,6 +58,30 @@ import { AdminConsole } from '@andrewpopov/admin-kit/react';
 definition validation, paged-resource types, and transport-neutral failure
 normalization. `@andrewpopov/admin-kit/testing` exports small immutable
 fixtures for adapter and consumer-shaped tests.
+
+### Users adapter
+
+`AdminUsersAdapter` exposes only the user operations an application actually
+supports. It deliberately takes presentation data (`label`, optional role and
+status values), not an ORM-shaped `User`. A Savoro adapter can provide its
+owner/status vocabulary and a token-confirmed purge input; a Sano OS adapter
+can derive `disabledAt` into a status and expose password-reset instead. The
+host owns the transport and every policy decision.
+
+```ts
+import { defineAdminUsersAdapter } from "@andrewpopov/admin-kit/core";
+
+const users = defineAdminUsersAdapter({
+  list: async (query) => ({
+    items: [],
+    page: query.page ?? 1,
+    pageSize: query.pageSize ?? 25,
+    total: 0,
+  }),
+  roles: [{ value: "admin", label: "Admin" }],
+  setRole: { execute: async ({ userId, role }) => api.setRole(userId, role) },
+});
+```
 
 ## Release requirements
 
