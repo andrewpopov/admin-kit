@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Add `UsersPanel`: a paged, adapter-backed user directory with safe
+  normalized role/status changes and a host-owned seam for custom actions.
+
 ## 0.1.0
 
 - Initial stable surface: controlled accessible React admin shell; shared panel

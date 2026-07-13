@@ -8,6 +8,7 @@ export {
   type AdminReactSection,
 } from "./AdminConsole";
 export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";
+export { UsersPanel, type UsersPanelProps } from "./UsersPanel";
 export {
   FeatureFlagsPanel,
   type FeatureFlagsPanelProps,
