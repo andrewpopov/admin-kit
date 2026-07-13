@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- Let host-rendered user actions request a panel reload after their
+  app-owned mutation succeeds.
+
 ## 0.1.1
 
 - Add `UsersPanel`: a paged, adapter-backed user directory with safe

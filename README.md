@@ -86,7 +86,8 @@ const users = defineAdminUsersAdapter({
 `UsersPanel` renders the paged normalized directory and declared role/status
 controls. Supply `renderUserActions` for product-specific actions such as a
 delete flow with app-owned confirmation copy, audit requirements, or extra
-input; the generic panel never assumes those semantics.
+input. Its callback receives a `reload` function after a successful host
+mutation; the generic panel never assumes destructive-action semantics.
 
 ### Feature flags
 
