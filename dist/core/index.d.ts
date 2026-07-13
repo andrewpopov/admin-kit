@@ -1,0 +1,1 @@
+export { defineAdminConsole, normalizeAdminFailure, type AdminAdapterFailure, type AdminConsoleDefinition, type AdminPage, type AdminPageQuery, type AdminSectionDefinition, type AdminSectionId, } from './contracts';
