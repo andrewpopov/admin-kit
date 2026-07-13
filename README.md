@@ -10,7 +10,7 @@ authorization, and product-specific pages.
 - Controlled admin navigation and accessible panel semantics.
 - Shared loading, error, empty, and confirmation interactions.
 - Serializable adapter contracts and consumer-shaped test fixtures.
-- Future user-management, feature-flag, and API-key modules.
+- User-management, feature-flag, and API-key modules.
 
 ## What does not belong here
 
@@ -82,6 +82,11 @@ const users = defineAdminUsersAdapter({
   setRole: { execute: async ({ userId, role }) => api.setRole(userId, role) },
 });
 ```
+
+`UsersPanel` renders the paged normalized directory and declared role/status
+controls. Supply `renderUserActions` for product-specific actions such as a
+delete flow with app-owned confirmation copy, audit requirements, or extra
+input; the generic panel never assumes those semantics.
 
 ### Feature flags
 

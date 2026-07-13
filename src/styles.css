@@ -123,3 +123,59 @@
   block-size: 1.25rem;
   inline-size: 1.25rem;
 }
+
+.admin-kit__users-header {
+  align-items: baseline;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+.admin-kit__users-header h2,
+.admin-kit__users-header p {
+  margin: 0;
+}
+.admin-kit__users-header p,
+.admin-kit__user-identity span,
+.admin-kit__user-controls label > span {
+  color: var(--admin-kit-muted);
+}
+.admin-kit__users-list {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+.admin-kit__user {
+  align-items: center;
+  border: 1px solid var(--admin-kit-border);
+  border-radius: var(--admin-kit-radius);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem;
+}
+.admin-kit__user-identity,
+.admin-kit__user-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.admin-kit__user-identity {
+  flex-direction: column;
+}
+.admin-kit__user-controls {
+  align-items: end;
+}
+.admin-kit__user-controls label {
+  display: grid;
+  font-size: 0.875rem;
+  gap: 0.25rem;
+}
+.admin-kit__pagination {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
