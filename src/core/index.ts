@@ -18,3 +18,12 @@ export {
   type AdminUsersAdapter,
   type AdminUserValue,
 } from "./users";
+export {
+  defineAdminFeatureFlagsAdapter,
+  validateAdminFeatureFlagsSnapshot,
+  type AdminFeatureFlag,
+  type AdminFeatureFlagsAdapter,
+  type AdminFeatureFlagsSnapshot,
+  type FeatureFlagSource,
+  type FeatureFlagStoreHealth,
+} from "./featureFlags";
