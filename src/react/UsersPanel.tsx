@@ -11,7 +11,10 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
   adapter: AdminUsersAdapter<User>;
   pageSize?: number;
   query?: Omit<AdminPageQuery, "page" | "pageSize">;
-  renderUserActions?: (user: User) => ReactNode;
+  renderUserActions?: (
+    user: User,
+    context: { reload: () => Promise<void>; isPending: boolean },
+  ) => ReactNode;
 }
 
 /**
@@ -122,7 +125,12 @@ export function UsersPanel<User extends AdminUserSummary>({
                   </select>
                 </label>
               ) : null}
-              {renderUserActions ? renderUserActions(user) : null}
+              {renderUserActions
+                ? renderUserActions(user, {
+                    reload: load,
+                    isPending: pendingUserId === user.id,
+                  })
+                : null}
             </div>
           </li>
         ))}
