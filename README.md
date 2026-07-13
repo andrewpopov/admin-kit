@@ -112,3 +112,17 @@ npm run typecheck
 npm run build
 npm run verify:pack
 ```
+
+## Migration guidance
+
+Start by adapting existing server-authorized operations; do not replace a
+backend service or duplicate a security guard in the browser. Map the app's
+transport envelopes into `AdminUsersAdapter`, `AdminFeatureFlagsAdapter`, or
+`AdminApiKeysAdapter`, then use the matching panel. Keep app-specific fields,
+confirmation inputs, query state, and navigation outside the package.
+
+Before deleting a local admin page, compare its behavior against the adapter:
+account protections and audits remain server-owned; environment-controlled
+flags must remain read-only; and API-key list responses must never carry a raw
+secret. Run the package tarball verification and the consumer's normal local
+admin journey after installation.

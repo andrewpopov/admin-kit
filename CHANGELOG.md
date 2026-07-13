@@ -2,7 +2,8 @@
 
 ## 0.1.0
 
-- Initial package foundation: validated core console contracts, a controlled
-  accessible React admin shell, common panel-state and confirmation components,
-  opt-in themeable styles, consumer-shaped fixtures, and package-install
-  verification.
+- Initial stable surface: controlled accessible React admin shell; shared panel
+  state and confirmation components; capability-based users adapters;
+  source-aware feature-flag panel; API-key list/create/revoke panel with
+  one-time secret reveal; opt-in styles; consumer-shaped fixtures; and tarball
+  installation verification.
