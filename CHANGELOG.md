@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+- Complete API-key administration with accessible revoke/rotate confirmation,
+  validated one-time secret responses, and browser-level interaction tests.
+
 ## 0.1.2
 
 - Let host-rendered user actions request a panel reload after their

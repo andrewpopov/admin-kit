@@ -27,3 +27,5 @@ export interface AdminApiKeysAdapter<CreateInput = never> {
 }
 export declare function defineAdminApiKeysAdapter<CreateInput = never>(adapter: AdminApiKeysAdapter<CreateInput>): AdminApiKeysAdapter<CreateInput>;
 export declare function validateAdminApiKeys(keys: readonly AdminApiKey[]): readonly AdminApiKey[];
+/** Validates the only response shape that may carry a raw one-time secret. */
+export declare function validateAdminApiKeyCreated(created: AdminApiKeyCreated): AdminApiKeyCreated;

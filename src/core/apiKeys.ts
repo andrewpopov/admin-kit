@@ -49,3 +49,17 @@ export function validateAdminApiKeys(
     ),
   );
 }
+
+/** Validates the only response shape that may carry a raw one-time secret. */
+export function validateAdminApiKeyCreated(
+  created: AdminApiKeyCreated,
+): AdminApiKeyCreated {
+  if (!created.secret.trim()) {
+    throw new Error("A newly created API key must include a one-time secret.");
+  }
+
+  return Object.freeze({
+    key: validateAdminApiKeys([created.key])[0]!,
+    secret: created.secret,
+  });
+}

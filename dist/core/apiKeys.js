@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defineAdminApiKeysAdapter = defineAdminApiKeysAdapter;
 exports.validateAdminApiKeys = validateAdminApiKeys;
+exports.validateAdminApiKeyCreated = validateAdminApiKeyCreated;
 function defineAdminApiKeysAdapter(adapter) {
     return Object.freeze({ ...adapter });
 }
@@ -19,4 +20,14 @@ function validateAdminApiKeys(keys) {
         ids.add(key.id);
     }
     return Object.freeze(keys.map((key) => Object.freeze({ ...key, scopes: Object.freeze([...key.scopes]) })));
+}
+/** Validates the only response shape that may carry a raw one-time secret. */
+function validateAdminApiKeyCreated(created) {
+    if (!created.secret.trim()) {
+        throw new Error("A newly created API key must include a one-time secret.");
+    }
+    return Object.freeze({
+        key: validateAdminApiKeys([created.key])[0],
+        secret: created.secret,
+    });
 }
