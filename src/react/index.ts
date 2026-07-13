@@ -12,3 +12,4 @@ export {
   FeatureFlagsPanel,
   type FeatureFlagsPanelProps,
 } from "./FeatureFlagsPanel";
+export { ApiKeysPanel, type ApiKeysPanelProps } from "./ApiKeysPanel";

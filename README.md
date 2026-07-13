@@ -92,6 +92,12 @@ the panel never suggests a toggle can change it. After a successful mutation,
 the panel reloads the host snapshot rather than assuming the requested value
 won precedence.
 
+### API keys
+
+`ApiKeysPanel` lists only safe metadata. A raw key secret can enter the panel
+only as a create or rotate response; it is never part of `AdminApiKey`, so a
+list response cannot accidentally re-reveal it.
+
 ## Release requirements
 
 Before migrating an application, compare behavior against its local admin
