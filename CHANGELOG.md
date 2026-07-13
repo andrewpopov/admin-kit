@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+- Add a host-rendered API-key creation seam for app-specific inputs such as
+  expiry, scopes, and audit fields while keeping lifecycle state in the panel.
+
 ## 0.2.0
 
 - Complete API-key administration with accessible revoke/rotate confirmation,
