@@ -59,4 +59,23 @@ describe("ApiKeysPanel", () => {
 
     await waitFor(() => expect(revoke).toHaveBeenCalledWith({ keyId: "key-1" }));
   });
+
+  it("lets a host-owned form supply a dynamic create input", async () => {
+    const create = vi.fn().mockResolvedValue({ key: activeKey, secret: "slot-once" });
+    render(
+      <ApiKeysPanel
+        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create, revoke: vi.fn() }}
+        renderCreate={({ create: submit, pending }) => (
+          <button type="button" disabled={pending} onClick={() => submit({ name: "CLI", expiresInDays: 30 })}>
+            Generate token
+          </button>
+        )}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    fireEvent.click(screen.getByRole("button", { name: "Generate token" }));
+    await screen.findByText("slot-once");
+    expect(create).toHaveBeenCalledWith({ name: "CLI", expiresInDays: 30 });
+  });
 });

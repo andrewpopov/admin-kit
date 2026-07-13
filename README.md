@@ -105,6 +105,11 @@ revocation confirmations. A raw key secret can enter the panel only as a
 validated create or rotate response; it is never part of `AdminApiKey`, so a
 list response cannot accidentally re-reveal it.
 
+Use `renderCreate` when the host needs a product-specific input form (for
+example, name, expiry, scopes, or an audit reason). The callback receives only
+the package-owned create operation and pending state; the host retains its form
+schema and validation.
+
 ## Release requirements
 
 Before migrating an application, compare behavior against its local admin

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   type AdminApiKey,
   type AdminApiKeysAdapter,
@@ -10,13 +10,18 @@ import { AdminPanelStateView } from "./AdminPanelState";
 
 export interface ApiKeysPanelProps<CreateInput> {
   adapter: AdminApiKeysAdapter<CreateInput>;
-  createInput: CreateInput;
+  createInput?: CreateInput;
+  renderCreate?: (controls: {
+    create: (input: CreateInput) => void;
+    pending: boolean;
+  }) => ReactNode;
 }
 
 /** Lists safe metadata and reveals a raw secret only from a create/rotate response. */
 export function ApiKeysPanel<CreateInput>({
   adapter,
   createInput,
+  renderCreate,
 }: ApiKeysPanelProps<CreateInput>) {
   const [keys, setKeys] = useState<readonly AdminApiKey[]>();
   const [secret, setSecret] = useState<string>();
@@ -50,10 +55,10 @@ export function ApiKeysPanel<CreateInput>({
         state={{ kind: "loading", label: "Loading API keys…" }}
       />
     );
-  const create = async () => {
+  const create = async (input: CreateInput) => {
     setPending("create");
     try {
-      const result = validateAdminApiKeyCreated(await adapter.create(createInput));
+      const result = validateAdminApiKeyCreated(await adapter.create(input));
       setSecret(result.secret);
       await load();
     } catch (reason) {
@@ -101,13 +106,20 @@ export function ApiKeysPanel<CreateInput>({
           </button>
         </div>
       ) : null}
-      <button
-        type="button"
-        disabled={pending === "create"}
-        onClick={() => void create()}
-      >
-        Create API key
-      </button>
+      {renderCreate ? (
+        renderCreate({
+          create: (input) => void create(input),
+          pending: pending === "create",
+        })
+      ) : createInput !== undefined ? (
+        <button
+          type="button"
+          disabled={pending === "create"}
+          onClick={() => void create(createInput)}
+        >
+          Create API key
+        </button>
+      ) : null}
       <ul className="admin-kit__keys-list">
         {keys.map((key) => (
           <li key={key.id}>
