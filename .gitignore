@@ -80,7 +80,8 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+# `dist/` is intentionally committed: GitHub-tag installs must not need an
+# install-time build. See STANDARDS.md.
 .output
 
 # Gatsby files
