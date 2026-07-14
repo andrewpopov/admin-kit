@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   type AdminApiKey,
   type AdminApiKeysAdapter,
+  resolveAdminApiKeyState,
   validateAdminApiKeyCreated,
   validateAdminApiKeys,
 } from "../core";
@@ -32,6 +33,7 @@ export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
     keys: readonly AdminApiKey[];
     requestRevoke: (key: AdminApiKey) => void;
     requestRotate?: (key: AdminApiKey) => void;
+    update?: (key: AdminApiKey, input: UpdateInput) => Promise<boolean>;
     pendingKeyId?: string;
   }) => ReactNode;
 }
@@ -79,6 +81,10 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
         state={{ kind: "loading", label: "Loading API keys…" }}
       />
     );
+  const lifecycleKeys = keys.map((key) => ({
+    ...key,
+    state: resolveAdminApiKeyState(key),
+  }));
   const create = async (input: CreateInput): Promise<boolean> => {
     setPending("create");
     setActionError(undefined);
@@ -189,12 +195,13 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
         </button>
       ) : null}
       {renderKeys ? renderKeys({
-        keys,
+        keys: lifecycleKeys,
         requestRevoke,
         requestRotate,
+        update: adapter.update ? update : undefined,
         pendingKeyId: pending === "create" ? undefined : pending,
       }) : <ul className="admin-kit__keys-list">
-        {keys.map((key) => (
+        {lifecycleKeys.map((key) => (
           <li key={key.id}>
             <div>
               <strong>{key.name}</strong>

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.2
+
+- Resolve revoked and expired API-key state from durable safe metadata before
+  rendering lifecycle actions.
+- Expose the package-owned metadata update lifecycle to custom credential rows.
+
 ## 0.5.1
 
 - Let host applications render policy-specific API-key rows while Admin Kit

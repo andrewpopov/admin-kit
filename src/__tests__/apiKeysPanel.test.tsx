@@ -60,6 +60,22 @@ describe("ApiKeysPanel", () => {
     await waitFor(() => expect(revoke).toHaveBeenCalledWith({ keyId: "key-1" }));
   });
 
+  it("derives expired state from durable metadata and removes lifecycle actions", async () => {
+    const expired = {
+      ...activeKey,
+      expiresAt: "2020-01-01T00:00:00.000Z",
+    };
+    render(
+      <ApiKeysPanel
+        adapter={{ list: vi.fn().mockResolvedValue([expired]), create: vi.fn(), revoke: vi.fn(), rotate: vi.fn() }}
+      />,
+    );
+
+    await screen.findByText(/expired/);
+    expect(screen.queryByRole("button", { name: "Rotate" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Revoke" })).toBeNull();
+  });
+
   it("lets a host-owned form supply a dynamic create input", async () => {
     const create = vi.fn().mockResolvedValue({ key: activeKey, secret: "slot-once" });
     render(
@@ -199,5 +215,22 @@ describe("ApiKeysPanel", () => {
     expect(revoke).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Revoke key" }));
     await waitFor(() => expect(revoke).toHaveBeenCalledWith({ keyId: "key-1" }));
+  });
+
+  it("gives a custom row the package-owned metadata update lifecycle", async () => {
+    const update = vi.fn().mockResolvedValue(activeKey);
+    let save: ((key: typeof activeKey, input: { expiresAt: string | null }) => Promise<boolean>) | undefined;
+    render(
+      <ApiKeysPanel<{ name: string }, { expiresAt: string | null }>
+        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn(), revoke: vi.fn(), update }}
+        renderKeys={({ keys, update: updateKey }) => {
+          save = updateKey;
+          return <span>{keys[0]?.name}</span>;
+        }}
+      />,
+    );
+    await screen.findByText("Automation");
+    await expect(save?.(activeKey, { expiresAt: null })).resolves.toBe(true);
+    expect(update).toHaveBeenCalledWith({ keyId: "key-1", update: { expiresAt: null } });
   });
 });

@@ -34,6 +34,7 @@ export {
 } from "./featureFlags";
 export {
   defineAdminApiKeysAdapter,
+  resolveAdminApiKeyState,
   validateAdminApiKeyCreated,
   validateAdminApiKeys,
   type AdminApiKey,

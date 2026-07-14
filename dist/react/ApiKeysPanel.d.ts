@@ -24,6 +24,7 @@ export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
         keys: readonly AdminApiKey[];
         requestRevoke: (key: AdminApiKey) => void;
         requestRotate?: (key: AdminApiKey) => void;
+        update?: (key: AdminApiKey, input: UpdateInput) => Promise<boolean>;
         pendingKeyId?: string;
     }) => ReactNode;
 }

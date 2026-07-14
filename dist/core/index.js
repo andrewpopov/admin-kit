@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateAdminMemberships = exports.defineAdminMembershipsAdapter = exports.validateAdminEventsPage = exports.defineAdminEventsAdapter = exports.validateAdminApiKeys = exports.validateAdminApiKeyCreated = exports.defineAdminApiKeysAdapter = exports.validateAdminFeatureFlagsSnapshot = exports.defineAdminFeatureFlagsAdapter = exports.defineAdminUsersAdapter = exports.normalizeAdminFailure = exports.defineAdminPortal = exports.defineAdminConsole = void 0;
+exports.validateAdminMemberships = exports.defineAdminMembershipsAdapter = exports.validateAdminEventsPage = exports.defineAdminEventsAdapter = exports.validateAdminApiKeys = exports.validateAdminApiKeyCreated = exports.resolveAdminApiKeyState = exports.defineAdminApiKeysAdapter = exports.validateAdminFeatureFlagsSnapshot = exports.defineAdminFeatureFlagsAdapter = exports.defineAdminUsersAdapter = exports.normalizeAdminFailure = exports.defineAdminPortal = exports.defineAdminConsole = void 0;
 var contracts_1 = require("./contracts");
 Object.defineProperty(exports, "defineAdminConsole", { enumerable: true, get: function () { return contracts_1.defineAdminConsole; } });
 Object.defineProperty(exports, "defineAdminPortal", { enumerable: true, get: function () { return contracts_1.defineAdminPortal; } });
@@ -12,6 +12,7 @@ Object.defineProperty(exports, "defineAdminFeatureFlagsAdapter", { enumerable: t
 Object.defineProperty(exports, "validateAdminFeatureFlagsSnapshot", { enumerable: true, get: function () { return featureFlags_1.validateAdminFeatureFlagsSnapshot; } });
 var apiKeys_1 = require("./apiKeys");
 Object.defineProperty(exports, "defineAdminApiKeysAdapter", { enumerable: true, get: function () { return apiKeys_1.defineAdminApiKeysAdapter; } });
+Object.defineProperty(exports, "resolveAdminApiKeyState", { enumerable: true, get: function () { return apiKeys_1.resolveAdminApiKeyState; } });
 Object.defineProperty(exports, "validateAdminApiKeyCreated", { enumerable: true, get: function () { return apiKeys_1.validateAdminApiKeyCreated; } });
 Object.defineProperty(exports, "validateAdminApiKeys", { enumerable: true, get: function () { return apiKeys_1.validateAdminApiKeys; } });
 var events_1 = require("./events");

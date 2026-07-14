@@ -31,6 +31,10 @@ function ApiKeysPanel({ adapter, title = "API keys", createInput, renderCreate, 
         return ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } }));
     if (!keys)
         return ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "loading", label: "Loading API keys…" } }));
+    const lifecycleKeys = keys.map((key) => ({
+        ...key,
+        state: (0, core_1.resolveAdminApiKeyState)(key),
+    }));
     const create = async (input) => {
         setPending("create");
         setActionError(undefined);
@@ -115,11 +119,12 @@ function ApiKeysPanel({ adapter, title = "API keys", createInput, renderCreate, 
                 create,
                 pending: pending === "create",
             })) : createInput !== undefined ? ((0, jsx_runtime_1.jsx)("button", { type: "button", disabled: pending === "create", onClick: () => void create(createInput), children: "Create API key" })) : null, renderKeys ? renderKeys({
-                keys,
+                keys: lifecycleKeys,
                 requestRevoke,
                 requestRotate,
+                update: adapter.update ? update : undefined,
                 pendingKeyId: pending === "create" ? undefined : pending,
-            }) : (0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__keys-list", children: keys.map((key) => ((0, jsx_runtime_1.jsxs)("li", { children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("strong", { children: key.name }), (0, jsx_runtime_1.jsx)("code", { children: key.maskedKey }), (0, jsx_runtime_1.jsxs)("p", { children: [key.state, " \u00B7 scopes: ", key.scopes.join(", ") || "none", " \u00B7 last used: ", key.lastUsedAt ?? "never", " \u00B7 expires: ", key.expiresAt ?? "never"] }), key.details?.length ? ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__key-details", children: key.details.map((detail) => (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: detail.label }), (0, jsx_runtime_1.jsx)("dd", { children: detail.value })] }, detail.label)) })) : null] }), key.state === "active" ? ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-actions", children: [adapter.rotate ? ((0, jsx_runtime_1.jsx)("button", { type: "button", disabled: pending === key.id, onClick: () => requestRotate?.(key), children: "Rotate" })) : null, adapter.update && renderEdit ? renderEdit({ key, update: (input) => update(key, input), pending: pending === key.id }) : null, (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: pending === key.id, onClick: () => requestRevoke(key), children: "Revoke" })] })) : null] }, key.id))) }), (0, jsx_runtime_1.jsx)(AdminConfirmationDialog_1.AdminConfirmationDialog, { open: Boolean(confirmation), title: confirmation?.action === "rotate" ? "Rotate API key" : "Revoke API key", description: confirmation?.action === "rotate"
+            }) : (0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__keys-list", children: lifecycleKeys.map((key) => ((0, jsx_runtime_1.jsxs)("li", { children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("strong", { children: key.name }), (0, jsx_runtime_1.jsx)("code", { children: key.maskedKey }), (0, jsx_runtime_1.jsxs)("p", { children: [key.state, " \u00B7 scopes: ", key.scopes.join(", ") || "none", " \u00B7 last used: ", key.lastUsedAt ?? "never", " \u00B7 expires: ", key.expiresAt ?? "never"] }), key.details?.length ? ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__key-details", children: key.details.map((detail) => (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: detail.label }), (0, jsx_runtime_1.jsx)("dd", { children: detail.value })] }, detail.label)) })) : null] }), key.state === "active" ? ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-actions", children: [adapter.rotate ? ((0, jsx_runtime_1.jsx)("button", { type: "button", disabled: pending === key.id, onClick: () => requestRotate?.(key), children: "Rotate" })) : null, adapter.update && renderEdit ? renderEdit({ key, update: (input) => update(key, input), pending: pending === key.id }) : null, (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: pending === key.id, onClick: () => requestRevoke(key), children: "Revoke" })] })) : null] }, key.id))) }), (0, jsx_runtime_1.jsx)(AdminConfirmationDialog_1.AdminConfirmationDialog, { open: Boolean(confirmation), title: confirmation?.action === "rotate" ? "Rotate API key" : "Revoke API key", description: confirmation?.action === "rotate"
                     ? "The current credential will stop working. Copy the replacement secret immediately after rotating it."
                     : "This credential will stop working immediately and cannot be restored.", confirmLabel: confirmation?.action === "rotate" ? "Rotate key" : "Revoke key", danger: confirmation?.action === "revoke", onCancel: () => setConfirmation(undefined), onConfirm: () => void confirmAction() })] }));
 }
