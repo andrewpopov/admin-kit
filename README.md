@@ -7,7 +7,7 @@ authorization, and product-specific pages.
 
 ## What belongs here
 
-- Controlled admin navigation and accessible panel semantics.
+- Controlled tab navigation and grouped, routed admin-portal composition.
 - Shared loading, error, empty, and confirmation interactions.
 - Serializable adapter contracts and consumer-shaped test fixtures.
 - User-management, feature-flag, and API-key modules.
@@ -55,12 +55,72 @@ import { AdminConsole } from "@andrewpopov/admin-kit/react";
 />;
 ```
 
+## Grouped admin portal
+
+Use `AdminPortal` for a routed administration area with multiple groups and
+application-specific pages. The package owns grouping, current-page and
+disabled semantics, responsive layout, and the empty-capability state. The host
+still owns URLs and renders its router's link component.
+
+When using the default button navigation, `onSectionChange` is required. A
+custom router-link renderer satisfies navigation by itself and may optionally
+receive `onSectionChange` as a selection notification.
+
+```tsx
+import { AdminPortal } from "@andrewpopov/admin-kit/react";
+
+<AdminPortal
+  activeSection={routeSection}
+  groups={[
+    {
+      id: "core",
+      label: "Core administration",
+      sections: [
+        { id: "users", label: "Users", render: () => <UsersPanel /> },
+        { id: "logs", label: "Logs", visible: canViewLogs, render: () => <Logs /> },
+      ],
+    },
+    {
+      id: "application",
+      label: "Application",
+      sections: [{ id: "catalog", label: "Catalog", render: () => <Catalog /> }],
+    },
+  ]}
+  renderNavigationItem={({
+    section,
+    className,
+    ariaCurrent,
+    ariaDisabled,
+    tabIndex,
+    onClick,
+  }) => (
+    <RouterLink
+      aria-current={ariaCurrent}
+      aria-disabled={ariaDisabled}
+      className={className}
+      onClick={onClick}
+      tabIndex={tabIndex}
+      to={`/admin/${section.id}`}
+    >
+      {section.label}
+    </RouterLink>
+  )}
+/>;
+```
+
+`visible` is a host-computed presentation input, not an authorization guard.
+The server must still authorize every route and operation. A disabled custom
+link must spread the supplied `ariaDisabled`, `tabIndex`, and `onClick` values
+so it cannot navigate.
+
 ## Core contracts
 
-`@andrewpopov/admin-kit/core` has no React dependency. It exports console
-definition validation, paged-resource types, and transport-neutral failure
-normalization. `@andrewpopov/admin-kit/testing` exports small immutable
-fixtures for adapter and consumer-shaped tests.
+`@andrewpopov/admin-kit/core` has no React dependency. It exports console and
+grouped-portal definition validation, paged-resource types, and
+transport-neutral failure normalization. `defineAdminPortal` rejects empty
+groups and duplicate group or section IDs before ambiguous routes reach the
+UI. `@andrewpopov/admin-kit/testing` exports small immutable fixtures for
+adapter and consumer-shaped tests.
 
 ### Users adapter
 

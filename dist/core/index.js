@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateAdminMemberships = exports.defineAdminMembershipsAdapter = exports.validateAdminApiKeys = exports.validateAdminApiKeyCreated = exports.defineAdminApiKeysAdapter = exports.validateAdminFeatureFlagsSnapshot = exports.defineAdminFeatureFlagsAdapter = exports.defineAdminUsersAdapter = exports.normalizeAdminFailure = exports.defineAdminConsole = void 0;
+exports.validateAdminMemberships = exports.defineAdminMembershipsAdapter = exports.validateAdminApiKeys = exports.validateAdminApiKeyCreated = exports.defineAdminApiKeysAdapter = exports.validateAdminFeatureFlagsSnapshot = exports.defineAdminFeatureFlagsAdapter = exports.defineAdminUsersAdapter = exports.normalizeAdminFailure = exports.defineAdminPortal = exports.defineAdminConsole = void 0;
 var contracts_1 = require("./contracts");
 Object.defineProperty(exports, "defineAdminConsole", { enumerable: true, get: function () { return contracts_1.defineAdminConsole; } });
+Object.defineProperty(exports, "defineAdminPortal", { enumerable: true, get: function () { return contracts_1.defineAdminPortal; } });
 Object.defineProperty(exports, "normalizeAdminFailure", { enumerable: true, get: function () { return contracts_1.normalizeAdminFailure; } });
 var users_1 = require("./users");
 Object.defineProperty(exports, "defineAdminUsersAdapter", { enumerable: true, get: function () { return users_1.defineAdminUsersAdapter; } });
