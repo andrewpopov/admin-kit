@@ -30,7 +30,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.5.3
+npm install github:andrewpopov/admin-kit#v0.6.0
 ```
 
 `react` is a peer dependency. Import default styles only if they suit the host
@@ -43,6 +43,11 @@ import "@andrewpopov/admin-kit/styles.css";
 The stylesheet follows a host `.dark` class automatically. Its defaults are
 available even when a panel is rendered without an `.admin-kit` wrapper, so
 portaled confirmations retain the same readable theme.
+
+The default stylesheet supplies a restrained visual system: raised panel
+surfaces, responsive controls, clear primary/destructive action hierarchy, and
+matching light and dark palettes. Hosts can tune it without forking component
+styles by overriding the `--admin-kit-*` variables on an app or admin wrapper.
 
 ## Controlled shell
 
