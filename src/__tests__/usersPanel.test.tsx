@@ -128,4 +128,28 @@ describe('UsersPanel', () => {
     expect(screen.getByText('Owner')).toBeTruthy();
     expect(screen.getByText('Active')).toBeTruthy();
   });
+
+  it('omits empty details and actions columns instead of rendering blank table cells', async () => {
+    render(
+      <UsersPanel
+        adapter={{
+          list: async () => ({
+            items: [{
+              id: 'u2',
+              label: 'grace@example.test',
+              role: { value: 'member', label: 'Member' },
+              status: { value: 'active', label: 'Active' },
+            }],
+            page: 1,
+            pageSize: 25,
+            total: 1,
+          }),
+        }}
+      />,
+    );
+
+    await screen.findByText('grace@example.test');
+    expect(screen.queryByRole('columnheader', { name: 'Details' })).toBeNull();
+    expect(screen.queryByRole('columnheader', { name: 'Actions' })).toBeNull();
+  });
 });
