@@ -9,7 +9,7 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
         label?: string;
         placeholder?: string;
     };
-    /** Compact semantic table on wide screens; cards remain the default. */
+    /** The standard responsive semantic-table presentation. */
     presentation?: "table";
     renderHeaderActions?: (context: {
         reload: () => Promise<void>;

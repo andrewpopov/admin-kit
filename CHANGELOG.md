@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.13.1
+
+- Apply the shared responsive table contract to backup and operational-job panels, including scoped headers and action semantics.
+- Report run and restore failures in the owning panel instead of silently clearing the busy state.
+
 ## 0.13.0
 
 - Standardize responsive administrative-table styling across user and operational surfaces.
