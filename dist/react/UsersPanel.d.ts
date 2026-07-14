@@ -28,12 +28,15 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
 export interface AdminUserTableColumn<User extends AdminUserSummary> {
     id: string;
     label: ReactNode;
-    render: (user: User, context: {
-        reload: () => Promise<void>;
-        isPending: boolean;
-    }) => ReactNode;
+    render: (user: User, context: AdminUserTableCellContext) => ReactNode;
     className?: string;
     headerClassName?: string;
+}
+export interface AdminUserTableCellContext {
+    reload: () => Promise<void>;
+    isPending: boolean;
+    setRole: (role: string) => Promise<void>;
+    setStatus: (status: string) => Promise<void>;
 }
 /**
  * A paged, adapter-backed user directory. It only owns normalized role and
