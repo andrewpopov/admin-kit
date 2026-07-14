@@ -9,9 +9,27 @@ export interface AdminApiKey {
   scopes: readonly string[];
   createdAt: string;
   expiresAt?: string;
+  /** The durable time the credential was revoked, when the host retains it. */
+  revokedAt?: string;
   lastUsedAt?: string;
   /** Safe policy or provenance facts supplied by the host. */
   details?: readonly AdminApiKeyDetail[];
+}
+
+/**
+ * Resolves the display and action state from durable lifecycle timestamps.
+ * Revocation wins over expiry so a revoked credential never appears active
+ * merely because its expiry is later removed or corrected.
+ */
+export function resolveAdminApiKeyState(
+  key: Pick<AdminApiKey, "state" | "expiresAt" | "revokedAt">,
+  now = new Date(),
+): AdminApiKeyState {
+  if (key.revokedAt || key.state === "revoked") return "revoked";
+  if (key.expiresAt && new Date(key.expiresAt).getTime() <= now.getTime()) {
+    return "expired";
+  }
+  return key.state === "expired" ? "expired" : "active";
 }
 
 export interface AdminApiKeyDetail {
@@ -48,6 +66,9 @@ export function validateAdminApiKeys(
     if (!key.name.trim()) throw new Error(`API key ${key.id} needs a name.`);
     if (!key.maskedKey.trim())
       throw new Error(`API key ${key.id} needs masked display material.`);
+    if (!["active", "revoked", "expired"].includes(key.state)) {
+      throw new Error(`API key ${key.id} has an invalid lifecycle state.`);
+    }
     if (ids.has(key.id)) throw new Error(`Duplicate API key ID: ${key.id}.`);
     ids.add(key.id);
   }

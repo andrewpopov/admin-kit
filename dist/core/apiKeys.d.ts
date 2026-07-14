@@ -8,10 +8,18 @@ export interface AdminApiKey {
     scopes: readonly string[];
     createdAt: string;
     expiresAt?: string;
+    /** The durable time the credential was revoked, when the host retains it. */
+    revokedAt?: string;
     lastUsedAt?: string;
     /** Safe policy or provenance facts supplied by the host. */
     details?: readonly AdminApiKeyDetail[];
 }
+/**
+ * Resolves the display and action state from durable lifecycle timestamps.
+ * Revocation wins over expiry so a revoked credential never appears active
+ * merely because its expiry is later removed or corrected.
+ */
+export declare function resolveAdminApiKeyState(key: Pick<AdminApiKey, "state" | "expiresAt" | "revokedAt">, now?: Date): AdminApiKeyState;
 export interface AdminApiKeyDetail {
     label: string;
     value: string;

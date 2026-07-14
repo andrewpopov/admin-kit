@@ -30,7 +30,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.5.1
+npm install github:andrewpopov/admin-kit#v0.5.2
 ```
 
 `react` is a peer dependency. Import default styles only if they suit the host
@@ -203,6 +203,12 @@ package-owned create operation and pending state; its promise resolves to
 Use `title` to keep product vocabulary accurate (for example, "Personal access
 tokens"). The host retains its form schema and validation.
 
+Set `expiresAt` and `revokedAt` to the durable timestamps returned by the host.
+The package resolves lifecycle state at render time, so an active key becomes
+non-actionable when its expiry passes even before the next list refresh.
+Revocation takes precedence over expiry. The server remains responsible for
+enforcing both timestamps.
+
 Use `AdminApiKey.details` for safe policy facts such as allowed paths, actions,
 list IDs, IP restrictions, expiry, or a rate limit. Use `renderEdit` only when
 the host provides the optional `update` mutation; it receives a package-owned
@@ -210,9 +216,9 @@ reload lifecycle but retains the edit form, policy schema, and server-side
 authorization.
 
 Use `renderKeys` when the host needs to retain a richer credential list or
-empty state. It receives only safe key metadata plus package-owned revoke and
-optional rotate requests, so the package still owns destructive confirmation
-and the secret-safe lifecycle.
+empty state. It receives only safe key metadata plus package-owned revoke,
+optional rotate, and optional metadata-update callbacks, so the package still
+owns destructive confirmation and the secret-safe lifecycle.
 
 ### Administrative events
 
