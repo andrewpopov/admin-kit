@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.0
+
+- Render user management as a responsive semantic table while preserving adapter-driven role and status controls.
+
 ## 0.7.0
 
 - Add host `className` styling seams to all shared panels and state surfaces,

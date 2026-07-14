@@ -37,6 +37,7 @@ describe('UsersPanel', () => {
     );
 
     await screen.findByText('Ada Lovelace');
+    expect(screen.getByRole('table')).toBeTruthy();
     expect(screen.getByText('Created')).toBeTruthy();
     expect(screen.getByText('Jul 10, 2026')).toBeTruthy();
     expect(screen.getByText('Owner')).toBeTruthy();

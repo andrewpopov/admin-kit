@@ -13,6 +13,8 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
   query?: Omit<AdminPageQuery, "page" | "pageSize">;
   /** Opt in when the host adapter maps search text into its list query. */
   search?: false | { label?: string; placeholder?: string };
+  /** Compact semantic table on wide screens; cards remain the default. */
+  presentation?: "table";
   renderHeaderActions?: (context: {
     reload: () => Promise<void>;
     isLoading: boolean;
@@ -34,6 +36,7 @@ export function UsersPanel<User extends AdminUserSummary>({
   pageSize = 25,
   query,
   search: searchOptions = false,
+  presentation = "table",
   renderHeaderActions,
   renderUserActions,
   className,
@@ -136,13 +139,14 @@ export function UsersPanel<User extends AdminUserSummary>({
         <AdminPanelStateView state={{ kind: "empty", title: "No users found." }} />
       ) : (
         <>
-          <ul className="admin-kit__users-list">
+          {presentation === "table" ? <div className="admin-kit__users-table-wrap"><table className="admin-kit__users-table"><thead><tr><th scope="col">User</th><th scope="col">Details</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead><tbody>
             {result.items.map((user) => (
-              <li className="admin-kit__user" key={user.id} aria-busy={pendingUserId === user.id}>
-                <div className="admin-kit__user-identity">
+              <tr key={user.id} aria-busy={pendingUserId === user.id}>
+                <td className="admin-kit__user-identity">
                   <strong>{user.label}</strong>
                   {user.secondaryLabel ? <span>{user.secondaryLabel}</span> : null}
                   {user.badges?.length ? <span>{user.badges.join(" · ")}</span> : null}
+                </td><td>
                   {user.details?.length ? (
                     <dl className="admin-kit__user-details">
                       {user.details.map((detail) => (
@@ -153,46 +157,25 @@ export function UsersPanel<User extends AdminUserSummary>({
                       ))}
                     </dl>
                   ) : null}
-                </div>
-                <div className="admin-kit__user-controls">
-                  {user.role && !(adapter.roles?.length && adapter.setRole) ? <span className="admin-kit__user-value">{user.role.label}</span> : null}
-                  {user.status && !(adapter.statuses?.length && adapter.setStatus) ? <span className="admin-kit__user-value">{user.status.label}</span> : null}
+                </td><td>
                   {adapter.roles?.length && adapter.setRole && user.role ? (
-                    <label>
-                      <span>Role</span>
-                      <select
-                        aria-label={`Role for ${user.label}`}
-                        disabled={pendingUserId === user.id}
-                        value={user.role.value}
-                        onChange={(event) => void updateRole(user.id, event.target.value)}
-                      >
-                        {adapter.roles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
-                      </select>
-                    </label>
-                  ) : null}
+                    <select aria-label={`Role for ${user.label}`} disabled={pendingUserId === user.id} value={user.role.value} onChange={(event) => void updateRole(user.id, event.target.value)}>{adapter.roles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}</select>
+                  ) : user.role ? <span className="admin-kit__user-value">{user.role.label}</span> : null}
+                </td><td>
                   {adapter.statuses?.length && adapter.setStatus && user.status ? (
-                    <label>
-                      <span>Status</span>
-                      <select
-                        aria-label={`Status for ${user.label}`}
-                        disabled={pendingUserId === user.id}
-                        value={user.status.value}
-                        onChange={(event) => void updateStatus(user.id, event.target.value)}
-                      >
-                        {adapter.statuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
-                      </select>
-                    </label>
-                  ) : null}
+                    <select aria-label={`Status for ${user.label}`} disabled={pendingUserId === user.id} value={user.status.value} onChange={(event) => void updateStatus(user.id, event.target.value)}>{adapter.statuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}</select>
+                  ) : user.status ? <span className="admin-kit__user-value">{user.status.label}</span> : null}
+                </td><td className="admin-kit__user-controls">
                   {renderUserActions
                     ? renderUserActions(user, {
                         reload: load,
                         isPending: pendingUserId === user.id,
                       })
                     : null}
-                </div>
-              </li>
+                </td>
+              </tr>
             ))}
-          </ul>
+          </tbody></table></div> : null}
           {Math.max(1, Math.ceil(result.total / result.pageSize)) > 1 ? (
             <nav className="admin-kit__pagination" aria-label="User pagination">
               <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>

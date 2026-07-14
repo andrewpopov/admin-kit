@@ -9,6 +9,8 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
         label?: string;
         placeholder?: string;
     };
+    /** Compact semantic table on wide screens; cards remain the default. */
+    presentation?: "table";
     renderHeaderActions?: (context: {
         reload: () => Promise<void>;
         isLoading: boolean;
@@ -24,4 +26,4 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
  */
-export declare function UsersPanel<User extends AdminUserSummary>({ adapter, pageSize, query, search: searchOptions, renderHeaderActions, renderUserActions, className, }: UsersPanelProps<User>): import("react").JSX.Element;
+export declare function UsersPanel<User extends AdminUserSummary>({ adapter, pageSize, query, search: searchOptions, presentation, renderHeaderActions, renderUserActions, className, }: UsersPanelProps<User>): import("react").JSX.Element;
