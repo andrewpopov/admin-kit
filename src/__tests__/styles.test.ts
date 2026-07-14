@@ -18,4 +18,11 @@ describe("Admin Kit styles", () => {
     expect(styles).toContain(".admin-kit__keys > button");
     expect(styles).toContain(".admin-kit__user:hover");
   });
+
+  it("protects the shared responsive table and workspace contracts", () => {
+    expect(styles).toContain(".admin-kit__workspace");
+    expect(styles).toContain(".admin-kit__table-wrap");
+    expect(styles).toContain(".admin-kit__table th");
+    expect(styles).toContain("overflow-x: auto");
+  });
 });
