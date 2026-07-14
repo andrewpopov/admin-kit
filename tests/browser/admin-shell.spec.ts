@@ -13,4 +13,6 @@ test("keeps desktop landmarks and mobile table overflow inside the panel", async
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   expect(await page.locator(".admin-kit__table-wrap").evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
+  await expect(page.getByRole("heading", { name: "Server logs", level: 2 })).toBeVisible();
+  expect(await page.locator(".admin-kit__logs-output").evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
 });

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SettingsPanel = exports.OperationalJobsPanel = exports.BackupsPanel = exports.AdminStatusSummary = exports.MembershipsPanel = exports.EventsPanel = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminWorkspace = exports.AdminPanelStateView = exports.AdminPortal = exports.AdminConsole = exports.AdminConfirmationDialog = exports.AdminActionButton = void 0;
+exports.SettingsPanel = exports.OperationalJobsPanel = exports.BackupsPanel = exports.AdminStatusSummary = exports.LogsPanel = exports.MembershipsPanel = exports.EventsPanel = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminWorkspace = exports.AdminPanelStateView = exports.AdminPortal = exports.AdminConsole = exports.AdminConfirmationDialog = exports.AdminActionButton = void 0;
 var AdminActionButton_1 = require("./AdminActionButton");
 Object.defineProperty(exports, "AdminActionButton", { enumerable: true, get: function () { return AdminActionButton_1.AdminActionButton; } });
 var AdminConfirmationDialog_1 = require("./AdminConfirmationDialog");
@@ -23,6 +23,8 @@ var EventsPanel_1 = require("./EventsPanel");
 Object.defineProperty(exports, "EventsPanel", { enumerable: true, get: function () { return EventsPanel_1.EventsPanel; } });
 var MembershipsPanel_1 = require("./MembershipsPanel");
 Object.defineProperty(exports, "MembershipsPanel", { enumerable: true, get: function () { return MembershipsPanel_1.MembershipsPanel; } });
+var LogsPanel_1 = require("./LogsPanel");
+Object.defineProperty(exports, "LogsPanel", { enumerable: true, get: function () { return LogsPanel_1.LogsPanel; } });
 var OperationalPanels_1 = require("./OperationalPanels");
 Object.defineProperty(exports, "AdminStatusSummary", { enumerable: true, get: function () { return OperationalPanels_1.AdminStatusSummary; } });
 Object.defineProperty(exports, "BackupsPanel", { enumerable: true, get: function () { return OperationalPanels_1.BackupsPanel; } });

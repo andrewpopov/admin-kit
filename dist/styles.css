@@ -358,6 +358,26 @@
 .admin-kit__membership-role--danger { background: var(--admin-kit-danger-soft); color: var(--admin-kit-danger); }
 .admin-kit__membership-controls { align-items: center; display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
+.admin-kit__logs { display: grid; gap: 1rem; }
+.admin-kit__logs-header, .admin-kit__logs-actions, .admin-kit__logs-summary { align-items: center; display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: space-between; }
+.admin-kit__logs-header h2, .admin-kit__logs-header p, .admin-kit__logs-feedback { margin: 0; }
+.admin-kit__logs-header h2 { font-size: 1.125rem; letter-spacing: -0.01em; }
+.admin-kit__logs-header p, .admin-kit__logs-summary, .admin-kit__logs-feedback { color: var(--admin-kit-muted); }
+.admin-kit__logs-filters { align-items: end; display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.admin-kit__logs-filters label { display: grid; gap: 0.375rem; }
+.admin-kit__logs-filters label > span { color: var(--admin-kit-muted); font-size: 0.8125rem; font-weight: 700; }
+.admin-kit__logs-filters input, .admin-kit__logs-filters select { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.5rem; padding: 0.375rem 0.5rem; }
+.admin-kit__logs-search { flex: 1 1 16rem; }
+.admin-kit__logs-output { background: color-mix(in srgb, var(--admin-kit-text) 95%, black); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius); color: var(--admin-kit-surface); list-style: none; margin: 0; max-block-size: 34rem; overflow: auto; padding: 0.5rem 0; }
+.admin-kit__log-line { border-inline-start: 3px solid transparent; display: grid; gap: 0.25rem; padding: 0.5rem 0.75rem; }
+.admin-kit__log-line:hover { background: rgb(255 255 255 / 6%); }
+.admin-kit__log-line--info { border-inline-start-color: var(--admin-kit-accent); }
+.admin-kit__log-line--success { border-inline-start-color: var(--admin-kit-success); }
+.admin-kit__log-line--warning { border-inline-start-color: var(--admin-kit-warning); }
+.admin-kit__log-line--danger { border-inline-start-color: var(--admin-kit-danger); }
+.admin-kit__log-context { color: color-mix(in srgb, var(--admin-kit-surface) 72%, transparent); display: flex; flex-wrap: wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; gap: 0.75rem; }
+.admin-kit__log-line pre { color: inherit; font: 0.8125rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+
 .admin-kit__keys { display: grid; gap: 1rem; }
 .admin-kit__keys h2, .admin-kit__keys-list p { margin: 0; }
 .admin-kit__secret { background: var(--admin-kit-warning-soft); border: 1px solid var(--admin-kit-warning); border-radius: var(--admin-kit-radius); display: grid; gap: 0.5rem; padding: 1rem; }
@@ -385,4 +405,6 @@
   .admin-kit__users-table { min-width: 30rem; }
   .admin-kit__users-table--with-details { min-width: 36rem; }
   .admin-kit__memberships-table { min-width: 34rem; }
+  .admin-kit__logs-header { align-items: stretch; flex-direction: column; }
+  .admin-kit__logs-actions > button { flex: 1 1 auto; }
 }
