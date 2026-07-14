@@ -16,6 +16,8 @@ authorization, and product-specific pages.
 - An operational-jobs panel for scheduled work where backup/restore semantics do not apply.
 - An adapter-backed administrative events panel with declared filters, source
   context, safe metadata details, refresh, and paging.
+- An adapter-backed runtime log viewer with source, bounded-tail, filter,
+  search, refresh, polling, and copy interactions.
 - Scoped-membership administration for workspaces, organizations, projects,
   and other host-defined scopes, including direct/inherited access, role
   changes, host-owned additions, and confirmed removals.
@@ -104,7 +106,7 @@ where possible so an equally targeted host rule wins without `!important`.
 
 `className` is available on every panel — the shells (`AdminConsole`,
 `AdminPortal`), the directory panels (`UsersPanel`, `FeatureFlagsPanel`,
-`EventsPanel`, `ApiKeysPanel`, `MembershipsPanel`), the operational panels
+`EventsPanel`, `LogsPanel`, `ApiKeysPanel`, `MembershipsPanel`), the operational panels
 (`OperationalJobsPanel`, `BackupsPanel`, `SettingsPanel`), and
 `AdminPanelStateView`. Their stable
 `admin-kit__*` classes are supported styling hooks.
@@ -379,6 +381,57 @@ filters the host can execute.
 />
 ```
 
+### Runtime logs
+
+`LogsPanel` is deliberately separate from `EventsPanel`. Events are normalized
+audit or operational records with actor/resource/outcome semantics. Runtime
+logs are bounded process or file output intended for operator inspection.
+
+```tsx
+const logs = defineAdminLogsAdapter({
+  defaultSource: "api.log",
+  lineLimits: [100, 200, 500, 1000],
+  defaultLineLimit: 200,
+  read: async (query) => {
+    const result = await api.readLogTail(query.source, query.limit);
+    return {
+      source: result.file,
+      sources: result.availableFiles.map((file) => ({
+        value: file.name,
+        label: file.name,
+        detail: file.size,
+      })),
+      entries: result.lines.map((line, index) => ({
+        id: `${result.file}:${result.offset + index}`,
+        message: line.message,
+        raw: line.raw,
+        timestamp: line.timestamp,
+        level: line.level,
+        category: line.category,
+      })),
+      total: result.totalLines,
+      levels: result.levels,
+      categories: result.categories,
+    };
+  },
+});
+
+<LogsPanel
+  adapter={logs}
+  pollIntervalMs={5_000}
+  defaultAutoRefresh
+/>;
+```
+
+The host adapter owns source discovery, parsing raw lines, server-side search,
+file-path safety, retention, redaction, and authorization. The panel validates
+the list-safe snapshot, ignores stale responses, filters the loaded window for
+immediate feedback, and sends the applied search back to the adapter. Bewks can
+map its application/PM2 sources and structured categories; Savoro can map its
+combined/error sources and server search; Smarthome can map its dynamic file
+list and split the selected raw tail into entries. Product-specific links into
+audit tools or incident workflows belong around the panel in `AdminWorkspace`.
+
 ### Operational workspace
 
 Use `AdminWorkspace` as the default frame for every administrative route. It
@@ -422,7 +475,7 @@ union of every product page.
 | Credentials | Bewks, Cairn, Sano OS, Savoro, Smarthome | Secret-safe list and create/rotate/revoke/update lifecycle |
 | Administrative events | Bewks, Cairn, Savoro, Smarthome | Normalized records, declared filters, source context, paging |
 | Settings and operations | Bewks, Cairn, Savoro | Typed fields, status summaries, backups, jobs, retry and confirmation behavior |
-| Runtime log tails | Bewks, Savoro, Smarthome | Deferred: source selection, structured versus raw records, search, and refresh semantics need a dedicated adapter |
+| Runtime log tails | Bewks, Savoro, Smarthome | Sources, bounded snapshots, level/category/search controls, refresh/polling, copy, stale-response safety |
 | Imports, catalogs, integrations, security enrollment | Product-specific | Host pages composed inside `AdminPortal`; do not generalize their domain policy |
 
 ## Release requirements

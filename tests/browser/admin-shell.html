@@ -25,6 +25,18 @@
           </div>
         </section>
       </section>
+      <section class="admin-kit__workspace">
+        <header class="admin-kit__workspace-header">
+          <div><h1>Runtime logs</h1><p>Inspect bounded output from the selected process.</p></div>
+        </header>
+        <section class="admin-kit__workspace-content" aria-label="Runtime logs">
+          <section class="admin-kit__logs" aria-label="Runtime log viewer">
+            <header class="admin-kit__logs-header"><div><h2>Server logs</h2><p>2 matching lines · api.log</p></div><div class="admin-kit__logs-actions"><button class="admin-kit__button" type="button">Refresh</button></div></header>
+            <form class="admin-kit__logs-filters"><label><span>Source</span><select><option>api.log</option><option>web.log</option></select></label><label><span>Lines</span><select><option>200</option></select></label><label class="admin-kit__logs-search"><span>Search logs</span><input type="search" value="request" /></label><button class="admin-kit__button" type="button">Apply</button></form>
+            <ol class="admin-kit__logs-output"><li class="admin-kit__log-line admin-kit__log-line--info"><div class="admin-kit__log-context"><time>3:12 PM</time><span>INFO</span><span>http</span></div><pre>request.completed correlation_id=01JZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ</pre></li><li class="admin-kit__log-line admin-kit__log-line--danger"><div class="admin-kit__log-context"><time>3:13 PM</time><span>ERROR</span><span>worker</span></div><pre>worker.failed reason=connection-timeout</pre></li></ol>
+          </section>
+        </section>
+      </section>
     </main>
   </body>
 </html>

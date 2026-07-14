@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `LogsPanel` and `AdminLogsAdapter`, a runtime-output surface proven against
+  Bewks, Savoro, and Smarthome. It supports declared or dynamic sources,
+  bounded snapshots, optional level/category filters, search, refresh,
+  optional polling, copy feedback, and stale-response protection while hosts
+  retain parsing, file-system policy, redaction, retention, and authorization.
+
 ## 0.17.0
 
 ### Added

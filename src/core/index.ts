@@ -66,5 +66,17 @@ export {
   type AdminMembershipSummary,
   type AdminMembershipsAdapter,
 } from "./memberships";
+export {
+  defineAdminLogsAdapter,
+  validateAdminLogsSnapshot,
+  type AdminLogEntry,
+  type AdminLogFilterOption,
+  type AdminLogsAdapter,
+  type AdminLogsQuery,
+  type AdminLogsSnapshot,
+  type AdminLogSource,
+  type AdminLogTone,
+  type AdminLogValue,
+} from "./logs";
 export type { AdminBackupsAdapter, AdminBackupSummary, AdminHealthTone, AdminOperationalJob, AdminOperationalJobsAdapter, AdminOperationalStatus, AdminSettingField, AdminSettingsAdapter } from "./operations";
 export { formatAdminTimestamp } from "./timestamps";
