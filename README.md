@@ -208,7 +208,10 @@ const users = defineAdminUsersAdapter({
 ```
 
 `UsersPanel` renders the paged normalized directory, optional account details,
-and declared role/status controls. Supply `search` only when the host adapter
+and declared role/status controls. An account can set
+`permissions.canChangeRole` or `permissions.canChangeStatus` to `false` to
+render its current value without exposing a control, even when the adapter
+offers that mutation for other accounts. Supply `search` only when the host adapter
 maps query text to its list request, and use `renderHeaderActions` for
 host-owned create or invite forms. Header actions remain available while the
 directory is loading, empty, or failed. Supply `renderUserActions` for
