@@ -65,8 +65,9 @@ describe("ApiKeysPanel", () => {
     render(
       <ApiKeysPanel
         adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create, revoke: vi.fn() }}
+        title="Personal access tokens"
         renderCreate={({ create: submit, pending }) => (
-          <button type="button" disabled={pending} onClick={() => submit({ name: "CLI", expiresInDays: 30 })}>
+          <button type="button" disabled={pending} onClick={() => void submit({ name: "CLI", expiresInDays: 30 })}>
             Generate token
           </button>
         )}
@@ -76,6 +77,29 @@ describe("ApiKeysPanel", () => {
     await screen.findByText("Automation");
     fireEvent.click(screen.getByRole("button", { name: "Generate token" }));
     await screen.findByText("slot-once");
+    expect(screen.getByRole("heading", { name: "Personal access tokens" })).toBeTruthy();
     expect(create).toHaveBeenCalledWith({ name: "CLI", expiresInDays: 30 });
+  });
+
+  it("reports whether a host form submission created a key", async () => {
+    let submit: ((input: { name: string }) => Promise<boolean>) | undefined;
+    const create = vi
+      .fn()
+      .mockResolvedValueOnce({ key: activeKey, secret: "created-once" })
+      .mockRejectedValueOnce(new Error("Creation denied"));
+    render(
+      <ApiKeysPanel
+        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create, revoke: vi.fn() }}
+        renderCreate={(controls) => {
+          submit = controls.create;
+          return null;
+        }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    await expect(submit?.({ name: "CLI" })).resolves.toBe(true);
+    await expect(submit?.({ name: "Denied" })).resolves.toBe(false);
+    await screen.findByText("Creation denied");
   });
 });

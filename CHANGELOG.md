@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1
+
+- Let host-rendered API-key forms await a success result before resetting their
+  local fields, and support product-specific credential titles.
+
 ## 0.3.0
 
 - Add a host-rendered API-key creation seam for app-specific inputs such as
