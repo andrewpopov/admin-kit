@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.0
+
+- Add a reusable operational-jobs panel for scheduled, import, sync, and retention runs.
+
 ## 0.10.0
 
 - Add reusable operational status, backup lifecycle, and settings panels with host-owned adapters.

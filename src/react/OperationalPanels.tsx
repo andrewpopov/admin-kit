@@ -1,8 +1,20 @@
 import { useEffect, useState } from "react";
-import type { AdminBackupsAdapter, AdminOperationalStatus, AdminSettingsAdapter, AdminSettingField } from "../core";
+import type { AdminBackupsAdapter, AdminOperationalJobsAdapter, AdminOperationalStatus, AdminSettingsAdapter, AdminSettingField } from "../core";
 import { AdminPanelStateView } from "./AdminPanelState";
 
 export function AdminStatusSummary({ items }: { items: readonly AdminOperationalStatus[] }) { return <dl className="admin-kit__status-summary">{items.map(item => <div className={`admin-kit__status admin-kit__status--${item.tone ?? "neutral"}`} key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd>{item.detail ? <small>{item.detail}</small> : null}</div>)}</dl>; }
+
+/** Displays host-owned scheduled, import, and retention runs without mislabeling them as backups. */
+export function OperationalJobsPanel({ adapter, title = "Operational jobs", runLabel = "Run now" }: { adapter: AdminOperationalJobsAdapter; title?: string; runLabel?: string }) {
+  const [items, setItems] = useState<readonly import("../core").AdminOperationalJob[]>();
+  const [error, setError] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const load = async () => { try { setError(undefined); setItems((await adapter.list({ page: 1, pageSize: 25 })).items); } catch (reason) { setError(reason instanceof Error ? reason.message : "Unable to load operational jobs."); } };
+  useEffect(() => { void load(); }, [adapter]);
+  if (error && !items) return <AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} />;
+  if (!items) return <AdminPanelStateView state={{ kind: "loading", label: "Loading operational jobs…" }} />;
+  return <section className="admin-kit__operations" aria-label={title}><header><div><h2>{title}</h2><p>{items.length} recent runs</p></div>{adapter.run ? <button disabled={busy} type="button" onClick={() => void (async () => { setBusy(true); try { await adapter.run!.execute(); await load(); } finally { setBusy(false); } })()}>{runLabel}</button> : null}</header>{error ? <AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} /> : null}<div className="admin-kit__operations-table-wrap"><table><thead><tr><th>Job</th><th>Started</th><th>Finished</th><th>Status</th></tr></thead><tbody>{items.map(item => <tr key={item.id}><td><strong>{item.label}</strong>{item.detail ? <small>{item.detail}</small> : null}</td><td>{item.startedAt}</td><td>{item.finishedAt ?? "In progress"}</td><td><span className={`admin-kit__state-pill admin-kit__state-pill--${item.state}`}>{item.state}</span></td></tr>)}</tbody></table></div></section>;
+}
 
 export function BackupsPanel({ adapter, title = "Backups" }: { adapter: AdminBackupsAdapter; title?: string }) {
  const [items,setItems]=useState<readonly import("../core").AdminBackupSummary[]>(); const [error,setError]=useState<string>(); const [busy,setBusy]=useState(false);

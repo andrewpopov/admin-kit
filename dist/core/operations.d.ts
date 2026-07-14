@@ -44,3 +44,20 @@ export interface AdminSettingsAdapter {
         }): Promise<void>;
     };
 }
+export interface AdminOperationalJob {
+    id: string;
+    label: string;
+    startedAt: string;
+    finishedAt?: string;
+    state: "completed" | "running" | "failed";
+    detail?: string;
+}
+export interface AdminOperationalJobsAdapter {
+    list(query: {
+        page?: number;
+        pageSize?: number;
+    }): Promise<AdminPage<AdminOperationalJob>>;
+    run?: {
+        execute(): Promise<void>;
+    };
+}

@@ -66,4 +66,4 @@ export {
   type AdminMembershipSummary,
   type AdminMembershipsAdapter,
 } from "./memberships";
-export type { AdminBackupsAdapter, AdminBackupSummary, AdminHealthTone, AdminOperationalStatus, AdminSettingField, AdminSettingsAdapter } from "./operations";
+export type { AdminBackupsAdapter, AdminBackupSummary, AdminHealthTone, AdminOperationalJob, AdminOperationalJobsAdapter, AdminOperationalStatus, AdminSettingField, AdminSettingsAdapter } from "./operations";
