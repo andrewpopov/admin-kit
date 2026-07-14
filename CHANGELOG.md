@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.14.1
+
+- Render only populated user-directory columns and keep table-cell layout
+  semantic, avoiding empty Details columns and flex styling that breaks column
+  alignment.
+
 ## 0.14.0
 
 - Let user-directory adapters declare per-account role and status mutation

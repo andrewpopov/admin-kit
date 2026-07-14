@@ -139,15 +139,18 @@ export function UsersPanel<User extends AdminUserSummary>({
         <AdminPanelStateView state={{ kind: "empty", title: "No users found." }} />
       ) : (
         <>
-          {presentation === "table" ? <div className="admin-kit__table-wrap admin-kit__users-table-wrap"><table className="admin-kit__table admin-kit__users-table"><thead><tr><th scope="col">User</th><th scope="col">Details</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead><tbody>
+          {presentation === "table" ? (() => {
+            const hasDetails = result.items.some((user) => user.details?.length);
+            const hasActions = Boolean(renderUserActions);
+            return <div className="admin-kit__table-wrap admin-kit__users-table-wrap"><table className={`admin-kit__table admin-kit__users-table${hasDetails ? " admin-kit__users-table--with-details" : ""}`}><thead><tr><th scope="col">User</th>{hasDetails ? <th scope="col">Details</th> : null}<th scope="col">Role</th><th scope="col">Status</th>{hasActions ? <th scope="col">Actions</th> : null}</tr></thead><tbody>
             {result.items.map((user) => (
               <tr key={user.id} aria-busy={pendingUserId === user.id}>
-                <td className="admin-kit__user-identity">
-                  <strong>{user.label}</strong>
-                  {user.secondaryLabel ? <span>{user.secondaryLabel}</span> : null}
-                  {user.badges?.length ? <span>{user.badges.join(" · ")}</span> : null}
-                </td><td>
-                  {user.details?.length ? (
+                <td><div className="admin-kit__user-identity">
+                    <strong>{user.label}</strong>
+                    {user.secondaryLabel ? <span>{user.secondaryLabel}</span> : null}
+                    {user.badges?.length ? <span>{user.badges.join(" · ")}</span> : null}
+                  </div></td>{hasDetails ? <td>
+                    {user.details?.length ? (
                     <dl className="admin-kit__user-details">
                       {user.details.map((detail) => (
                         <div key={detail.label}>
@@ -156,8 +159,8 @@ export function UsersPanel<User extends AdminUserSummary>({
                         </div>
                       ))}
                     </dl>
-                  ) : null}
-                </td><td>
+                    ) : <span className="admin-kit__user-empty">—</span>}
+                </td> : null}<td>
                   {adapter.roles?.length && adapter.setRole && user.role && user.permissions?.canChangeRole !== false ? (
                     <select aria-label={`Role for ${user.label}`} disabled={pendingUserId === user.id} value={user.role.value} onChange={(event) => void updateRole(user.id, event.target.value)}>{adapter.roles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}</select>
                   ) : user.role ? <span className="admin-kit__user-value">{user.role.label}</span> : null}
@@ -165,17 +168,18 @@ export function UsersPanel<User extends AdminUserSummary>({
                   {adapter.statuses?.length && adapter.setStatus && user.status && user.permissions?.canChangeStatus !== false ? (
                     <select aria-label={`Status for ${user.label}`} disabled={pendingUserId === user.id} value={user.status.value} onChange={(event) => void updateStatus(user.id, event.target.value)}>{adapter.statuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}</select>
                   ) : user.status ? <span className="admin-kit__user-value">{user.status.label}</span> : null}
-                </td><td className="admin-kit__user-controls">
-                  {renderUserActions
+                </td>{hasActions ? <td><div className="admin-kit__user-controls">
+                    {renderUserActions
                     ? renderUserActions(user, {
                         reload: load,
                         isPending: pendingUserId === user.id,
                       })
                     : null}
-                </td>
+                  </div></td> : null}
               </tr>
             ))}
-          </tbody></table></div> : null}
+          </tbody></table></div>;
+          })() : null}
           {Math.max(1, Math.ceil(result.total / result.pageSize)) > 1 ? (
             <nav className="admin-kit__pagination" aria-label="User pagination">
               <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>

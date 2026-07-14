@@ -235,6 +235,10 @@ Map stable account facts such as creation time and last login through
 `AdminUserSummary.details`; do not pass raw audit records or user database
 objects into the package.
 
+The table only includes Details when at least one returned account supplies
+`details`, and Actions only when the host supplies `renderUserActions`; the
+directory never leaves a blank column for omitted capabilities.
+
 ### Feature flags
 
 `FeatureFlagsPanel` and `AdminFeatureFlagsAdapter` require the host to declare
