@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2
+
+- Include current compiled package artifacts in GitHub-tag installs.
+
 ## 0.3.1
 
 - Let host-rendered API-key forms await a success result before resetting their

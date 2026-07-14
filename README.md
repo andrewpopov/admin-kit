@@ -25,7 +25,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.3.1
+npm install github:andrewpopov/admin-kit#v0.3.2
 ```
 
 `react` is a peer dependency. Import default styles only if they suit the host
