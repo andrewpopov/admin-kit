@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   type AdminApiKey,
   type AdminApiKeysAdapter,
+  formatAdminTimestamp,
   resolveAdminApiKeyState,
   validateAdminApiKeyCreated,
   validateAdminApiKeys,
@@ -40,6 +41,8 @@ export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
   className?: string;
   /** Optional host class for the portaled confirmation dialog. */
   dialogClassName?: string;
+  /** Overrides the default timestamp presentation for lastUsedAt / expiresAt. */
+  formatTimestamp?: (iso: string) => string;
 }
 
 /** Lists safe metadata and reveals a raw secret only from a create/rotate response. */
@@ -52,6 +55,7 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
   renderKeys,
   className,
   dialogClassName,
+  formatTimestamp,
 }: ApiKeysPanelProps<CreateInput, UpdateInput>) {
   const [keys, setKeys] = useState<readonly AdminApiKey[]>();
   const [secret, setSecret] = useState<string>();
@@ -216,7 +220,8 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
               <code>{key.maskedKey}</code>
               <p>
                 {key.state} · scopes: {key.scopes.join(", ") || "none"} · last
-                used: {key.lastUsedAt ?? "never"} · expires: {key.expiresAt ?? "never"}
+                used: {key.lastUsedAt ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp) : "never"} · expires:{" "}
+                {key.expiresAt ? formatAdminTimestamp(key.expiresAt, formatTimestamp) : "never"}
               </p>
               {key.details?.length ? (
                 <dl className="admin-kit__key-details">
@@ -259,6 +264,7 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
         }
         confirmLabel={confirmation?.action === "rotate" ? "Rotate key" : "Revoke key"}
         danger={confirmation?.action === "revoke"}
+        pending={Boolean(confirmation) && pending === confirmation?.key.id}
         onCancel={() => setConfirmation(undefined)}
         onConfirm={() => void confirmAction()}
       />

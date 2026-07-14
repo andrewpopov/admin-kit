@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { type AdminPageQuery, type AdminUserSummary, type AdminUsersAdapter } from "../core";
 export interface UsersPanelProps<User extends AdminUserSummary> {
     adapter: AdminUsersAdapter<User>;
+    title?: string;
     pageSize?: number;
     query?: Omit<AdminPageQuery, "page" | "pageSize">;
     /** Opt in when the host adapter maps search text into its list query. */
@@ -26,4 +27,4 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
  */
-export declare function UsersPanel<User extends AdminUserSummary>({ adapter, pageSize, query, search: searchOptions, presentation, renderHeaderActions, renderUserActions, className, }: UsersPanelProps<User>): import("react").JSX.Element;
+export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, pageSize, query, search: searchOptions, presentation, renderHeaderActions, renderUserActions, className, }: UsersPanelProps<User>): import("react").JSX.Element;

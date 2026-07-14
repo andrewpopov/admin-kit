@@ -31,6 +31,8 @@ export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
     className?: string;
     /** Optional host class for the portaled confirmation dialog. */
     dialogClassName?: string;
+    /** Overrides the default timestamp presentation for lastUsedAt / expiresAt. */
+    formatTimestamp?: (iso: string) => string;
 }
 /** Lists safe metadata and reveals a raw secret only from a create/rotate response. */
-export declare function ApiKeysPanel<CreateInput, UpdateInput = never>({ adapter, title, createInput, renderCreate, renderEdit, renderKeys, className, dialogClassName, }: ApiKeysPanelProps<CreateInput, UpdateInput>): import("react").JSX.Element;
+export declare function ApiKeysPanel<CreateInput, UpdateInput = never>({ adapter, title, createInput, renderCreate, renderEdit, renderKeys, className, dialogClassName, formatTimestamp, }: ApiKeysPanelProps<CreateInput, UpdateInput>): import("react").JSX.Element;

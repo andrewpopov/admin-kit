@@ -18,22 +18,24 @@ const sourceLabel: Record<
 
 export interface FeatureFlagsPanelProps {
   adapter: AdminFeatureFlagsAdapter;
+  title?: string;
   /** Optional host class for local styling without replacing the panel. */
   className?: string;
 }
 
 /** A source-aware flag panel that never offers a misleading mutable control. */
-export function FeatureFlagsPanel({ adapter, className }: FeatureFlagsPanelProps) {
+export function FeatureFlagsPanel({ adapter, title = "Feature flags", className }: FeatureFlagsPanelProps) {
   const [snapshot, setSnapshot] = useState<AdminFeatureFlagsSnapshot>();
-  const [error, setError] = useState<string>();
+  const [loadError, setLoadError] = useState<string>();
+  const [actionError, setActionError] = useState<string>();
   const [pendingKey, setPendingKey] = useState<string>();
 
   const load = async () => {
-    setError(undefined);
+    setLoadError(undefined);
     try {
       setSnapshot(validateAdminFeatureFlagsSnapshot(await adapter.list()));
     } catch (reason) {
-      setError(
+      setLoadError(
         reason instanceof Error
           ? reason.message
           : "Unable to load feature flags.",
@@ -45,10 +47,10 @@ export function FeatureFlagsPanel({ adapter, className }: FeatureFlagsPanelProps
     void load();
   }, [adapter]);
 
-  if (error)
+  if (loadError && !snapshot)
     return (
       <AdminPanelStateView
-        state={{ kind: "error", detail: error, onRetry: () => void load() }}
+        state={{ kind: "error", detail: loadError, onRetry: () => void load() }}
         className={className}
       />
     );
@@ -63,12 +65,12 @@ export function FeatureFlagsPanel({ adapter, className }: FeatureFlagsPanelProps
   const setEnabled = async (key: string, enabled: boolean) => {
     if (!adapter.setEnabled) return;
     setPendingKey(key);
-    setError(undefined);
+    setActionError(undefined);
     try {
       await adapter.setEnabled({ key, enabled });
       await load();
     } catch (reason) {
-      setError(
+      setActionError(
         reason instanceof Error
           ? reason.message
           : "Unable to update the feature flag.",
@@ -79,9 +81,9 @@ export function FeatureFlagsPanel({ adapter, className }: FeatureFlagsPanelProps
   };
 
   return (
-    <section className={["admin-kit__flags", className].filter(Boolean).join(" ")} aria-label="Feature flags">
+    <section className={["admin-kit__flags", className].filter(Boolean).join(" ")} aria-label={title}>
       <header className="admin-kit__flags-header">
-        <h2>Feature flags</h2>
+        <h2>{title}</h2>
         <p>
           Store health: <strong>{snapshot.storeHealth}</strong>
         </p>
@@ -89,6 +91,12 @@ export function FeatureFlagsPanel({ adapter, className }: FeatureFlagsPanelProps
           <p role="status">{snapshot.storeHealthDetail}</p>
         ) : null}
       </header>
+      {loadError ? (
+        <AdminPanelStateView
+          state={{ kind: "error", detail: loadError, onRetry: () => void load() }}
+        />
+      ) : null}
+      {actionError ? <p className="admin-kit__action-error" role="alert">{actionError}</p> : null}
       <ul className="admin-kit__flags-list">
         {snapshot.flags.map((flag) => {
           const canMutate =

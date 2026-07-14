@@ -26,4 +26,13 @@ export {
 } from "./FeatureFlagsPanel";
 export { ApiKeysPanel, type ApiKeysPanelProps } from "./ApiKeysPanel";
 export { EventsPanel, type EventsPanelProps } from "./EventsPanel";
-export { AdminStatusSummary, BackupsPanel, OperationalJobsPanel, SettingsPanel } from "./OperationalPanels";
+export {
+  AdminStatusSummary,
+  type AdminStatusSummaryProps,
+  BackupsPanel,
+  type BackupsPanelProps,
+  OperationalJobsPanel,
+  type OperationalJobsPanelProps,
+  SettingsPanel,
+  type SettingsPanelProps,
+} from "./OperationalPanels";
