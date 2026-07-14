@@ -22,6 +22,7 @@ interface AdminPortalBaseProps {
     ariaLabel?: string;
     className?: string;
     emptyState?: ReactNode;
+    inactiveSectionState?: (sectionId: AdminSectionId) => ReactNode;
 }
 export type AdminPortalProps = AdminPortalBaseProps & ({
     /** Required when the portal renders its default controlled buttons. */
@@ -38,5 +39,5 @@ export type AdminPortalProps = AdminPortalBaseProps & ({
  * navigation, and authorization; the portal owns grouping, selection,
  * responsive layout, disabled behavior, and accessible page semantics.
  */
-export declare function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationItem, ariaLabel, className, emptyState, }: AdminPortalProps): import("react").JSX.Element;
+export declare function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationItem, ariaLabel, className, emptyState, inactiveSectionState, }: AdminPortalProps): import("react").JSX.Element;
 export {};

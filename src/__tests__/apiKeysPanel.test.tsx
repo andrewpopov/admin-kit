@@ -103,6 +103,41 @@ describe("ApiKeysPanel", () => {
     await screen.findByText("Creation denied");
   });
 
+  it("keeps a newly issued secret visible when metadata refresh fails", async () => {
+    const list = vi.fn()
+      .mockResolvedValueOnce([activeKey])
+      .mockRejectedValueOnce(new Error("Metadata refresh failed"));
+    render(
+      <ApiKeysPanel
+        createInput={{ name: "Automation" }}
+        adapter={{ list, create: vi.fn().mockResolvedValue({ key: activeKey, secret: "recoverable-once" }), revoke: vi.fn() }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    fireEvent.click(screen.getByRole("button", { name: "Create API key" }));
+
+    await screen.findByText("recoverable-once");
+    expect(screen.getByText("Metadata refresh failed")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Create API key" })).toBeTruthy();
+  });
+
+  it("keeps credential controls mounted after a failed mutation", async () => {
+    render(
+      <ApiKeysPanel
+        createInput={{ name: "Automation" }}
+        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn().mockRejectedValue(new Error("Creation denied")), revoke: vi.fn() }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    fireEvent.click(screen.getByRole("button", { name: "Create API key" }));
+
+    await screen.findByText("Creation denied");
+    expect(screen.getByText("Automation")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Create API key" })).toBeTruthy();
+  });
+
   it("copies a one-time secret without putting it in list metadata", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });

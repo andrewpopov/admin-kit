@@ -24,3 +24,4 @@ export {
   type FeatureFlagsPanelProps,
 } from "./FeatureFlagsPanel";
 export { ApiKeysPanel, type ApiKeysPanelProps } from "./ApiKeysPanel";
+export { EventsPanel, type EventsPanelProps } from "./EventsPanel";
