@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.0
+
+- Add settings dirty/save feedback and improve operational-table header semantics.
+
 ## 0.11.1
 
 - Document the default workspace and the boundary between backup and operational-job panels.
