@@ -35,18 +35,19 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
 }: ApiKeysPanelProps<CreateInput, UpdateInput>) {
   const [keys, setKeys] = useState<readonly AdminApiKey[]>();
   const [secret, setSecret] = useState<string>();
-  const [error, setError] = useState<string>();
+  const [loadError, setLoadError] = useState<string>();
+  const [actionError, setActionError] = useState<string>();
   const [pending, setPending] = useState<string>();
   const [copyStatus, setCopyStatus] = useState<string>();
   const [confirmation, setConfirmation] = useState<
     { action: "revoke" | "rotate"; key: AdminApiKey } | undefined
   >();
   const load = async () => {
-    setError(undefined);
+    setLoadError(undefined);
     try {
       setKeys(validateAdminApiKeys(await adapter.list()));
     } catch (reason) {
-      setError(
+      setLoadError(
         reason instanceof Error ? reason.message : "Unable to load API keys.",
       );
     }
@@ -54,10 +55,10 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
   useEffect(() => {
     void load();
   }, [adapter]);
-  if (error)
+  if (loadError && !keys)
     return (
       <AdminPanelStateView
-        state={{ kind: "error", detail: error, onRetry: () => void load() }}
+        state={{ kind: "error", detail: loadError, onRetry: () => void load() }}
       />
     );
   if (!keys)
@@ -68,6 +69,7 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
     );
   const create = async (input: CreateInput): Promise<boolean> => {
     setPending("create");
+    setActionError(undefined);
     try {
       const result = validateAdminApiKeyCreated(await adapter.create(input));
       setSecret(result.secret);
@@ -75,7 +77,7 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
       await load();
       return true;
     } catch (reason) {
-      setError(
+      setActionError(
         reason instanceof Error ? reason.message : "Unable to create API key.",
       );
       return false;
@@ -86,12 +88,13 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
   const update = async (key: AdminApiKey, input: UpdateInput): Promise<boolean> => {
     if (!adapter.update) return false;
     setPending(key.id);
+    setActionError(undefined);
     try {
       await adapter.update({ keyId: key.id, update: input });
       await load();
       return true;
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Unable to update API key.");
+      setActionError(reason instanceof Error ? reason.message : "Unable to update API key.");
       return false;
     } finally {
       setPending(undefined);
@@ -110,8 +113,8 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
   const confirmAction = async () => {
     if (!confirmation) return;
     const { action, key } = confirmation;
-    setConfirmation(undefined);
     setPending(key.id);
+    setActionError(undefined);
     try {
       if (action === "revoke") {
         await adapter.revoke({ keyId: key.id });
@@ -123,8 +126,9 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
         setCopyStatus(undefined);
       }
       await load();
+      setConfirmation(undefined);
     } catch (reason) {
-      setError(
+      setActionError(
         reason instanceof Error
           ? reason.message
           : `Unable to ${action} API key.`,
@@ -136,6 +140,12 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
   return (
     <section className="admin-kit__keys" aria-label={title}>
       <h2>{title}</h2>
+      {loadError ? (
+        <AdminPanelStateView
+          state={{ kind: "error", detail: loadError, onRetry: () => void load() }}
+        />
+      ) : null}
+      {actionError ? <p className="admin-kit__action-error" role="alert">{actionError}</p> : null}
       {secret ? (
         <div className="admin-kit__secret" role="alert">
           <strong>Copy this secret now. It will not be shown again.</strong>

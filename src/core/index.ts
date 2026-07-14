@@ -43,6 +43,19 @@ export {
   type AdminApiKeyState,
 } from "./apiKeys";
 export {
+  defineAdminEventsAdapter,
+  validateAdminEventsPage,
+  type AdminEvent,
+  type AdminEventActor,
+  type AdminEventFilterOption,
+  type AdminEventOutcome,
+  type AdminEventResource,
+  type AdminEventsAdapter,
+  type AdminEventsPage,
+  type AdminEventsQuery,
+  type AdminEventSeverity,
+} from "./events";
+export {
   defineAdminMembershipsAdapter,
   validateAdminMemberships,
   type AdminMembershipMutation,

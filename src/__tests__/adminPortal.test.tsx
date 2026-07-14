@@ -111,14 +111,23 @@ describe('AdminPortal', () => {
     expect(screen.queryByRole('navigation')).toBeNull();
   });
 
+  it('does not substitute another section when the active route is unavailable', () => {
+    render(
+      <AdminPortal
+        activeSection="security"
+        groups={groups}
+        onSectionChange={() => undefined}
+        inactiveSectionState={(sectionId) => <p>Unavailable: {sectionId}</p>}
+      />,
+    );
+
+    expect(screen.getByText('Unavailable: security')).toBeTruthy();
+    expect(screen.queryByText('User content')).toBeNull();
+    expect(screen.queryByText('Catalog content')).toBeNull();
+  });
+
   it('rejects inert default navigation from untyped consumers', () => {
     const invalid = { activeSection: 'users', groups } as unknown as AdminPortalProps;
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-
-    try {
-      expect(() => render(<AdminPortal {...invalid} />)).toThrow(/needs onSectionChange/i);
-    } finally {
-      consoleError.mockRestore();
-    }
+    expect(() => AdminPortal(invalid)).toThrow(/needs onSectionChange/i);
   });
 });

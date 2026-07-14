@@ -33,6 +33,7 @@ interface AdminPortalBaseProps {
   ariaLabel?: string;
   className?: string;
   emptyState?: ReactNode;
+  inactiveSectionState?: (sectionId: AdminSectionId) => ReactNode;
 }
 
 export type AdminPortalProps = AdminPortalBaseProps & (
@@ -62,6 +63,7 @@ export function AdminPortal({
   ariaLabel = 'Administration sections',
   className,
   emptyState = 'No administration sections are available.',
+  inactiveSectionState,
 }: AdminPortalProps) {
   if (!renderNavigationItem && !onSectionChange) {
     throw new Error('AdminPortal default navigation needs onSectionChange.');
@@ -75,12 +77,12 @@ export function AdminPortal({
     }))
     .filter((group) => group.sections.length > 0);
   const sections = visibleGroups.flatMap((group) => group.sections);
-  const active = sections.find((section) => section.id === activeSection) ?? sections[0];
+  const active = sections.find((section) => section.id === activeSection);
 
   if (!active) {
     return (
       <section className={['admin-kit', 'admin-kit__portal-empty', className].filter(Boolean).join(' ')}>
-        {emptyState}
+        {sections.length === 0 ? emptyState : inactiveSectionState?.(activeSection) ?? 'This administration section is unavailable.'}
       </section>
     );
   }

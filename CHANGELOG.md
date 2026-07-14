@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased
+## 0.5.0
+
+- Preserve one-time API-key secrets and credential controls when a mutation or
+  following metadata refresh fails, with inline retry feedback.
+- Render an explicit unavailable-section state rather than substituting another
+  visible admin page for a hidden or unknown route.
+- Upgrade the Vitest toolchain to remediate development-only audit findings.
+- Add an adapter-driven events panel for normalized audit, access, and
+  operational records with declared filters, source context, details, refresh,
+  and paging.
 
 - Add a router-neutral `AdminPortal` with validated section groups,
   host-computed visibility, custom router-link rendering, responsive layout,

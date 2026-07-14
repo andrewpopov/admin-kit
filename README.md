@@ -11,6 +11,8 @@ authorization, and product-specific pages.
 - Shared loading, error, empty, and confirmation interactions.
 - Serializable adapter contracts and consumer-shaped test fixtures.
 - User-management, feature-flag, and API-key modules.
+- An adapter-backed administrative events panel with declared filters, source
+  context, safe metadata details, refresh, and paging.
 - A scoped-membership adapter contract for workspace, organization, and project
   administration; a React membership panel is intentionally deferred until
   multiple host adapters prove the interaction requirements.
@@ -28,7 +30,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.4.1
+npm install github:andrewpopov/admin-kit#v0.5.0
 ```
 
 `react` is a peer dependency. Import default styles only if they suit the host
@@ -59,7 +61,7 @@ import { AdminConsole } from "@andrewpopov/admin-kit/react";
 
 Use `AdminPortal` for a routed administration area with multiple groups and
 application-specific pages. The package owns grouping, current-page and
-disabled semantics, responsive layout, and the empty-capability state. The host
+disabled semantics, responsive layout, and empty or unavailable-section states. The host
 still owns URLs and renders its router's link component.
 
 When using the default button navigation, `onSectionChange` is required. A
@@ -107,6 +109,10 @@ import { AdminPortal } from "@andrewpopov/admin-kit/react";
   )}
 />;
 ```
+
+If `activeSection` is hidden or missing, the portal does not render an unrelated
+fallback page. Supply `inactiveSectionState` to render the host's not-found or
+access-denied presentation; otherwise the portal renders a neutral unavailable state.
 
 `visible` is a host-computed presentation input, not an authorization guard.
 The server must still authorize every route and operation. A disabled custom
@@ -187,7 +193,8 @@ revocation confirmations. A raw key secret can enter the panel only as a
 validated create or rotate response; it is never part of `AdminApiKey`, so a
 list response cannot accidentally re-reveal it. The panel provides a real
 clipboard copy action with visible success or failure feedback; it never
-persists the secret.
+persists the secret. A failed metadata refresh after a successful create or
+rotation leaves the one-time secret visible and shows a retryable inline error.
 
 Use `renderCreate` when the host needs a product-specific input form (for
 example, name, expiry, scopes, or an audit reason). The callback receives the
@@ -201,6 +208,21 @@ list IDs, IP restrictions, expiry, or a rate limit. Use `renderEdit` only when
 the host provides the optional `update` mutation; it receives a package-owned
 reload lifecycle but retains the edit form, policy schema, and server-side
 authorization.
+
+### Administrative events
+
+`EventsPanel` normalizes list-safe audit, access, and operational records while
+the host retains log parsing, storage, retention, transport, and authorization.
+Map source provenance, actor, resource, outcome, and safe metadata into the
+adapter rather than leaking raw log lines into the component. Declare only the
+filters the host can execute.
+
+```tsx
+<EventsPanel
+  adapter={events}
+  search={{ placeholder: "Action, actor, or resource" }}
+/>
+```
 
 ## Release requirements
 
