@@ -13,7 +13,7 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
   query?: Omit<AdminPageQuery, "page" | "pageSize">;
   /** Opt in when the host adapter maps search text into its list query. */
   search?: false | { label?: string; placeholder?: string };
-  /** Compact semantic table on wide screens; cards remain the default. */
+  /** The standard responsive semantic-table presentation. */
   presentation?: "table";
   renderHeaderActions?: (context: {
     reload: () => Promise<void>;

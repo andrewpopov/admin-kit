@@ -10,7 +10,7 @@ authorization, and product-specific pages.
 - Controlled tab navigation and grouped, routed admin-portal composition.
 - Shared loading, error, empty, and confirmation interactions.
 - Serializable adapter contracts and consumer-shaped test fixtures.
-- User-management, feature-flag, and API-key modules. User management renders as a responsive semantic table with horizontal scrolling on narrow screens.
+- User-management, feature-flag, and API-key modules. User management, backups, and operational jobs render through the same responsive semantic-table contract, with horizontal scrolling on narrow screens.
 - `AdminWorkspace`, the default header, summary, toolbar, and content framing for operational pages.
 - Typed operational status, backup, and settings panels for consistent recovery and configuration surfaces.
 - An operational-jobs panel for scheduled work where backup/restore semantics do not apply.
