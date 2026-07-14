@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- Correct the GitHub-tag install command to the current release.
+
 ## 0.4.0
 
 - Add a transport-neutral scoped-membership adapter contract, validated with
