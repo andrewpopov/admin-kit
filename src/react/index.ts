@@ -15,6 +15,7 @@ export {
   type AdminPortalReactSection,
 } from "./AdminPortal";
 export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";
+export { AdminWorkspace, type AdminWorkspaceProps } from "./AdminWorkspace";
 export {
   UsersPanel,
   type UsersPanelProps,

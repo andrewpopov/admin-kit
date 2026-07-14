@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EventsPanel = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminPanelStateView = exports.AdminPortal = exports.AdminConsole = exports.AdminConfirmationDialog = void 0;
+exports.EventsPanel = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminWorkspace = exports.AdminPanelStateView = exports.AdminPortal = exports.AdminConsole = exports.AdminConfirmationDialog = void 0;
 var AdminConfirmationDialog_1 = require("./AdminConfirmationDialog");
 Object.defineProperty(exports, "AdminConfirmationDialog", { enumerable: true, get: function () { return AdminConfirmationDialog_1.AdminConfirmationDialog; } });
 var AdminConsole_1 = require("./AdminConsole");
@@ -9,6 +9,8 @@ var AdminPortal_1 = require("./AdminPortal");
 Object.defineProperty(exports, "AdminPortal", { enumerable: true, get: function () { return AdminPortal_1.AdminPortal; } });
 var AdminPanelState_1 = require("./AdminPanelState");
 Object.defineProperty(exports, "AdminPanelStateView", { enumerable: true, get: function () { return AdminPanelState_1.AdminPanelStateView; } });
+var AdminWorkspace_1 = require("./AdminWorkspace");
+Object.defineProperty(exports, "AdminWorkspace", { enumerable: true, get: function () { return AdminWorkspace_1.AdminWorkspace; } });
 var UsersPanel_1 = require("./UsersPanel");
 Object.defineProperty(exports, "UsersPanel", { enumerable: true, get: function () { return UsersPanel_1.UsersPanel; } });
 var FeatureFlagsPanel_1 = require("./FeatureFlagsPanel");
