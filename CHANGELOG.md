@@ -5,6 +5,8 @@
 - Add a router-neutral `AdminPortal` with validated section groups,
   host-computed visibility, custom router-link rendering, responsive layout,
   disabled navigation behavior, and accessible current-page semantics.
+- Enrich `UsersPanel` with opt-in search, structured account details,
+  persistent host header actions, and preserved empty/error/retry behavior.
 
 ## 0.4.1
 

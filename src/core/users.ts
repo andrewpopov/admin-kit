@@ -8,6 +8,13 @@ export interface AdminUserSummary {
   role?: AdminUserValue;
   status?: AdminUserValue;
   badges?: readonly string[];
+  details?: readonly AdminUserDetail[];
+}
+
+/** A safe, presentational account fact such as created date or last login. */
+export interface AdminUserDetail {
+  label: string;
+  value: string;
 }
 
 /** A host-owned role or status value that can be shown and selected by the UI. */
