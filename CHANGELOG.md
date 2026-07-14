@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.0
+
+- Add the `AdminWorkspace` default page layout for shared administrative and operational screens.
+
 ## 0.8.0
 
 - Render user management as a responsive semantic table while preserving adapter-driven role and status controls.

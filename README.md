@@ -11,6 +11,7 @@ authorization, and product-specific pages.
 - Shared loading, error, empty, and confirmation interactions.
 - Serializable adapter contracts and consumer-shaped test fixtures.
 - User-management, feature-flag, and API-key modules. User management renders as a responsive semantic table with horizontal scrolling on narrow screens.
+- `AdminWorkspace`, the default header, summary, toolbar, and content framing for operational pages.
 - An adapter-backed administrative events panel with declared filters, source
   context, safe metadata details, refresh, and paging.
 - A scoped-membership adapter contract for workspace, organization, and project
