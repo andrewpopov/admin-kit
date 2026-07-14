@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.18.0
 
 ### Added
 
@@ -14,6 +14,8 @@
   bounded snapshots, optional level/category filters, search, refresh,
   optional polling, copy feedback, and stale-response protection while hosts
   retain parsing, file-system policy, redaction, retention, and authorization.
+- Package-owned `setRole` and `setStatus` callbacks in custom user-table cell
+  context, so rich host tables retain mutation state and inline error handling.
 
 ## 0.17.0
 

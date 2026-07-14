@@ -33,9 +33,16 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
 export interface AdminUserTableColumn<User extends AdminUserSummary> {
   id: string;
   label: ReactNode;
-  render: (user: User, context: { reload: () => Promise<void>; isPending: boolean }) => ReactNode;
+  render: (user: User, context: AdminUserTableCellContext) => ReactNode;
   className?: string;
   headerClassName?: string;
+}
+
+export interface AdminUserTableCellContext {
+  reload: () => Promise<void>;
+  isPending: boolean;
+  setRole: (role: string) => Promise<void>;
+  setStatus: (status: string) => Promise<void>;
 }
 
 /**
@@ -163,7 +170,7 @@ export function UsersPanel<User extends AdminUserSummary>({
           ) : null}
           {actionError ? <p className="admin-kit__action-error" role="alert">{actionError}</p> : null}
           {presentation === "table" ? (() => {
-            if (columns?.length) return <div className="admin-kit__table-wrap admin-kit__users-table-wrap"><table className="admin-kit__table admin-kit__users-table admin-kit__users-table--custom"><thead><tr>{columns.map((column) => <th className={column.headerClassName} key={column.id} scope="col">{column.label}</th>)}</tr></thead><tbody>{result.items.map((user) => <tr key={user.id} aria-busy={pendingUserId === user.id}>{columns.map((column) => <td className={column.className} key={column.id}>{column.render(user, { reload: load, isPending: pendingUserId === user.id })}</td>)}</tr>)}</tbody></table></div>;
+            if (columns?.length) return <div className="admin-kit__table-wrap admin-kit__users-table-wrap"><table className="admin-kit__table admin-kit__users-table admin-kit__users-table--custom"><thead><tr>{columns.map((column) => <th className={column.headerClassName} key={column.id} scope="col">{column.label}</th>)}</tr></thead><tbody>{result.items.map((user) => <tr key={user.id} aria-busy={pendingUserId === user.id}>{columns.map((column) => <td className={column.className} key={column.id}>{column.render(user, { reload: load, isPending: pendingUserId === user.id, setRole: (role) => updateRole(user.id, role), setStatus: (status) => updateStatus(user.id, status) })}</td>)}</tr>)}</tbody></table></div>;
             const hasDetails = result.items.some((user) => user.details?.length);
             const hasActions = Boolean(renderUserActions);
             return <div className="admin-kit__table-wrap admin-kit__users-table-wrap"><table className={`admin-kit__table admin-kit__users-table${hasDetails ? " admin-kit__users-table--with-details" : ""}`}><thead><tr><th scope="col">User</th>{hasDetails ? <th scope="col">Details</th> : null}<th scope="col">Role</th><th scope="col">Status</th>{hasActions ? <th scope="col">Actions</th> : null}</tr></thead><tbody>
