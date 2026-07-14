@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0
+
+- Give shared admin panels a cohesive light and dark visual system: elevated
+  surfaces, readable form controls, action hierarchy, responsive controls, and
+  clearer confirmation dialogs.
+- Expose expanded host-overridable palette, radius, and shadow tokens.
+
 ## 0.5.3
 
 - Make API-key styles work without an optional `.admin-kit` wrapper, including
