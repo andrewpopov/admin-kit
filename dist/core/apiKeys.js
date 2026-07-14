@@ -19,7 +19,13 @@ function validateAdminApiKeys(keys) {
             throw new Error(`Duplicate API key ID: ${key.id}.`);
         ids.add(key.id);
     }
-    return Object.freeze(keys.map((key) => Object.freeze({ ...key, scopes: Object.freeze([...key.scopes]) })));
+    return Object.freeze(keys.map((key) => Object.freeze({
+        ...key,
+        scopes: Object.freeze([...key.scopes]),
+        details: key.details
+            ? Object.freeze(key.details.map((detail) => Object.freeze({ ...detail })))
+            : undefined,
+    })));
 }
 /** Validates the only response shape that may carry a raw one-time secret. */
 function validateAdminApiKeyCreated(created) {

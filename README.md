@@ -185,7 +185,9 @@ won precedence.
 `ApiKeysPanel` lists only safe metadata and supports create, rotation, and
 revocation confirmations. A raw key secret can enter the panel only as a
 validated create or rotate response; it is never part of `AdminApiKey`, so a
-list response cannot accidentally re-reveal it.
+list response cannot accidentally re-reveal it. The panel provides a real
+clipboard copy action with visible success or failure feedback; it never
+persists the secret.
 
 Use `renderCreate` when the host needs a product-specific input form (for
 example, name, expiry, scopes, or an audit reason). The callback receives the
@@ -193,6 +195,12 @@ package-owned create operation and pending state; its promise resolves to
 `true` only when creation succeeded, so the host can safely clear its form.
 Use `title` to keep product vocabulary accurate (for example, "Personal access
 tokens"). The host retains its form schema and validation.
+
+Use `AdminApiKey.details` for safe policy facts such as allowed paths, actions,
+list IDs, IP restrictions, expiry, or a rate limit. Use `renderEdit` only when
+the host provides the optional `update` mutation; it receives a package-owned
+reload lifecycle but retains the edit form, policy schema, and server-side
+authorization.
 
 ## Release requirements
 

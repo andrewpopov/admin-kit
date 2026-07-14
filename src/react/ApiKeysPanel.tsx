@@ -8,8 +8,8 @@ import {
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
 import { AdminPanelStateView } from "./AdminPanelState";
 
-export interface ApiKeysPanelProps<CreateInput> {
-  adapter: AdminApiKeysAdapter<CreateInput>;
+export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
+  adapter: AdminApiKeysAdapter<CreateInput, UpdateInput>;
   /** Product vocabulary for credentials, such as "Personal access tokens". */
   title?: string;
   createInput?: CreateInput;
@@ -18,19 +18,26 @@ export interface ApiKeysPanelProps<CreateInput> {
     create: (input: CreateInput) => Promise<boolean>;
     pending: boolean;
   }) => ReactNode;
+  renderEdit?: (controls: {
+    key: AdminApiKey;
+    update: (input: UpdateInput) => Promise<boolean>;
+    pending: boolean;
+  }) => ReactNode;
 }
 
 /** Lists safe metadata and reveals a raw secret only from a create/rotate response. */
-export function ApiKeysPanel<CreateInput>({
+export function ApiKeysPanel<CreateInput, UpdateInput = never>({
   adapter,
   title = "API keys",
   createInput,
   renderCreate,
-}: ApiKeysPanelProps<CreateInput>) {
+  renderEdit,
+}: ApiKeysPanelProps<CreateInput, UpdateInput>) {
   const [keys, setKeys] = useState<readonly AdminApiKey[]>();
   const [secret, setSecret] = useState<string>();
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState<string>();
+  const [copyStatus, setCopyStatus] = useState<string>();
   const [confirmation, setConfirmation] = useState<
     { action: "revoke" | "rotate"; key: AdminApiKey } | undefined
   >();
@@ -64,6 +71,7 @@ export function ApiKeysPanel<CreateInput>({
     try {
       const result = validateAdminApiKeyCreated(await adapter.create(input));
       setSecret(result.secret);
+      setCopyStatus(undefined);
       await load();
       return true;
     } catch (reason) {
@@ -73,6 +81,30 @@ export function ApiKeysPanel<CreateInput>({
       return false;
     } finally {
       setPending(undefined);
+    }
+  };
+  const update = async (key: AdminApiKey, input: UpdateInput): Promise<boolean> => {
+    if (!adapter.update) return false;
+    setPending(key.id);
+    try {
+      await adapter.update({ keyId: key.id, update: input });
+      await load();
+      return true;
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Unable to update API key.");
+      return false;
+    } finally {
+      setPending(undefined);
+    }
+  };
+  const copySecret = async () => {
+    if (!secret) return;
+    try {
+      if (!navigator.clipboard) throw new Error("Clipboard access is unavailable.");
+      await navigator.clipboard.writeText(secret);
+      setCopyStatus("Copied");
+    } catch {
+      setCopyStatus("Copy failed. Select and copy the secret manually.");
     }
   };
   const confirmAction = async () => {
@@ -88,6 +120,7 @@ export function ApiKeysPanel<CreateInput>({
           await adapter.rotate({ keyId: key.id }),
         );
         setSecret(result.secret);
+        setCopyStatus(undefined);
       }
       await load();
     } catch (reason) {
@@ -107,6 +140,8 @@ export function ApiKeysPanel<CreateInput>({
         <div className="admin-kit__secret" role="alert">
           <strong>Copy this secret now. It will not be shown again.</strong>
           <code>{secret}</code>
+          <button type="button" onClick={() => void copySecret()}>Copy secret</button>
+          {copyStatus ? <span aria-live="polite">{copyStatus}</span> : null}
           <button type="button" onClick={() => setSecret(undefined)}>
             I copied it
           </button>
@@ -134,8 +169,13 @@ export function ApiKeysPanel<CreateInput>({
               <code>{key.maskedKey}</code>
               <p>
                 {key.state} · scopes: {key.scopes.join(", ") || "none"} · last
-                used: {key.lastUsedAt ?? "never"}
+                used: {key.lastUsedAt ?? "never"} · expires: {key.expiresAt ?? "never"}
               </p>
+              {key.details?.length ? (
+                <dl className="admin-kit__key-details">
+                  {key.details.map((detail) => <div key={detail.label}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}
+                </dl>
+              ) : null}
             </div>
             {key.state === "active" ? (
               <div className="admin-kit__key-actions">
@@ -148,6 +188,7 @@ export function ApiKeysPanel<CreateInput>({
                     Rotate
                   </button>
                 ) : null}
+                {adapter.update && renderEdit ? renderEdit({ key, update: (input) => update(key, input), pending: pending === key.id }) : null}
                 <button
                   type="button"
                   disabled={pending === key.id}
