@@ -6,8 +6,21 @@ export interface AdminUserSummary {
     secondaryLabel?: string;
     role?: AdminUserValue;
     status?: AdminUserValue;
+    /**
+     * Per-account mutation policy. Omit a value to allow the corresponding
+     * adapter capability; set it to `false` for protected accounts.
+     */
+    permissions?: AdminUserPermissions;
     badges?: readonly string[];
     details?: readonly AdminUserDetail[];
+}
+/**
+ * Host-owned account-level guards for otherwise available directory actions.
+ * They intentionally supplement, rather than replace, adapter capabilities.
+ */
+export interface AdminUserPermissions {
+    canChangeRole?: boolean;
+    canChangeStatus?: boolean;
 }
 /** A safe, presentational account fact such as created date or last login. */
 export interface AdminUserDetail {

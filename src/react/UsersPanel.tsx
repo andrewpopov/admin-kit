@@ -158,11 +158,11 @@ export function UsersPanel<User extends AdminUserSummary>({
                     </dl>
                   ) : null}
                 </td><td>
-                  {adapter.roles?.length && adapter.setRole && user.role ? (
+                  {adapter.roles?.length && adapter.setRole && user.role && user.permissions?.canChangeRole !== false ? (
                     <select aria-label={`Role for ${user.label}`} disabled={pendingUserId === user.id} value={user.role.value} onChange={(event) => void updateRole(user.id, event.target.value)}>{adapter.roles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}</select>
                   ) : user.role ? <span className="admin-kit__user-value">{user.role.label}</span> : null}
                 </td><td>
-                  {adapter.statuses?.length && adapter.setStatus && user.status ? (
+                  {adapter.statuses?.length && adapter.setStatus && user.status && user.permissions?.canChangeStatus !== false ? (
                     <select aria-label={`Status for ${user.label}`} disabled={pendingUserId === user.id} value={user.status.value} onChange={(event) => void updateStatus(user.id, event.target.value)}>{adapter.statuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}</select>
                   ) : user.status ? <span className="admin-kit__user-value">{user.status.label}</span> : null}
                 </td><td className="admin-kit__user-controls">

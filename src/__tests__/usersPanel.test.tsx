@@ -100,4 +100,32 @@ describe('UsersPanel', () => {
     await waitFor(() => expect(screen.getByText('Grace Hopper')).toBeTruthy());
     expect(screen.queryByText('Ada Lovelace')).toBeNull();
   });
+
+  it('renders protected accounts as values when an adapter capability is unavailable for that account', async () => {
+    render(
+      <UsersPanel
+        adapter={{
+          list: async () => ({
+            items: [{
+              ...users[0],
+              permissions: { canChangeRole: false, canChangeStatus: false },
+            }],
+            page: 1,
+            pageSize: 25,
+            total: 1,
+          }),
+          roles: [{ value: 'owner', label: 'Owner' }, { value: 'member', label: 'Member' }],
+          statuses: [{ value: 'active', label: 'Active' }],
+          setRole: { execute: async () => users[0] },
+          setStatus: { execute: async () => users[0] },
+        }}
+      />,
+    );
+
+    await screen.findByText('Ada Lovelace');
+    expect(screen.queryByRole('combobox', { name: 'Role for ada@example.test' })).toBeNull();
+    expect(screen.queryByRole('combobox', { name: 'Status for ada@example.test' })).toBeNull();
+    expect(screen.getByText('Owner')).toBeTruthy();
+    expect(screen.getByText('Active')).toBeTruthy();
+  });
 });

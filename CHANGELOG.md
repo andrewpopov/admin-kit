@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.14.0
+
+- Let user-directory adapters declare per-account role and status mutation
+  permissions, so protected accounts retain a readable value without exposing
+  a control that policy forbids.
+
 ## 0.13.1
 
 - Apply the shared responsive table contract to backup and operational-job panels, including scoped headers and action semantics.
