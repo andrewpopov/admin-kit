@@ -8,4 +8,5 @@ export { UsersPanel, type UsersPanelProps, } from "./UsersPanel";
 export { FeatureFlagsPanel, type FeatureFlagsPanelProps, } from "./FeatureFlagsPanel";
 export { ApiKeysPanel, type ApiKeysPanelProps } from "./ApiKeysPanel";
 export { EventsPanel, type EventsPanelProps } from "./EventsPanel";
+export { MembershipsPanel, type MembershipsPanelProps } from "./MembershipsPanel";
 export { AdminStatusSummary, type AdminStatusSummaryProps, BackupsPanel, type BackupsPanelProps, OperationalJobsPanel, type OperationalJobsPanelProps, SettingsPanel, type SettingsPanelProps, } from "./OperationalPanels";

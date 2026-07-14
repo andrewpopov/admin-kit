@@ -21,6 +21,11 @@ export interface AdminMembershipSummary {
   /** Explicit membership can be changed here; inherited membership is informational. */
   source: "explicit" | "inherited";
   mutable: boolean;
+  /** Host-computed presentation permissions for the current administrator. */
+  permissions?: {
+    canChangeRole?: boolean;
+    canRemove?: boolean;
+  };
 }
 
 export interface AdminMembershipRoleChange {
@@ -36,12 +41,15 @@ export interface AdminMembershipMutation<Input, Result = void> {
  * Transport-neutral scoped-membership contract. Hosts retain invitation
  * delivery, authorization, inheritance rules, audits, and deletion policy.
  */
-export interface AdminMembershipsAdapter<InviteInput = never> {
+export interface AdminMembershipsAdapter<
+  InviteInput = never,
+  Member extends AdminMembershipSummary = AdminMembershipSummary,
+> {
   scope: AdminMembershipScope;
   roles: readonly AdminMembershipRole[];
-  list(): Promise<readonly AdminMembershipSummary[]>;
-  invite?: AdminMembershipMutation<InviteInput, AdminMembershipSummary | void>;
-  setRole?: AdminMembershipMutation<AdminMembershipRoleChange, AdminMembershipSummary | void>;
+  list(): Promise<readonly Member[]>;
+  invite?: AdminMembershipMutation<InviteInput, Member | void>;
+  setRole?: AdminMembershipMutation<AdminMembershipRoleChange, Member | void>;
   remove?: AdminMembershipMutation<{ memberId: string }>;
 }
 
@@ -50,9 +58,12 @@ function requireText(value: string, description: string): void {
 }
 
 /** Validates host vocabulary without imposing an organization/workspace schema. */
-export function defineAdminMembershipsAdapter<InviteInput = never>(
-  adapter: AdminMembershipsAdapter<InviteInput>,
-): AdminMembershipsAdapter<InviteInput> {
+export function defineAdminMembershipsAdapter<
+  InviteInput = never,
+  Member extends AdminMembershipSummary = AdminMembershipSummary,
+>(
+  adapter: AdminMembershipsAdapter<InviteInput, Member>,
+): AdminMembershipsAdapter<InviteInput, Member> {
   requireText(adapter.scope.id, "Membership scope id");
   requireText(adapter.scope.label, "Membership scope label");
   requireText(adapter.scope.kind, "Membership scope kind");
@@ -76,10 +87,10 @@ export function defineAdminMembershipsAdapter<InviteInput = never>(
 }
 
 /** Rejects a misleading member model before a host renders an unsafe action. */
-export function validateAdminMemberships(
-  members: readonly AdminMembershipSummary[],
+export function validateAdminMemberships<Member extends AdminMembershipSummary>(
+  members: readonly Member[],
   roles: readonly AdminMembershipRole[],
-): readonly AdminMembershipSummary[] {
+): readonly Member[] {
   const allowedRoles = new Set(roles.map((role) => role.value));
   const ids = new Set<string>();
   return Object.freeze(
@@ -90,10 +101,20 @@ export function validateAdminMemberships(
         throw new Error(`Membership ${member.memberId} has an undeclared role.`);
       if (member.source === "inherited" && member.mutable)
         throw new Error(`Inherited membership ${member.memberId} cannot be mutable.`);
+      if (
+        member.source === "inherited" &&
+        (member.permissions?.canChangeRole || member.permissions?.canRemove)
+      )
+        throw new Error(`Inherited membership ${member.memberId} cannot expose mutations.`);
       if (ids.has(member.memberId))
         throw new Error(`Duplicate membership member: ${member.memberId}.`);
       ids.add(member.memberId);
-      return Object.freeze({ ...member });
+      return Object.freeze({
+        ...member,
+        permissions: member.permissions
+          ? Object.freeze({ ...member.permissions })
+          : undefined,
+      }) as Member;
     }),
   );
 }

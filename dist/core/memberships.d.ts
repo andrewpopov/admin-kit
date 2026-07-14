@@ -19,6 +19,11 @@ export interface AdminMembershipSummary {
     /** Explicit membership can be changed here; inherited membership is informational. */
     source: "explicit" | "inherited";
     mutable: boolean;
+    /** Host-computed presentation permissions for the current administrator. */
+    permissions?: {
+        canChangeRole?: boolean;
+        canRemove?: boolean;
+    };
 }
 export interface AdminMembershipRoleChange {
     memberId: string;
@@ -31,17 +36,17 @@ export interface AdminMembershipMutation<Input, Result = void> {
  * Transport-neutral scoped-membership contract. Hosts retain invitation
  * delivery, authorization, inheritance rules, audits, and deletion policy.
  */
-export interface AdminMembershipsAdapter<InviteInput = never> {
+export interface AdminMembershipsAdapter<InviteInput = never, Member extends AdminMembershipSummary = AdminMembershipSummary> {
     scope: AdminMembershipScope;
     roles: readonly AdminMembershipRole[];
-    list(): Promise<readonly AdminMembershipSummary[]>;
-    invite?: AdminMembershipMutation<InviteInput, AdminMembershipSummary | void>;
-    setRole?: AdminMembershipMutation<AdminMembershipRoleChange, AdminMembershipSummary | void>;
+    list(): Promise<readonly Member[]>;
+    invite?: AdminMembershipMutation<InviteInput, Member | void>;
+    setRole?: AdminMembershipMutation<AdminMembershipRoleChange, Member | void>;
     remove?: AdminMembershipMutation<{
         memberId: string;
     }>;
 }
 /** Validates host vocabulary without imposing an organization/workspace schema. */
-export declare function defineAdminMembershipsAdapter<InviteInput = never>(adapter: AdminMembershipsAdapter<InviteInput>): AdminMembershipsAdapter<InviteInput>;
+export declare function defineAdminMembershipsAdapter<InviteInput = never, Member extends AdminMembershipSummary = AdminMembershipSummary>(adapter: AdminMembershipsAdapter<InviteInput, Member>): AdminMembershipsAdapter<InviteInput, Member>;
 /** Rejects a misleading member model before a host renders an unsafe action. */
-export declare function validateAdminMemberships(members: readonly AdminMembershipSummary[], roles: readonly AdminMembershipRole[]): readonly AdminMembershipSummary[];
+export declare function validateAdminMemberships<Member extends AdminMembershipSummary>(members: readonly Member[], roles: readonly AdminMembershipRole[]): readonly Member[];

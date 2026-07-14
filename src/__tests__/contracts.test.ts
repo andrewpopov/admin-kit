@@ -339,6 +339,10 @@ describe("scoped membership adapters", () => {
     expect(() => validateAdminMemberships([{
       memberId: "u1", label: "Ada", role: "MEMBER", source: "inherited", mutable: true,
     }], roles)).toThrow(/cannot be mutable/i);
+    expect(() => validateAdminMemberships([{
+      memberId: "u1", label: "Ada", role: "MEMBER", source: "inherited", mutable: false,
+      permissions: { canRemove: true },
+    }], roles)).toThrow(/cannot expose mutations/i);
   });
 });
 

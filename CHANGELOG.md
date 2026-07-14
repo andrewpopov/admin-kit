@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `MembershipsPanel`, a scoped access surface proven against Cairn and Savoro
+  workflows. It shares loading, mutation, semantic-table, and destructive
+  confirmation behavior while leaving identity search, invitation delivery,
+  inheritance, authorization, and audit policy in the host.
+- Per-membership `canChangeRole` and `canRemove` presentation permissions.
+  Inherited memberships are validated as informational and cannot expose
+  mutations.
+
 ## 0.16.0
 
 ### Added

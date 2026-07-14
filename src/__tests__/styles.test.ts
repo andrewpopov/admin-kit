@@ -77,6 +77,7 @@ describe("Admin Kit styles", () => {
     expect(styles).toContain(".admin-kit__button--primary");
     expect(styles).toContain(".admin-kit__table-wrap");
     expect(styles).toContain(".admin-kit__table th");
+    expect(styles).toContain(".admin-kit__memberships-table");
     expect(styles).toContain("overflow-x: auto");
   });
 
