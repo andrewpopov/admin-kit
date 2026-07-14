@@ -25,7 +25,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.1.0
+npm install github:andrewpopov/admin-kit#v0.3.1
 ```
 
 `react` is a peer dependency. Import default styles only if they suit the host
@@ -106,9 +106,11 @@ validated create or rotate response; it is never part of `AdminApiKey`, so a
 list response cannot accidentally re-reveal it.
 
 Use `renderCreate` when the host needs a product-specific input form (for
-example, name, expiry, scopes, or an audit reason). The callback receives only
-the package-owned create operation and pending state; the host retains its form
-schema and validation.
+example, name, expiry, scopes, or an audit reason). The callback receives the
+package-owned create operation and pending state; its promise resolves to
+`true` only when creation succeeded, so the host can safely clear its form.
+Use `title` to keep product vocabulary accurate (for example, "Personal access
+tokens"). The host retains its form schema and validation.
 
 ## Release requirements
 

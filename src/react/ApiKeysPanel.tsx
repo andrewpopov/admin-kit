@@ -10,9 +10,12 @@ import { AdminPanelStateView } from "./AdminPanelState";
 
 export interface ApiKeysPanelProps<CreateInput> {
   adapter: AdminApiKeysAdapter<CreateInput>;
+  /** Product vocabulary for credentials, such as "Personal access tokens". */
+  title?: string;
   createInput?: CreateInput;
   renderCreate?: (controls: {
-    create: (input: CreateInput) => void;
+    /** Resolves true only when the panel accepted and revealed the new secret. */
+    create: (input: CreateInput) => Promise<boolean>;
     pending: boolean;
   }) => ReactNode;
 }
@@ -20,6 +23,7 @@ export interface ApiKeysPanelProps<CreateInput> {
 /** Lists safe metadata and reveals a raw secret only from a create/rotate response. */
 export function ApiKeysPanel<CreateInput>({
   adapter,
+  title = "API keys",
   createInput,
   renderCreate,
 }: ApiKeysPanelProps<CreateInput>) {
@@ -55,16 +59,18 @@ export function ApiKeysPanel<CreateInput>({
         state={{ kind: "loading", label: "Loading API keys…" }}
       />
     );
-  const create = async (input: CreateInput) => {
+  const create = async (input: CreateInput): Promise<boolean> => {
     setPending("create");
     try {
       const result = validateAdminApiKeyCreated(await adapter.create(input));
       setSecret(result.secret);
       await load();
+      return true;
     } catch (reason) {
       setError(
         reason instanceof Error ? reason.message : "Unable to create API key.",
       );
+      return false;
     } finally {
       setPending(undefined);
     }
@@ -95,8 +101,8 @@ export function ApiKeysPanel<CreateInput>({
     }
   };
   return (
-    <section className="admin-kit__keys" aria-label="API keys">
-      <h2>API keys</h2>
+    <section className="admin-kit__keys" aria-label={title}>
+      <h2>{title}</h2>
       {secret ? (
         <div className="admin-kit__secret" role="alert">
           <strong>Copy this secret now. It will not be shown again.</strong>
@@ -108,7 +114,7 @@ export function ApiKeysPanel<CreateInput>({
       ) : null}
       {renderCreate ? (
         renderCreate({
-          create: (input) => void create(input),
+          create,
           pending: pending === "create",
         })
       ) : createInput !== undefined ? (
