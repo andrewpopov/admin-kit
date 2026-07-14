@@ -139,7 +139,7 @@ export function UsersPanel<User extends AdminUserSummary>({
         <AdminPanelStateView state={{ kind: "empty", title: "No users found." }} />
       ) : (
         <>
-          {presentation === "table" ? <div className="admin-kit__users-table-wrap"><table className="admin-kit__users-table"><thead><tr><th scope="col">User</th><th scope="col">Details</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead><tbody>
+          {presentation === "table" ? <div className="admin-kit__table-wrap admin-kit__users-table-wrap"><table className="admin-kit__table admin-kit__users-table"><thead><tr><th scope="col">User</th><th scope="col">Details</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead><tbody>
             {result.items.map((user) => (
               <tr key={user.id} aria-busy={pendingUserId === user.id}>
                 <td className="admin-kit__user-identity">

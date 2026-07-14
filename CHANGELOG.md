@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.0
+
+- Standardize responsive administrative-table styling across user and operational surfaces.
+
 ## 0.12.0
 
 - Add settings dirty/save feedback and improve operational-table header semantics.
