@@ -1,4 +1,7 @@
-.admin-kit {
+/* These defaults live at the document level because confirmation dialogs are
+   portaled outside an optional `.admin-kit` host wrapper. Hosts can still
+   override the same variables on their own wrapper. */
+:root {
   --admin-kit-surface: #ffffff;
   --admin-kit-border: #d6d9df;
   --admin-kit-text: #1b1f2a;
@@ -6,6 +9,18 @@
   --admin-kit-accent: #2859d8;
   --admin-kit-danger: #b42318;
   --admin-kit-radius: 0.5rem;
+}
+
+.dark {
+  --admin-kit-surface: #1e293b;
+  --admin-kit-border: #475569;
+  --admin-kit-text: #f1f5f9;
+  --admin-kit-muted: #cbd5e1;
+  --admin-kit-accent: #93c5fd;
+  --admin-kit-danger: #fca5a5;
+}
+
+.admin-kit {
   color: var(--admin-kit-text);
 }
 
@@ -366,6 +381,15 @@
 }
 .admin-kit__secret code {
   overflow-wrap: anywhere;
+}
+.dark .admin-kit__secret {
+  background: #422006;
+  border-color: #d97706;
+  color: #fef3c7;
+}
+.dark .admin-kit__action-error {
+  border-color: #f87171;
+  color: #fecaca;
 }
 .admin-kit__keys-list {
   display: grid;

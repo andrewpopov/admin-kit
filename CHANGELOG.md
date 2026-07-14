@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.3
+
+- Make API-key styles work without an optional `.admin-kit` wrapper, including
+  portaled confirmation dialogs, and provide a readable dark-mode palette.
+
 ## 0.5.2
 
 - Resolve revoked and expired API-key state from durable safe metadata before
