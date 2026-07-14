@@ -3,7 +3,9 @@ import {
   defineAdminConsole,
   validateAdminApiKeyCreated,
   defineAdminUsersAdapter,
+  defineAdminMembershipsAdapter,
   normalizeAdminFailure,
+  validateAdminMemberships,
   validateAdminFeatureFlagsSnapshot,
   type AdminFeatureFlagsSnapshot,
   type AdminUserSummary,
@@ -234,6 +236,56 @@ describe("admin adapter helpers", () => {
     );
     expect(page).toMatchObject({ page: 2, pageSize: 25, total: 2 });
     expect(Object.isFrozen(page.items)).toBe(true);
+  });
+});
+
+describe("scoped membership adapters", () => {
+  it("models Mizen workspace and Cairn project roles without a shared tenant schema", async () => {
+    const mizen = defineAdminMembershipsAdapter({
+      scope: { id: "workspace-1", label: "Product", kind: "workspace" },
+      roles: [
+        { value: "OWNER", label: "Owner" },
+        { value: "ADMIN", label: "Administrator" },
+        { value: "MEMBER", label: "Member" },
+        { value: "GUEST", label: "Guest" },
+      ],
+      list: async () => [{
+        memberId: "mizen-user-1", label: "Ada", secondaryLabel: "ada@example.test",
+        role: "ADMIN", source: "explicit", mutable: true,
+      }],
+      invite: { execute: async ({ email, role }: { email: string; role: string }) => undefined },
+      setRole: { execute: async () => undefined },
+      remove: { execute: async () => undefined },
+    });
+    const cairn = defineAdminMembershipsAdapter({
+      scope: { id: "BRAIN", label: "Agent Brain", kind: "project" },
+      roles: [
+        { value: "OWNER", label: "Owner" },
+        { value: "ADMIN", label: "Administrator" },
+        { value: "MEMBER", label: "Member" },
+        { value: "VIEWER", label: "Viewer" },
+      ],
+      list: async () => [{
+        memberId: "cairn-user-1", label: "Ada", role: "MEMBER",
+        source: "inherited", mutable: false,
+      }],
+      setRole: { execute: async () => undefined },
+    });
+
+    expect(validateAdminMemberships(await mizen.list(), mizen.roles)[0]?.role).toBe("ADMIN");
+    expect(validateAdminMemberships(await cairn.list(), cairn.roles)[0]?.source).toBe("inherited");
+    expect(mizen.scope.kind).toBe("workspace");
+    expect(cairn.scope.kind).toBe("project");
+  });
+
+  it("rejects undeclared roles and mutable inherited memberships", () => {
+    const roles = [{ value: "MEMBER", label: "Member" }];
+    expect(() => validateAdminMemberships([{
+      memberId: "u1", label: "Ada", role: "OWNER", source: "explicit", mutable: true,
+    }], roles)).toThrow(/undeclared role/i);
+    expect(() => validateAdminMemberships([{
+      memberId: "u1", label: "Ada", role: "MEMBER", source: "inherited", mutable: true,
+    }], roles)).toThrow(/cannot be mutable/i);
   });
 });
 

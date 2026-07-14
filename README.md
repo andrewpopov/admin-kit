@@ -11,6 +11,9 @@ authorization, and product-specific pages.
 - Shared loading, error, empty, and confirmation interactions.
 - Serializable adapter contracts and consumer-shaped test fixtures.
 - User-management, feature-flag, and API-key modules.
+- A scoped-membership adapter contract for workspace, organization, and project
+  administration; a React membership panel is intentionally deferred until
+  multiple host adapters prove the interaction requirements.
 
 ## What does not belong here
 
