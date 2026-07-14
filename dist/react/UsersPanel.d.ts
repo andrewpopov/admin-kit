@@ -17,9 +17,11 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
         reload: () => Promise<void>;
         isPending: boolean;
     }) => ReactNode;
+    /** Optional host class for local styling without replacing the panel. */
+    className?: string;
 }
 /**
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
  */
-export declare function UsersPanel<User extends AdminUserSummary>({ adapter, pageSize, query, search: searchOptions, renderHeaderActions, renderUserActions, }: UsersPanelProps<User>): import("react").JSX.Element;
+export declare function UsersPanel<User extends AdminUserSummary>({ adapter, pageSize, query, search: searchOptions, renderHeaderActions, renderUserActions, className, }: UsersPanelProps<User>): import("react").JSX.Element;

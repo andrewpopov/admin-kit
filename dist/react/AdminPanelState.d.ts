@@ -16,6 +16,7 @@ export type AdminPanelState = {
     onRetry?: () => void;
 };
 /** Accessible, framework-style-neutral state surface for adapter-backed panels. */
-export declare function AdminPanelStateView({ state }: {
+export declare function AdminPanelStateView({ state, className }: {
     state: AdminPanelState;
+    className?: string;
 }): import("react").JSX.Element;

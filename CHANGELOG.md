@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0
+
+- Add host `className` styling seams to all shared panels and state surfaces,
+  plus a dedicated class for portaled API-key confirmation dialogs.
+- Document supported token and class overrides so applications can adopt the
+  defaults or deliberately theme Admin Kit locally.
+
 ## 0.6.0
 
 - Give shared admin panels a cohesive light and dark visual system: elevated

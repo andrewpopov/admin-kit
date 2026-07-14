@@ -8,6 +8,8 @@ export interface AdminConfirmationDialogProps {
   onCancel: () => void;
   onConfirm: () => void;
   danger?: boolean;
+  /** Optional host class for the portaled dialog surface. */
+  className?: string;
 }
 
 /**
@@ -22,6 +24,7 @@ export function AdminConfirmationDialog({
   onCancel,
   onConfirm,
   danger = false,
+  className,
 }: AdminConfirmationDialogProps) {
   const cancelRef = useRef<HTMLButtonElement>(null);
 
@@ -33,7 +36,7 @@ export function AdminConfirmationDialog({
 
   return (
     <div className="admin-kit__dialog-backdrop" role="presentation">
-      <section aria-describedby="admin-kit-confirmation-description" aria-labelledby="admin-kit-confirmation-title" aria-modal="true" className="admin-kit__dialog" role="dialog">
+      <section aria-describedby="admin-kit-confirmation-description" aria-labelledby="admin-kit-confirmation-title" aria-modal="true" className={['admin-kit__dialog', className].filter(Boolean).join(' ')} role="dialog">
         <h2 id="admin-kit-confirmation-title">{title}</h2>
         <p id="admin-kit-confirmation-description">{description}</p>
         <div className="admin-kit__dialog-actions">

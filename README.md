@@ -30,7 +30,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.6.0
+npm install github:andrewpopov/admin-kit#v0.7.0
 ```
 
 `react` is a peer dependency. Import default styles only if they suit the host
@@ -48,6 +48,49 @@ The default stylesheet supplies a restrained visual system: raised panel
 surfaces, responsive controls, clear primary/destructive action hierarchy, and
 matching light and dark palettes. Hosts can tune it without forking component
 styles by overriding the `--admin-kit-*` variables on an app or admin wrapper.
+
+## Styling contract
+
+Admin Kit is intentionally unopinionated about the host application's brand.
+The default stylesheet is an opt-in baseline, not a styling boundary. Hosts can
+override its custom properties on a wrapper, then use the component `className`
+seams for a narrow product-specific adjustment. Package selectors use `:where()`
+where possible so an equally targeted host rule wins without `!important`.
+
+```tsx
+<div className="acme-admin">
+  <UsersPanel adapter={users} className="acme-admin__users" />
+  <ApiKeysPanel
+    adapter={apiKeys}
+    className="acme-admin__keys"
+    dialogClassName="acme-admin__key-dialog"
+  />
+</div>
+```
+
+```css
+.acme-admin {
+  --admin-kit-surface: var(--app-card);
+  --admin-kit-surface-subtle: var(--app-muted-surface);
+  --admin-kit-border: var(--app-border);
+  --admin-kit-text: var(--app-foreground);
+  --admin-kit-muted: var(--app-muted-foreground);
+  --admin-kit-accent: var(--app-primary);
+  --admin-kit-accent-strong: var(--app-primary-hover);
+  --admin-kit-accent-soft: var(--app-primary-subtle);
+  --admin-kit-radius: var(--app-radius);
+}
+
+.acme-admin__users .admin-kit__user { box-shadow: none; }
+.acme-admin__keys > button { border-radius: 999px; }
+```
+
+`AdminConsole` and `AdminPortal` already expose `className`; the same is now
+available on `UsersPanel`, `FeatureFlagsPanel`, `EventsPanel`, `ApiKeysPanel`,
+and `AdminPanelStateView`. Their stable `admin-kit__*` classes are supported
+styling hooks. API-key confirmations are portaled outside the panel wrapper, so
+apply any dialog token overrides to an app-level wrapper or target the supplied
+`dialogClassName` directly.
 
 ## Controlled shell
 
