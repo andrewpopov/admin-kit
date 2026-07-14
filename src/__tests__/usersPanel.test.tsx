@@ -129,6 +129,41 @@ describe('UsersPanel', () => {
     expect(screen.getByText('Active')).toBeTruthy();
   });
 
+  it('shows an inline error and keeps the user table rendered after a rejected role change', async () => {
+    const setRole = { execute: vi.fn().mockRejectedValue(new Error('Role change denied')) };
+    render(
+      <UsersPanel
+        adapter={{
+          list: vi.fn().mockResolvedValue({ items: users, page: 1, pageSize: 25, total: 1 }),
+          roles: [{ value: 'owner', label: 'Owner' }, { value: 'member', label: 'Member' }],
+          setRole,
+        }}
+      />,
+    );
+
+    await screen.findByText('Ada Lovelace');
+    fireEvent.change(screen.getByRole('combobox', { name: 'Role for ada@example.test' }), {
+      target: { value: 'member' },
+    });
+
+    await screen.findByText('Role change denied');
+    expect(screen.getByRole('alert').textContent).toBe('Role change denied');
+    expect(screen.getByRole('table')).toBeTruthy();
+    expect(screen.getByText('Ada Lovelace')).toBeTruthy();
+  });
+
+  it('overrides the heading with the title prop', async () => {
+    render(
+      <UsersPanel
+        title="Team members"
+        adapter={{ list: vi.fn().mockResolvedValue({ items: users, page: 1, pageSize: 25, total: 1 }) }}
+      />,
+    );
+
+    await screen.findByRole('heading', { name: 'Team members' });
+    expect(screen.queryByRole('heading', { name: 'Users' })).toBeNull();
+  });
+
   it('omits empty details and actions columns instead of rendering blank table cells', async () => {
     render(
       <UsersPanel

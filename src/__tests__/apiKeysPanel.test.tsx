@@ -60,6 +60,30 @@ describe("ApiKeysPanel", () => {
     await waitFor(() => expect(revoke).toHaveBeenCalledWith({ keyId: "key-1" }));
   });
 
+  it("fires the adapter exactly once when Confirm is double-clicked", async () => {
+    let resolveRevoke: (() => void) | undefined;
+    const revoke = vi.fn().mockImplementation(
+      () => new Promise<void>((resolve) => { resolveRevoke = resolve; }),
+    );
+    render(
+      <ApiKeysPanel
+        createInput={{ name: "Automation" }}
+        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn(), revoke }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+    const confirmButton = screen.getByRole("button", { name: "Revoke key" });
+    fireEvent.click(confirmButton);
+    fireEvent.click(confirmButton);
+
+    expect(revoke).toHaveBeenCalledTimes(1);
+    resolveRevoke?.();
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(revoke).toHaveBeenCalledTimes(1);
+  });
+
   it("derives expired state from durable metadata and removes lifecycle actions", async () => {
     const expired = {
       ...activeKey,
@@ -74,6 +98,46 @@ describe("ApiKeysPanel", () => {
     await screen.findByText(/expired/);
     expect(screen.queryByRole("button", { name: "Rotate" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Revoke" })).toBeNull();
+  });
+
+  it("formats lastUsedAt and expiresAt for display, and keeps the never fallback when absent", async () => {
+    const withTimestamps = {
+      ...activeKey,
+      id: "key-2",
+      name: "Automation with history",
+      lastUsedAt: "2026-07-13T09:30:00.000Z",
+      expiresAt: "2027-01-01T00:00:00.000Z",
+    };
+    render(
+      <ApiKeysPanel
+        adapter={{ list: vi.fn().mockResolvedValue([withTimestamps, activeKey]), create: vi.fn(), revoke: vi.fn() }}
+      />,
+    );
+
+    await screen.findByText("Automation with history");
+    // The formatted key's row must not show the raw ISO strings...
+    expect(screen.queryByText(/2026-07-13T09:30:00\.000Z/)).toBeNull();
+    expect(screen.queryByText(/2027-01-01T00:00:00\.000Z/)).toBeNull();
+    // ...while a key with no lastUsedAt/expiresAt still falls back to "never".
+    expect(screen.getAllByText(/never/).length).toBeGreaterThan(0);
+  });
+
+  it("lets a host-supplied formatTimestamp override the default presentation", async () => {
+    const withTimestamps = {
+      ...activeKey,
+      lastUsedAt: "2026-07-13T09:30:00.000Z",
+      expiresAt: "2027-01-01T00:00:00.000Z",
+    };
+    render(
+      <ApiKeysPanel
+        adapter={{ list: vi.fn().mockResolvedValue([withTimestamps]), create: vi.fn(), revoke: vi.fn() }}
+        formatTimestamp={(iso) => `stamp:${iso}`}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    expect(screen.getByText(/stamp:2026-07-13T09:30:00\.000Z/)).toBeTruthy();
+    expect(screen.getByText(/stamp:2027-01-01T00:00:00\.000Z/)).toBeTruthy();
   });
 
   it("lets a host-owned form supply a dynamic create input", async () => {

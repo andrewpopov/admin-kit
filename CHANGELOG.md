@@ -1,5 +1,72 @@
 # Changelog
 
+## 0.15.0
+
+### Fixed
+
+- **Dark mode no longer renders unreadable primary and destructive buttons.**
+  `--admin-kit-accent` was serving as both a text color and a button fill, so the
+  dark theme's pastel accent sat under hardcoded white label text: 1.75:1 on
+  primary buttons, 1.47:1 on hover, and 1.95:1 on the danger button — including
+  the "Revoke key" confirmation. New `--admin-kit-on-accent` / `--admin-kit-on-danger`
+  foreground tokens take those pairs to 10.44:1, 12.42:1 and 9.34:1.
+- **A failed mutation no longer destroys the loaded view.** `FeatureFlagsPanel`
+  and `UsersPanel` wrote mutation errors into the state that gated the whole
+  render, so one rejected toggle or role change blanked the entire list. They now
+  use the load-error/action-error split `ApiKeysPanel` already had: the list stays
+  mounted and the failure reports inline.
+- **Operational jobs and backups no longer truncate silently.** Both panels
+  requested page 1 with a hardcoded page size, discarded `total`, and rendered no
+  pager, so a host with more rows than one page could never reach them — and the
+  header count reported the page length as if it were the total. Both now paginate
+  and report the true total.
+- **Backup restore requires confirmation.** It previously ran a destructive restore
+  from a single row-button click, while the far less destructive API-key revoke
+  already required a dialog.
+- **`AdminConfirmationDialog` is a real modal.** It declared `aria-modal="true"`
+  while Tab walked straight out into the page behind it. It now renders through a
+  portal (with an inline fallback so the kit stays server-renderable), traps focus,
+  closes on Escape, and restores focus to the trigger. Its element ids come from
+  `useId`, so two dialogs no longer collide.
+- **Confirming an action twice no longer runs it twice.** The dialog stayed open
+  while the handler awaited and its Confirm button had no pending state, so a
+  double-click could rotate a key twice (silently discarding the first secret) or
+  double-revoke (reporting a false failure for an operation that had succeeded).
+- **`EventsPanel` no longer displays results for the wrong query.** It refetched
+  per keystroke with no staleness guard, so a slow response for an earlier query
+  could overwrite a newer one. It now uses the same `latestLoadId` guard as
+  `UsersPanel`, and debounces search input.
+- Removed three `!important` declarations from `.admin-kit__button--danger`. They
+  existed only because the shared button skin left its pseudo-classes outside
+  `:where()`, inflating specificity; hosts can now override the danger button
+  without `!important`, as the styling contract always claimed.
+- The `running` state pill is now visible. The contract has always allowed
+  `completed | running | failed`, but only two were styled.
+
+### Added
+
+- `--admin-kit-success`, `--admin-kit-warning`, `--admin-kit-on-accent`,
+  `--admin-kit-on-danger` and `--admin-kit-danger-strong` tokens. Status colors and
+  the secret-reveal callout now theme through variables rather than hardcoded hexes.
+- Opt-in system dark mode via `data-admin-kit-theme="auto"`. `.dark` remains
+  authoritative and unchanged, so class-mode hosts are unaffected — an
+  unconditional `prefers-color-scheme` rule would have overridden a user who
+  explicitly chose light while their OS was dark.
+- `formatTimestamp` on the events, API-key and operational panels, with a default
+  `Intl.DateTimeFormat` presentation. Values that do not parse as dates pass
+  through unchanged, so adapters already supplying pre-formatted text keep working.
+- Exported `OperationalJobsPanelProps`, `BackupsPanelProps`, `SettingsPanelProps`
+  and `AdminStatusSummaryProps`. These panels previously exported values only, so
+  hosts could not name their props.
+- `className` on the operational panels, `title` on `UsersPanel` and
+  `FeatureFlagsPanel`, `runLabel` on `BackupsPanel`, and `pageSize` on the
+  operational panels. All optional and defaulted to current behavior.
+
+### Changed
+
+- `react-dom` is now a peer dependency (the dialog imports `createPortal`), and the
+  supported React range widens to `^18 || ^19`.
+
 ## 0.14.1
 
 - Render only populated user-directory columns and keep table-cell layout

@@ -38,7 +38,7 @@ try {
   run('mkdir', ['-p', consumerDir]);
   writeFileSync(join(consumerDir, 'package.json'), JSON.stringify({ name: 'admin-kit-consumer', private: true }, null, 2));
   console.log('[verify:pack] Installing tarball into a throwaway React consumer...');
-  run('npm', ['install', '--no-audit', '--no-fund', tarballPath, 'react@18.3.1'], { cwd: consumerDir, stdio: 'inherit' });
+  run('npm', ['install', '--no-audit', '--no-fund', tarballPath, 'react@18.3.1', 'react-dom@18.3.1'], { cwd: consumerDir, stdio: 'inherit' });
 
   const smoke = `
     const mod = require('${pkg.name}');

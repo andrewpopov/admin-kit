@@ -33,11 +33,14 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.11.0
+npm install github:andrewpopov/admin-kit#v0.15.0
 ```
 
-`react` is a peer dependency. Import default styles only if they suit the host
-application; the components also work with host-owned styling.
+`react` and `react-dom` are peer dependencies (`^18 || ^19`). `react-dom` is
+required because confirmation dialogs render through a portal.
+
+Import default styles only if they suit the host application; the components also
+work with host-owned styling.
 
 ```ts
 import "@andrewpopov/admin-kit/styles.css";
@@ -82,18 +85,56 @@ where possible so an equally targeted host rule wins without `!important`.
   --admin-kit-accent-strong: var(--app-primary-hover);
   --admin-kit-accent-soft: var(--app-primary-subtle);
   --admin-kit-radius: var(--app-radius);
+
+  /* Label color used ON an accent or danger fill. Set these whenever you
+     override the fills: a light accent with a light on-accent is how you get an
+     unreadable button. */
+  --admin-kit-on-accent: var(--app-primary-foreground);
+  --admin-kit-on-danger: var(--app-danger-foreground);
+  --admin-kit-danger-strong: var(--app-danger-hover);
+
+  /* Status surfaces (healthy/warning pills, the secret-reveal callout). */
+  --admin-kit-success: var(--app-success);
+  --admin-kit-warning: var(--app-warning);
 }
 
-.acme-admin__users .admin-kit__user { box-shadow: none; }
+.acme-admin__users .admin-kit__users-table { box-shadow: none; }
 .acme-admin__keys > button { border-radius: 999px; }
 ```
 
-`AdminConsole` and `AdminPortal` already expose `className`; the same is now
-available on `UsersPanel`, `FeatureFlagsPanel`, `EventsPanel`, `ApiKeysPanel`,
-and `AdminPanelStateView`. Their stable `admin-kit__*` classes are supported
-styling hooks. API-key confirmations are portaled outside the panel wrapper, so
-apply any dialog token overrides to an app-level wrapper or target the supplied
-`dialogClassName` directly.
+`className` is available on every panel — the shells (`AdminConsole`,
+`AdminPortal`), the directory panels (`UsersPanel`, `FeatureFlagsPanel`,
+`EventsPanel`, `ApiKeysPanel`), the operational panels (`OperationalJobsPanel`,
+`BackupsPanel`, `SettingsPanel`), and `AdminPanelStateView`. Their stable
+`admin-kit__*` classes are supported styling hooks.
+
+Package selectors keep their pseudo-classes inside `:where()`, so an equally
+targeted host rule wins without `!important` — and the package itself ships no
+`!important` declarations.
+
+Confirmation dialogs render through a portal on `document.body`, outside the panel
+wrapper, so apply dialog token overrides to an app-level wrapper or target the
+supplied `dialogClassName`. (During server rendering the dialog falls back to
+inline markup, so the kit remains server-renderable.)
+
+### Dark mode
+
+`.dark` on any ancestor is the authoritative signal and is unchanged:
+
+```html
+<body class="dark">
+```
+
+Hosts that follow the OS setting instead of an in-app toggle can opt into system
+dark mode:
+
+```html
+<body data-admin-kit-theme="auto">
+```
+
+This is deliberately opt-in. Applying `prefers-color-scheme` unconditionally would
+force dark tokens on a class-mode host whose user had explicitly selected light
+while their OS was set to dark.
 
 ## Controlled shell
 

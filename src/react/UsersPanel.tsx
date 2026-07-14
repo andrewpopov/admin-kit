@@ -9,6 +9,7 @@ import { AdminPanelStateView } from "./AdminPanelState";
 
 export interface UsersPanelProps<User extends AdminUserSummary> {
   adapter: AdminUsersAdapter<User>;
+  title?: string;
   pageSize?: number;
   query?: Omit<AdminPageQuery, "page" | "pageSize">;
   /** Opt in when the host adapter maps search text into its list query. */
@@ -33,6 +34,7 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
  */
 export function UsersPanel<User extends AdminUserSummary>({
   adapter,
+  title = "Users",
   pageSize = 25,
   query,
   search: searchOptions = false,
@@ -44,7 +46,8 @@ export function UsersPanel<User extends AdminUserSummary>({
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState(query?.search ?? "");
   const [result, setResult] = useState<AdminPage<User>>();
-  const [error, setError] = useState<string>();
+  const [loadError, setLoadError] = useState<string>();
+  const [actionError, setActionError] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string>();
   const latestLoadId = useRef(0);
@@ -52,7 +55,7 @@ export function UsersPanel<User extends AdminUserSummary>({
   const load = async () => {
     const loadId = ++latestLoadId.current;
     setIsLoading(true);
-    setError(undefined);
+    setLoadError(undefined);
     try {
       const nextResult = await adapter.list({
         ...query,
@@ -63,7 +66,7 @@ export function UsersPanel<User extends AdminUserSummary>({
       if (loadId === latestLoadId.current) setResult(nextResult);
     } catch (reason) {
       if (loadId === latestLoadId.current) {
-        setError(reason instanceof Error ? reason.message : "Unable to load users.");
+        setLoadError(reason instanceof Error ? reason.message : "Unable to load users.");
       }
     } finally {
       if (loadId === latestLoadId.current) setIsLoading(false);
@@ -72,6 +75,11 @@ export function UsersPanel<User extends AdminUserSummary>({
 
   useEffect(() => {
     void load();
+    // Invalidate synchronously with the transition: without this, a request
+    // in flight for the previous page/search can still resolve and pass the
+    // `loadId === latestLoadId.current` check because the effect that would
+    // have bumped it for the new query hasn't started yet.
+    return () => { latestLoadId.current += 1; };
   }, [adapter, page, pageSize, query?.search, search]);
 
   useEffect(() => {
@@ -86,12 +94,12 @@ export function UsersPanel<User extends AdminUserSummary>({
   const updateRole = async (userId: string, role: string) => {
     if (!adapter.setRole) return;
     setPendingUserId(userId);
-    setError(undefined);
+    setActionError(undefined);
     try {
       await adapter.setRole.execute({ userId, role });
       await load();
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Unable to update the user role.");
+      setActionError(reason instanceof Error ? reason.message : "Unable to update the user role.");
     } finally {
       setPendingUserId(undefined);
     }
@@ -100,22 +108,22 @@ export function UsersPanel<User extends AdminUserSummary>({
   const updateStatus = async (userId: string, status: string) => {
     if (!adapter.setStatus) return;
     setPendingUserId(userId);
-    setError(undefined);
+    setActionError(undefined);
     try {
       await adapter.setStatus.execute({ userId, status });
       await load();
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Unable to update the user status.");
+      setActionError(reason instanceof Error ? reason.message : "Unable to update the user status.");
     } finally {
       setPendingUserId(undefined);
     }
   };
 
   return (
-    <section className={["admin-kit__users", className].filter(Boolean).join(" ")} aria-label="Users">
+    <section className={["admin-kit__users", className].filter(Boolean).join(" ")} aria-label={title}>
       <header className="admin-kit__users-header">
         <div>
-          <h2>Users</h2>
+          <h2>{title}</h2>
           {result ? <p>{result.total} {result.total === 1 ? "user" : "users"}</p> : null}
         </div>
         {renderHeaderActions ? renderHeaderActions({ reload: load, isLoading }) : null}
@@ -131,14 +139,18 @@ export function UsersPanel<User extends AdminUserSummary>({
           />
         </label>
       ) : null}
-      {error ? (
-        <AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} />
+      {loadError && !result ? (
+        <AdminPanelStateView state={{ kind: "error", detail: loadError, onRetry: () => void load() }} />
       ) : !result ? (
         <AdminPanelStateView state={{ kind: "loading", label: "Loading users…" }} />
       ) : result.items.length === 0 ? (
         <AdminPanelStateView state={{ kind: "empty", title: "No users found." }} />
       ) : (
         <>
+          {loadError ? (
+            <AdminPanelStateView state={{ kind: "error", detail: loadError, onRetry: () => void load() }} />
+          ) : null}
+          {actionError ? <p className="admin-kit__action-error" role="alert">{actionError}</p> : null}
           {presentation === "table" ? (() => {
             const hasDetails = result.items.some((user) => user.details?.length);
             const hasActions = Boolean(renderUserActions);
