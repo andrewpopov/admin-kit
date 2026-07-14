@@ -34,6 +34,7 @@ export { ApiKeysPanel, type ApiKeysPanelProps } from "./ApiKeysPanel";
 export { EventsPanel, type EventsPanelProps } from "./EventsPanel";
 export { MembershipsPanel, type MembershipsPanelProps } from "./MembershipsPanel";
 export { LogsPanel, type LogsPanelProps } from "./LogsPanel";
+export { SessionsPanel, type SessionsPanelProps } from "./SessionsPanel";
 export {
   AdminStatusSummary,
   type AdminStatusSummaryProps,

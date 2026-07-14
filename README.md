@@ -21,6 +21,8 @@ authorization, and product-specific pages.
 - Scoped-membership administration for workspaces, organizations, projects,
   and other host-defined scopes, including direct/inherited access, role
   changes, host-owned additions, and confirmed removals.
+- Active-session administration with safe metadata, per-session revocation,
+  host-defined bulk semantics, confirmations, and authoritative reloads.
 
 ## What does not belong here
 
@@ -35,7 +37,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.16.0
+npm install github:andrewpopov/admin-kit#v0.17.0
 ```
 
 `react` and `react-dom` are peer dependencies (`^18 || ^19`). `react-dom` is
@@ -106,7 +108,7 @@ where possible so an equally targeted host rule wins without `!important`.
 
 `className` is available on every panel — the shells (`AdminConsole`,
 `AdminPortal`), the directory panels (`UsersPanel`, `FeatureFlagsPanel`,
-`EventsPanel`, `LogsPanel`, `ApiKeysPanel`, `MembershipsPanel`), the operational panels
+`EventsPanel`, `LogsPanel`, `ApiKeysPanel`, `MembershipsPanel`, `SessionsPanel`), the operational panels
 (`OperationalJobsPanel`, `BackupsPanel`, `SettingsPanel`), and
 `AdminPanelStateView`. Their stable
 `admin-kit__*` classes are supported styling hooks.
@@ -323,6 +325,39 @@ Extend `AdminMembershipSummary` in the host when `renderMemberActions` or
 `getRemoveDescription` needs product-specific presentation data; the generic
 adapter and panel preserve that subtype without exposing it to the package.
 
+### Active sessions
+
+Use `SessionsPanel` for list-safe active-session metadata and revocation
+workflows. The host declares the scope and exact bulk action language, so the
+same panel can represent Bewks' application-wide operator view, Smarthome's
+per-user revoke-one/revoke-all behavior, or Sano OS's self-service
+revoke-others behavior without pretending those policies are equivalent.
+
+```tsx
+const sessions = defineAdminSessionsAdapter({
+  scope: { id: user.id, label: user.email, kind: "user" },
+  list: () => api.listSessions(user.id),
+  revoke: { execute: ({ sessionId }) => api.revokeSession(user.id, sessionId) },
+  bulkRevoke: {
+    label: "Revoke other sessions",
+    confirmTitle: "Keep this device?",
+    confirmDescription: "Every other device will need to sign in again.",
+    execute: () => api.revokeOtherSessions(user.id),
+  },
+});
+
+<SessionsPanel adapter={sessions} />;
+```
+
+Map only safe presentation facts such as client, IP-derived display location,
+creation, last-seen, and expiry timestamps. The host retains session/token
+storage, current-device rotation, authentication epochs, resource and actor
+authorization, audit recording, and the exact meaning of every revoke action.
+`permissions.canRevoke` only hides an unavailable control; it is not an
+authorization boundary. After each mutation the panel reloads the host's
+authoritative session list and preserves the last good list if a later load or
+mutation fails.
+
 ### Feature flags
 
 `FeatureFlagsPanel` and `AdminFeatureFlagsAdapter` require the host to declare
@@ -472,6 +507,7 @@ union of every product page.
 | --- | --- | --- |
 | Accounts | Bewks, Cairn, Sano OS, Savoro, Smarthome | Directory state, declared role/status controls, host action seams |
 | Scoped memberships | Cairn organizations/projects, Savoro shared resources | Direct/inherited presentation, role mutation, add composition, confirmed removal |
+| Active sessions | Bewks, Sano OS, Smarthome | Safe metadata, current-session presentation, confirmed individual revoke, host-defined bulk revoke semantics |
 | Credentials | Bewks, Cairn, Sano OS, Savoro, Smarthome | Secret-safe list and create/rotate/revoke/update lifecycle |
 | Administrative events | Bewks, Cairn, Savoro, Smarthome | Normalized records, declared filters, source context, paging |
 | Settings and operations | Bewks, Cairn, Savoro | Typed fields, status summaries, backups, jobs, retry and confirmation behavior |
