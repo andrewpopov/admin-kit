@@ -10,15 +10,15 @@ authorization, and product-specific pages.
 - Controlled tab navigation and grouped, routed admin-portal composition.
 - Shared loading, error, empty, and confirmation interactions.
 - Serializable adapter contracts and consumer-shaped test fixtures.
-- User-management, feature-flag, and API-key modules. User management, backups, and operational jobs render through the same responsive semantic-table contract, with horizontal scrolling on narrow screens.
+- User-management, scoped-membership, feature-flag, and API-key modules. User management, memberships, backups, and operational jobs render through the same responsive semantic-table contract, with horizontal scrolling on narrow screens.
 - `AdminWorkspace`, the default header, summary, toolbar, and content framing for operational pages.
 - Typed operational status, backup, and settings panels for consistent recovery and configuration surfaces.
 - An operational-jobs panel for scheduled work where backup/restore semantics do not apply.
 - An adapter-backed administrative events panel with declared filters, source
   context, safe metadata details, refresh, and paging.
-- A scoped-membership adapter contract for workspace, organization, and project
-  administration; a React membership panel is intentionally deferred until
-  multiple host adapters prove the interaction requirements.
+- Scoped-membership administration for workspaces, organizations, projects,
+  and other host-defined scopes, including direct/inherited access, role
+  changes, host-owned additions, and confirmed removals.
 
 ## What does not belong here
 
@@ -33,7 +33,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.15.0
+npm install github:andrewpopov/admin-kit#v0.16.0
 ```
 
 `react` and `react-dom` are peer dependencies (`^18 || ^19`). `react-dom` is
@@ -104,8 +104,9 @@ where possible so an equally targeted host rule wins without `!important`.
 
 `className` is available on every panel — the shells (`AdminConsole`,
 `AdminPortal`), the directory panels (`UsersPanel`, `FeatureFlagsPanel`,
-`EventsPanel`, `ApiKeysPanel`), the operational panels (`OperationalJobsPanel`,
-`BackupsPanel`, `SettingsPanel`), and `AdminPanelStateView`. Their stable
+`EventsPanel`, `ApiKeysPanel`, `MembershipsPanel`), the operational panels
+(`OperationalJobsPanel`, `BackupsPanel`, `SettingsPanel`), and
+`AdminPanelStateView`. Their stable
 `admin-kit__*` classes are supported styling hooks.
 
 Package selectors keep their pseudo-classes inside `:where()`, so an equally
@@ -280,6 +281,41 @@ The table only includes Details when at least one returned account supplies
 `details`, and Actions only when the host supplies `renderUserActions`; the
 directory never leaves a blank column for omitted capabilities.
 
+### Scoped memberships
+
+Use `MembershipsPanel` for access within a host-defined scope, not for global
+account administration. This distinction lets Cairn model organization and
+project roles and lets Savoro model shared-list or household access without
+inventing one tenant schema.
+
+```tsx
+const memberships = defineAdminMembershipsAdapter({
+  scope: { id: workspace.id, label: workspace.name, kind: "workspace" },
+  roles: [{ value: "ADMIN", label: "Administrator" }, { value: "MEMBER", label: "Member" }],
+  list: () => api.listMembers(workspace.id),
+  invite: { execute: ({ email, role }) => api.inviteMember(workspace.id, email, role) },
+  setRole: { execute: ({ memberId, role }) => api.setMemberRole(workspace.id, memberId, role) },
+  remove: { execute: ({ memberId }) => api.removeMember(workspace.id, memberId) },
+});
+
+<MembershipsPanel
+  adapter={memberships}
+  renderAddMember={({ submit, isPending }) => (
+    <InviteMemberForm disabled={isPending} onSubmit={submit} />
+  )}
+/>;
+```
+
+`source: "inherited"` is always informational and cannot expose mutation
+controls. For direct memberships, use `permissions.canChangeRole` and
+`permissions.canRemove` when the current administrator may mutate some rows
+but not others. These values only control presentation; the server must enforce
+the same scope and actor policy. The host retains identity search, invitation
+delivery, acceptance, inheritance, and removal impact language.
+Extend `AdminMembershipSummary` in the host when `renderMemberActions` or
+`getRemoveDescription` needs product-specific presentation data; the generic
+adapter and panel preserve that subtype without exposing it to the package.
+
 ### Feature flags
 
 `FeatureFlagsPanel` and `AdminFeatureFlagsAdapter` require the host to declare
@@ -368,6 +404,21 @@ authorized restore operation. Use `OperationalJobsPanel` for scheduled tasks,
 imports, synchronizations, and retention work. `SettingsPanel` maps a
 host-owned load/save adapter to typed text, sensitive, and boolean fields; it
 does not infer setting keys or make policy decisions.
+
+## Fleet capability boundary
+
+The kit is a behavioral superset of repeated administration workflows, not a
+union of every product page.
+
+| Capability | Fleet evidence | Shared package ownership |
+| --- | --- | --- |
+| Accounts | Bewks, Cairn, Sano OS, Savoro, Smarthome | Directory state, declared role/status controls, host action seams |
+| Scoped memberships | Cairn organizations/projects, Savoro shared resources | Direct/inherited presentation, role mutation, add composition, confirmed removal |
+| Credentials | Bewks, Cairn, Sano OS, Savoro, Smarthome | Secret-safe list and create/rotate/revoke/update lifecycle |
+| Administrative events | Bewks, Cairn, Savoro, Smarthome | Normalized records, declared filters, source context, paging |
+| Settings and operations | Bewks, Cairn, Savoro | Typed fields, status summaries, backups, jobs, retry and confirmation behavior |
+| Runtime log tails | Bewks, Savoro, Smarthome | Deferred: source selection, structured versus raw records, search, and refresh semantics need a dedicated adapter |
+| Imports, catalogs, integrations, security enrollment | Product-specific | Host pages composed inside `AdminPortal`; do not generalize their domain policy |
 
 ## Release requirements
 

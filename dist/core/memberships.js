@@ -38,9 +38,17 @@ function validateAdminMemberships(members, roles) {
             throw new Error(`Membership ${member.memberId} has an undeclared role.`);
         if (member.source === "inherited" && member.mutable)
             throw new Error(`Inherited membership ${member.memberId} cannot be mutable.`);
+        if (member.source === "inherited" &&
+            (member.permissions?.canChangeRole || member.permissions?.canRemove))
+            throw new Error(`Inherited membership ${member.memberId} cannot expose mutations.`);
         if (ids.has(member.memberId))
             throw new Error(`Duplicate membership member: ${member.memberId}.`);
         ids.add(member.memberId);
-        return Object.freeze({ ...member });
+        return Object.freeze({
+            ...member,
+            permissions: member.permissions
+                ? Object.freeze({ ...member.permissions })
+                : undefined,
+        });
     }));
 }

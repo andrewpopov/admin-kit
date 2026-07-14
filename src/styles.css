@@ -272,7 +272,7 @@
 
 .admin-kit__events-header, .admin-kit__events-pagination { align-items: center; display: flex; gap: 0.75rem; justify-content: space-between; }
 .admin-kit__events-header h2, .admin-kit__events-header p { margin: 0; }
-.admin-kit__events-header h2, .admin-kit__users-header h2, .admin-kit__flags-header h2, .admin-kit__keys h2 { font-size: 1.125rem; letter-spacing: -0.01em; }
+.admin-kit__events-header h2, .admin-kit__users-header h2, .admin-kit__memberships-header h2, .admin-kit__flags-header h2, .admin-kit__keys h2 { font-size: 1.125rem; letter-spacing: -0.01em; }
 .admin-kit__events-header p, .admin-kit__events-list span, .admin-kit__events-pagination { color: var(--admin-kit-muted); }
 .admin-kit__events-header > button, .admin-kit__keys > button, .admin-kit__state button { background: var(--admin-kit-accent); border-color: var(--admin-kit-accent); color: var(--admin-kit-on-accent); }
 .admin-kit__events-header > button:hover:not(:disabled), .admin-kit__keys > button:hover:not(:disabled), .admin-kit__state button:hover:not(:disabled) { background: var(--admin-kit-accent-strong); border-color: var(--admin-kit-accent-strong); }
@@ -340,6 +340,24 @@
 .admin-kit__user-empty { color: var(--admin-kit-muted); }
 .admin-kit__pagination { align-items: center; color: var(--admin-kit-muted); display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
 
+.admin-kit__memberships-header { align-items: baseline; display: flex; gap: 0.75rem; justify-content: space-between; }
+.admin-kit__memberships-header h2 { margin: 0; }
+.admin-kit__memberships-header p, .admin-kit__membership-identity span { color: var(--admin-kit-muted); }
+.admin-kit__memberships-header p { margin: 0.25rem 0 0; }
+.admin-kit__memberships-table-wrap { margin-top: 1rem; }
+.admin-kit__memberships-table { min-width: 42rem; }
+.admin-kit__memberships-table th:first-child, .admin-kit__memberships-table td:first-child { min-width: 14rem; }
+.admin-kit__memberships-table th:last-child, .admin-kit__memberships-table td:last-child { white-space: nowrap; width: 1%; }
+.admin-kit__memberships-table select { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.5rem; padding: 0.375rem 0.5rem; }
+.admin-kit__membership-identity { display: flex; flex-direction: column; gap: 0.25rem; }
+.admin-kit__membership-identity span { overflow-wrap: anywhere; }
+.admin-kit__membership-source, .admin-kit__membership-role { border-radius: 999px; display: inline-block; font-size: 0.8125rem; font-weight: 700; padding: 0.25rem 0.5rem; }
+.admin-kit__membership-source, .admin-kit__membership-role--neutral { background: var(--admin-kit-surface-subtle); color: var(--admin-kit-muted); }
+.admin-kit__membership-role--success { background: var(--admin-kit-success-soft); color: var(--admin-kit-success); }
+.admin-kit__membership-role--warning { background: var(--admin-kit-warning-soft); color: var(--admin-kit-warning); }
+.admin-kit__membership-role--danger { background: var(--admin-kit-danger-soft); color: var(--admin-kit-danger); }
+.admin-kit__membership-controls { align-items: center; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
 .admin-kit__keys { display: grid; gap: 1rem; }
 .admin-kit__keys h2, .admin-kit__keys-list p { margin: 0; }
 .admin-kit__secret { background: var(--admin-kit-warning-soft); border: 1px solid var(--admin-kit-warning); border-radius: var(--admin-kit-radius); display: grid; gap: 0.5rem; padding: 1rem; }
@@ -357,8 +375,8 @@
   .admin-kit__portal { grid-template-columns: minmax(0, 1fr); }
   .admin-kit__portal-navigation { border-radius: var(--admin-kit-radius-sm); }
   .admin-kit__portal-list { grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); }
-  .admin-kit__events-header, .admin-kit__users-header, .admin-kit__events-pagination, .admin-kit__keys-list li { align-items: stretch; flex-direction: column; }
-  .admin-kit__events-header > button, .admin-kit__users-header > :last-child, .admin-kit__key-actions > button, .admin-kit__dialog-actions > button { width: 100%; }
+  .admin-kit__events-header, .admin-kit__users-header, .admin-kit__memberships-header, .admin-kit__events-pagination, .admin-kit__keys-list li { align-items: stretch; flex-direction: column; }
+  .admin-kit__events-header > button, .admin-kit__users-header > :last-child, .admin-kit__memberships-header > :last-child, .admin-kit__key-actions > button, .admin-kit__dialog-actions > button { width: 100%; }
   .admin-kit__events-filters label { flex: 1 1 12rem; }
   .admin-kit__user-controls { align-items: stretch; }
   /* The users table keeps its horizontal scroller on small viewports
@@ -366,4 +384,5 @@
      lower min-width just means less of it is cut off before scrolling. */
   .admin-kit__users-table { min-width: 30rem; }
   .admin-kit__users-table--with-details { min-width: 36rem; }
+  .admin-kit__memberships-table { min-width: 34rem; }
 }
