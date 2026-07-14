@@ -4,6 +4,11 @@
 
 ### Added
 
+- `SessionsPanel` and `AdminSessionsAdapter`, an active-session administration
+  surface proven against Bewks, Sano OS, and Smarthome. It shares safe metadata
+  rendering, destructive confirmation, last-good-state retention, and
+  authoritative reload behavior while hosts retain token storage, current
+  device handling, authorization, auditing, and exact bulk-revocation semantics.
 - `LogsPanel` and `AdminLogsAdapter`, a runtime-output surface proven against
   Bewks, Savoro, and Smarthome. It supports declared or dynamic sources,
   bounded snapshots, optional level/category filters, search, refresh,

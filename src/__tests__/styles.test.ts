@@ -79,6 +79,7 @@ describe("Admin Kit styles", () => {
     expect(styles).toContain(".admin-kit__table th");
     expect(styles).toContain(".admin-kit__memberships-table");
     expect(styles).toContain(".admin-kit__logs-output");
+    expect(styles).toContain(".admin-kit__sessions-table");
     expect(styles).toContain("overflow-x: auto");
   });
 

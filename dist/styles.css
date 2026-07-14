@@ -378,6 +378,22 @@
 .admin-kit__log-context { color: color-mix(in srgb, var(--admin-kit-surface) 72%, transparent); display: flex; flex-wrap: wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; gap: 0.75rem; }
 .admin-kit__log-line pre { color: inherit; font: 0.8125rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
 
+.admin-kit__sessions { display: grid; gap: 1rem; }
+.admin-kit__sessions-header { align-items: baseline; display: flex; gap: 0.75rem; justify-content: space-between; }
+.admin-kit__sessions-header h2, .admin-kit__sessions-header p { margin: 0; }
+.admin-kit__sessions-header h2 { font-size: 1.125rem; letter-spacing: -0.01em; }
+.admin-kit__sessions-header p, .admin-kit__session-identity > span:not(.admin-kit__session-current), .admin-kit__session-details dt, .admin-kit__session-empty { color: var(--admin-kit-muted); }
+.admin-kit__sessions-table { min-width: 52rem; }
+.admin-kit__sessions-table--with-details { min-width: 62rem; }
+.admin-kit__sessions-table th:first-child, .admin-kit__sessions-table td:first-child { min-width: 13rem; }
+.admin-kit__sessions-table th:last-child, .admin-kit__sessions-table td:last-child { white-space: nowrap; width: 1%; }
+.admin-kit__session-identity { align-items: flex-start; display: flex; flex-direction: column; gap: 0.25rem; }
+.admin-kit__session-current { background: var(--admin-kit-accent-soft); border-radius: 999px; color: var(--admin-kit-accent); font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.45rem; }
+.admin-kit__session-details { display: grid; gap: 0.25rem; margin: 0; }
+.admin-kit__session-details div { display: flex; gap: 0.35rem; }
+.admin-kit__session-details dd, .admin-kit__session-details dt { font-size: 0.8125rem; margin: 0; }
+.admin-kit__session-controls { align-items: center; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
 .admin-kit__keys { display: grid; gap: 1rem; }
 .admin-kit__keys h2, .admin-kit__keys-list p { margin: 0; }
 .admin-kit__secret { background: var(--admin-kit-warning-soft); border: 1px solid var(--admin-kit-warning); border-radius: var(--admin-kit-radius); display: grid; gap: 0.5rem; padding: 1rem; }
@@ -407,4 +423,8 @@
   .admin-kit__memberships-table { min-width: 34rem; }
   .admin-kit__logs-header { align-items: stretch; flex-direction: column; }
   .admin-kit__logs-actions > button { flex: 1 1 auto; }
+  .admin-kit__sessions-header { align-items: stretch; flex-direction: column; }
+  .admin-kit__sessions-header > button { width: 100%; }
+  .admin-kit__sessions-table { min-width: 42rem; }
+  .admin-kit__sessions-table--with-details { min-width: 48rem; }
 }
