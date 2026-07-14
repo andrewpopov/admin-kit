@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1
+
+- Let host applications render policy-specific API-key rows while Admin Kit
+  retains safe metadata validation, one-time secret handling, pending state,
+  and destructive-action confirmation.
+
 ## 0.5.0
 
 - Preserve one-time API-key secrets and credential controls when a mutation or

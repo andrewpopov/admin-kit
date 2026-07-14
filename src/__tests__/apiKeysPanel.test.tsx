@@ -178,4 +178,26 @@ describe("ApiKeysPanel", () => {
     await expect(submit?.({ allowedActions: ["pantry.read"] })).resolves.toBe(true);
     expect(update).toHaveBeenCalledWith({ keyId: "key-1", update: { allowedActions: ["pantry.read"] } });
   });
+
+  it("lets a host render policy-specific rows while the panel retains revoke confirmation", async () => {
+    const revoke = vi.fn().mockResolvedValue(undefined);
+    render(
+      <ApiKeysPanel
+        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn(), revoke }}
+        renderKeys={({ keys, requestRevoke, pendingKeyId }) => (
+          <div>
+            <span>{keys[0]?.name} policy: organization projects</span>
+            <span>{pendingKeyId ?? "idle"}</span>
+            <button type="button" onClick={() => requestRevoke(keys[0]!)}>Delete custom key</button>
+          </div>
+        )}
+      />,
+    );
+
+    await screen.findByText("Automation policy: organization projects");
+    fireEvent.click(screen.getByRole("button", { name: "Delete custom key" }));
+    expect(revoke).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Revoke key" }));
+    await waitFor(() => expect(revoke).toHaveBeenCalledWith({ keyId: "key-1" }));
+  });
 });

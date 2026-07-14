@@ -30,7 +30,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.5.0
+npm install github:andrewpopov/admin-kit#v0.5.1
 ```
 
 `react` is a peer dependency. Import default styles only if they suit the host
@@ -208,6 +208,11 @@ list IDs, IP restrictions, expiry, or a rate limit. Use `renderEdit` only when
 the host provides the optional `update` mutation; it receives a package-owned
 reload lifecycle but retains the edit form, policy schema, and server-side
 authorization.
+
+Use `renderKeys` when the host needs to retain a richer credential list or
+empty state. It receives only safe key metadata plus package-owned revoke and
+optional rotate requests, so the package still owns destructive confirmation
+and the secret-safe lifecycle.
 
 ### Administrative events
 
