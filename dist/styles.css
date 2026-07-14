@@ -237,6 +237,13 @@
 .admin-kit__users-header { align-items: baseline; display: flex; gap: 0.75rem; justify-content: space-between; }
 .admin-kit__users-header p, .admin-kit__user-identity span, .admin-kit__user-controls label > span, .admin-kit__users-search span, .admin-kit__user-details dt { color: var(--admin-kit-muted); }
 .admin-kit__users-search { margin-top: 1.25rem; max-width: 28rem; }
+.admin-kit__users-table-wrap { border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); margin-top: 1rem; overflow-x: auto; }
+.admin-kit__users-table { border-collapse: collapse; min-width: 48rem; width: 100%; }
+.admin-kit__users-table th, .admin-kit__users-table td { border-bottom: 1px solid var(--admin-kit-border); padding: 0.875rem 1rem; text-align: left; vertical-align: middle; }
+.admin-kit__users-table th { background: var(--admin-kit-surface-subtle); color: var(--admin-kit-muted); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.admin-kit__users-table tbody tr:last-child td { border-bottom: 0; }
+.admin-kit__users-table tbody tr:hover { background: var(--admin-kit-surface-subtle); }
+.admin-kit__users-table select { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.5rem; padding: 0.375rem 0.5rem; }
 .admin-kit__user { align-items: center; display: flex; gap: 1rem; justify-content: space-between; padding: 1rem; transition: border-color 150ms ease, box-shadow 150ms ease; }
 .admin-kit__user:hover { border-color: var(--admin-kit-border-strong); box-shadow: 0 2px 5px rgb(15 23 42 / 8%), 0 10px 24px rgb(15 23 42 / 7%); }
 .admin-kit__user-identity, .admin-kit__user-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; }
