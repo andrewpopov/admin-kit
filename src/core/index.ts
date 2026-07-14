@@ -36,3 +36,13 @@ export {
   type AdminApiKeysAdapter,
   type AdminApiKeyState,
 } from "./apiKeys";
+export {
+  defineAdminMembershipsAdapter,
+  validateAdminMemberships,
+  type AdminMembershipMutation,
+  type AdminMembershipRole,
+  type AdminMembershipRoleChange,
+  type AdminMembershipScope,
+  type AdminMembershipSummary,
+  type AdminMembershipsAdapter,
+} from "./memberships";

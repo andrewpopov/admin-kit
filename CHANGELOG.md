@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+- Add a transport-neutral scoped-membership adapter contract, validated with
+  Mizen workspace and Cairn project role vocabularies. The contract deliberately
+  keeps tenant authorization, invitations, inheritance, and audit policy in the host.
+
 ## 0.3.2
 
 - Include current compiled package artifacts in GitHub-tag installs.
