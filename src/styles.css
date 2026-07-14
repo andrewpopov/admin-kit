@@ -329,6 +329,24 @@
   display: block;
   margin-top: 0.25rem;
 }
+.admin-kit__key-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0.5rem 0 0;
+}
+.admin-kit__key-details div {
+  display: flex;
+  gap: 0.25rem;
+}
+.admin-kit__key-details dt,
+.admin-kit__key-details dd {
+  font-size: 0.875rem;
+  margin: 0;
+}
+.admin-kit__key-details dt {
+  color: var(--admin-kit-muted);
+}
 .admin-kit__key-actions {
   display: flex;
   gap: 0.5rem;

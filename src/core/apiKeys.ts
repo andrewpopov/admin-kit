@@ -10,6 +10,13 @@ export interface AdminApiKey {
   createdAt: string;
   expiresAt?: string;
   lastUsedAt?: string;
+  /** Safe policy or provenance facts supplied by the host. */
+  details?: readonly AdminApiKeyDetail[];
+}
+
+export interface AdminApiKeyDetail {
+  label: string;
+  value: string;
 }
 
 /** The only boundary where a raw secret may enter the package. */
@@ -18,16 +25,17 @@ export interface AdminApiKeyCreated {
   secret: string;
 }
 
-export interface AdminApiKeysAdapter<CreateInput = never> {
+export interface AdminApiKeysAdapter<CreateInput = never, UpdateInput = never> {
   list(): Promise<readonly AdminApiKey[]>;
   create: (input: CreateInput) => Promise<AdminApiKeyCreated>;
   revoke: (input: { keyId: string }) => Promise<void>;
   rotate?: (input: { keyId: string }) => Promise<AdminApiKeyCreated>;
+  update?: (input: { keyId: string; update: UpdateInput }) => Promise<AdminApiKey>;
 }
 
-export function defineAdminApiKeysAdapter<CreateInput = never>(
-  adapter: AdminApiKeysAdapter<CreateInput>,
-): AdminApiKeysAdapter<CreateInput> {
+export function defineAdminApiKeysAdapter<CreateInput = never, UpdateInput = never>(
+  adapter: AdminApiKeysAdapter<CreateInput, UpdateInput>,
+): AdminApiKeysAdapter<CreateInput, UpdateInput> {
   return Object.freeze({ ...adapter });
 }
 
@@ -45,7 +53,13 @@ export function validateAdminApiKeys(
   }
   return Object.freeze(
     keys.map((key) =>
-      Object.freeze({ ...key, scopes: Object.freeze([...key.scopes]) }),
+      Object.freeze({
+        ...key,
+        scopes: Object.freeze([...key.scopes]),
+        details: key.details
+          ? Object.freeze(key.details.map((detail) => Object.freeze({ ...detail })))
+          : undefined,
+      }),
     ),
   );
 }

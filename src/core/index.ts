@@ -37,6 +37,7 @@ export {
   validateAdminApiKeyCreated,
   validateAdminApiKeys,
   type AdminApiKey,
+  type AdminApiKeyDetail,
   type AdminApiKeyCreated,
   type AdminApiKeysAdapter,
   type AdminApiKeyState,

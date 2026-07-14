@@ -102,4 +102,45 @@ describe("ApiKeysPanel", () => {
     await expect(submit?.({ name: "Denied" })).resolves.toBe(false);
     await screen.findByText("Creation denied");
   });
+
+  it("copies a one-time secret without putting it in list metadata", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    render(
+      <ApiKeysPanel
+        createInput={{ name: "Automation" }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([{ ...activeKey, details: [{ label: "Allowed paths", value: "/api/books" }] }]),
+          create: vi.fn().mockResolvedValue({ key: activeKey, secret: "copy-once" }),
+          revoke: vi.fn(),
+        }}
+      />,
+    );
+
+    await screen.findByText("Allowed paths");
+    fireEvent.click(screen.getByRole("button", { name: "Create API key" }));
+    await screen.findByText("copy-once");
+    fireEvent.click(screen.getByRole("button", { name: "Copy secret" }));
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith("copy-once"));
+    expect(screen.getByText("Copied")).toBeTruthy();
+  });
+
+  it("lets a host-owned policy form update a key and reloads safe metadata", async () => {
+    let submit: ((input: { allowedActions: string[] }) => Promise<boolean>) | undefined;
+    const update = vi.fn().mockResolvedValue(activeKey);
+    render(
+      <ApiKeysPanel<{ name: string }, { allowedActions: string[] }>
+        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn(), revoke: vi.fn(), update }}
+        renderEdit={({ key, update: save }) => {
+          submit = save;
+          return <button type="button">Edit {key.name}</button>;
+        }}
+      />,
+    );
+
+    await screen.findByRole("button", { name: "Edit Automation" });
+    await expect(submit?.({ allowedActions: ["pantry.read"] })).resolves.toBe(true);
+    expect(update).toHaveBeenCalledWith({ keyId: "key-1", update: { allowedActions: ["pantry.read"] } });
+  });
 });

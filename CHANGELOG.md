@@ -7,6 +7,8 @@
   disabled navigation behavior, and accessible current-page semantics.
 - Enrich `UsersPanel` with opt-in search, structured account details,
   persistent host header actions, and preserved empty/error/retry behavior.
+- Enrich `ApiKeysPanel` with clipboard copy feedback, safe policy details, and
+  an optional host-owned credential update seam.
 
 ## 0.4.1
 
