@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.0
+
+- Add reusable operational status, backup lifecycle, and settings panels with host-owned adapters.
+
 ## 0.9.0
 
 - Add the `AdminWorkspace` default page layout for shared administrative and operational screens.
