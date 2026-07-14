@@ -7,6 +7,13 @@ export {
   type AdminConsoleProps,
   type AdminReactSection,
 } from "./AdminConsole";
+export {
+  AdminPortal,
+  type AdminPortalNavigationItemProps,
+  type AdminPortalProps,
+  type AdminPortalReactGroup,
+  type AdminPortalReactSection,
+} from "./AdminPortal";
 export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";
 export { UsersPanel, type UsersPanelProps } from "./UsersPanel";
 export {

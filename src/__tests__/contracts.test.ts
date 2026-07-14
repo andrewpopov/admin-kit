@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   defineAdminConsole,
+  defineAdminPortal,
   validateAdminApiKeyCreated,
   defineAdminUsersAdapter,
   defineAdminMembershipsAdapter,
@@ -43,6 +44,55 @@ describe("defineAdminConsole", () => {
     [{ sections: [{ id: "users", label: " " }] }, /needs a label/i],
   ])("rejects invalid configuration", (definition, message) => {
     expect(() => defineAdminConsole(definition)).toThrow(message);
+  });
+});
+
+describe("defineAdminPortal", () => {
+  it("freezes grouped metadata while preserving host-computed visibility", () => {
+    const portal = defineAdminPortal({
+      groups: [
+        {
+          id: "core",
+          label: "Core administration",
+          sections: [
+            { id: "users", label: "Users" },
+            { id: "security", label: "Security", visible: false },
+          ],
+        },
+      ],
+    });
+
+    expect(portal.groups[0]?.sections[1]?.visible).toBe(false);
+    expect(Object.isFrozen(portal.groups)).toBe(true);
+    expect(Object.isFrozen(portal.groups[0]?.sections)).toBe(true);
+  });
+
+  it.each([
+    [{ groups: [] }, /at least one section group/i],
+    [
+      { groups: [{ id: "core", label: "Core", sections: [] }] },
+      /needs at least one section/i,
+    ],
+    [
+      {
+        groups: [
+          { id: "core", label: "Core", sections: [{ id: "users", label: "Users" }] },
+          { id: "core", label: "More", sections: [{ id: "flags", label: "Flags" }] },
+        ],
+      },
+      /duplicate admin section group/i,
+    ],
+    [
+      {
+        groups: [
+          { id: "core", label: "Core", sections: [{ id: "users", label: "Users" }] },
+          { id: "app", label: "Application", sections: [{ id: "users", label: "Users again" }] },
+        ],
+      },
+      /duplicate admin section id/i,
+    ],
+  ])("rejects ambiguous grouped navigation", (definition, message) => {
+    expect(() => defineAdminPortal(definition)).toThrow(message);
   });
 });
 

@@ -1,11 +1,15 @@
 export {
   defineAdminConsole,
+  defineAdminPortal,
   normalizeAdminFailure,
   type AdminAdapterFailure,
   type AdminConsoleDefinition,
   type AdminPage,
   type AdminPageQuery,
+  type AdminPortalDefinition,
+  type AdminPortalSectionDefinition,
   type AdminSectionDefinition,
+  type AdminSectionGroupDefinition,
   type AdminSectionId,
 } from "./contracts";
 export {

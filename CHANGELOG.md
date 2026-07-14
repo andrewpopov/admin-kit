@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add a router-neutral `AdminPortal` with validated section groups,
+  host-computed visibility, custom router-link rendering, responsive layout,
+  disabled navigation behavior, and accessible current-page semantics.
+
 ## 0.4.1
 
 - Correct the GitHub-tag install command to the current release.
