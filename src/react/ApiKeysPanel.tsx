@@ -23,6 +23,17 @@ export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
     update: (input: UpdateInput) => Promise<boolean>;
     pending: boolean;
   }) => ReactNode;
+  /**
+   * Replaces the default list without moving lifecycle state or confirmation
+   * behavior into the host application. Use this when the product has
+   * domain-specific credential policy to present alongside each key.
+   */
+  renderKeys?: (controls: {
+    keys: readonly AdminApiKey[];
+    requestRevoke: (key: AdminApiKey) => void;
+    requestRotate?: (key: AdminApiKey) => void;
+    pendingKeyId?: string;
+  }) => ReactNode;
 }
 
 /** Lists safe metadata and reveals a raw secret only from a create/rotate response. */
@@ -32,6 +43,7 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
   createInput,
   renderCreate,
   renderEdit,
+  renderKeys,
 }: ApiKeysPanelProps<CreateInput, UpdateInput>) {
   const [keys, setKeys] = useState<readonly AdminApiKey[]>();
   const [secret, setSecret] = useState<string>();
@@ -137,6 +149,11 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
       setPending(undefined);
     }
   };
+  const requestRevoke = (key: AdminApiKey) =>
+    setConfirmation({ action: "revoke", key });
+  const requestRotate = adapter.rotate
+    ? (key: AdminApiKey) => setConfirmation({ action: "rotate", key })
+    : undefined;
   return (
     <section className="admin-kit__keys" aria-label={title}>
       <h2>{title}</h2>
@@ -171,7 +188,12 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
           Create API key
         </button>
       ) : null}
-      <ul className="admin-kit__keys-list">
+      {renderKeys ? renderKeys({
+        keys,
+        requestRevoke,
+        requestRotate,
+        pendingKeyId: pending === "create" ? undefined : pending,
+      }) : <ul className="admin-kit__keys-list">
         {keys.map((key) => (
           <li key={key.id}>
             <div>
@@ -193,7 +215,7 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
                   <button
                     type="button"
                     disabled={pending === key.id}
-                    onClick={() => setConfirmation({ action: "rotate", key })}
+                    onClick={() => requestRotate?.(key)}
                   >
                     Rotate
                   </button>
@@ -202,7 +224,7 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
                 <button
                   type="button"
                   disabled={pending === key.id}
-                  onClick={() => setConfirmation({ action: "revoke", key })}
+                  onClick={() => requestRevoke(key)}
                 >
                   Revoke
                 </button>
@@ -210,7 +232,7 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
             ) : null}
           </li>
         ))}
-      </ul>
+      </ul>}
       <AdminConfirmationDialog
         open={Boolean(confirmation)}
         title={confirmation?.action === "rotate" ? "Rotate API key" : "Revoke API key"}

@@ -15,6 +15,17 @@ export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
         update: (input: UpdateInput) => Promise<boolean>;
         pending: boolean;
     }) => ReactNode;
+    /**
+     * Replaces the default list without moving lifecycle state or confirmation
+     * behavior into the host application. Use this when the product has
+     * domain-specific credential policy to present alongside each key.
+     */
+    renderKeys?: (controls: {
+        keys: readonly AdminApiKey[];
+        requestRevoke: (key: AdminApiKey) => void;
+        requestRotate?: (key: AdminApiKey) => void;
+        pendingKeyId?: string;
+    }) => ReactNode;
 }
 /** Lists safe metadata and reveals a raw secret only from a create/rotate response. */
-export declare function ApiKeysPanel<CreateInput, UpdateInput = never>({ adapter, title, createInput, renderCreate, renderEdit, }: ApiKeysPanelProps<CreateInput, UpdateInput>): import("react").JSX.Element;
+export declare function ApiKeysPanel<CreateInput, UpdateInput = never>({ adapter, title, createInput, renderCreate, renderEdit, renderKeys, }: ApiKeysPanelProps<CreateInput, UpdateInput>): import("react").JSX.Element;
