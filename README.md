@@ -146,11 +146,30 @@ const users = defineAdminUsersAdapter({
 });
 ```
 
-`UsersPanel` renders the paged normalized directory and declared role/status
-controls. Supply `renderUserActions` for product-specific actions such as a
-delete flow with app-owned confirmation copy, audit requirements, or extra
-input. Its callback receives a `reload` function after a successful host
-mutation; the generic panel never assumes destructive-action semantics.
+`UsersPanel` renders the paged normalized directory, optional account details,
+and declared role/status controls. Supply `search` only when the host adapter
+maps query text to its list request, and use `renderHeaderActions` for
+host-owned create or invite forms. Header actions remain available while the
+directory is loading, empty, or failed. Supply `renderUserActions` for
+product-specific edit, reset, deactivate, and deletion flows; its callback
+receives a `reload` function after a successful host mutation. The generic
+panel never assumes destructive-action semantics or collects password,
+confirmation, or purge inputs.
+
+```tsx
+<UsersPanel
+  adapter={users}
+  search={{ placeholder: "Search by email" }}
+  renderHeaderActions={({ reload }) => <InviteUserDialog onSuccess={reload} />}
+  renderUserActions={(user, { reload }) => (
+    <UserActions user={user} onSuccess={reload} />
+  )}
+/>;
+```
+
+Map stable account facts such as creation time and last login through
+`AdminUserSummary.details`; do not pass raw audit records or user database
+objects into the package.
 
 ### Feature flags
 

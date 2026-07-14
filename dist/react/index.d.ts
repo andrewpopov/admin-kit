@@ -2,6 +2,6 @@ export { AdminConfirmationDialog, type AdminConfirmationDialogProps, } from "./A
 export { AdminConsole, type AdminConsoleProps, type AdminReactSection, } from "./AdminConsole";
 export { AdminPortal, type AdminPortalNavigationItemProps, type AdminPortalProps, type AdminPortalReactGroup, type AdminPortalReactSection, } from "./AdminPortal";
 export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";
-export { UsersPanel, type UsersPanelProps } from "./UsersPanel";
+export { UsersPanel, type UsersPanelProps, } from "./UsersPanel";
 export { FeatureFlagsPanel, type FeatureFlagsPanelProps, } from "./FeatureFlagsPanel";
 export { ApiKeysPanel, type ApiKeysPanelProps } from "./ApiKeysPanel";

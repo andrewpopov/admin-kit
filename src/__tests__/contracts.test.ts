@@ -162,15 +162,16 @@ describe("feature flag snapshots", () => {
 });
 
 describe("defineAdminUsersAdapter", () => {
-  it("models Savoro and Sano user differences without a shared database user type", async () => {
+  it("models Bewks invitations and Savoro account facts without a shared database user type", async () => {
     const savoro = defineAdminUsersAdapter<AdminUserSummary>({
       list: async () => ({
         items: [
           {
             id: "u1",
-            label: "owner",
+            label: "owner@example.test",
             role: { value: "owner", label: "Owner" },
             status: { value: "active", label: "Active" },
+            details: [{ label: "Last login", value: "Never" }],
           },
         ],
         page: 1,
@@ -202,15 +203,16 @@ describe("defineAdminUsersAdapter", () => {
         }) => undefined,
       },
     });
-    const sano = defineAdminUsersAdapter<AdminUserSummary>({
+    const bewks = defineAdminUsersAdapter<AdminUserSummary, never, { email: string; role: string }>({
       list: async () => ({
         items: [
           {
             id: "u2",
             label: "ada@example.com",
             secondaryLabel: "Ada",
-            role: { value: "admin", label: "Admin" },
+            role: { value: "member", label: "Member" },
             status: { value: "disabled", label: "Disabled" },
+            details: [{ label: "Invited", value: "Jul 13, 2026" }],
           },
         ],
         page: 1,
@@ -218,8 +220,8 @@ describe("defineAdminUsersAdapter", () => {
         total: 1,
       }),
       roles: [
-        { value: "admin", label: "Admin" },
-        { value: "user", label: "User" },
+        { value: "member", label: "Member" },
+        { value: "guest", label: "Guest" },
       ],
       setRole: {
         execute: async ({ userId, role }) => ({
@@ -229,17 +231,18 @@ describe("defineAdminUsersAdapter", () => {
         }),
       },
       resetCredentials: { execute: async () => undefined },
-      delete: { execute: async ({ userId }) => undefined },
+      invite: { execute: async () => ({ id: "u3", label: "new@example.test" }) },
     });
 
     expect(
       (await savoro.list({ page: 1, pageSize: 25 })).items[0]?.status?.value,
     ).toBe("active");
     expect(
-      (await sano.list({ page: 1, pageSize: 25 })).items[0]?.secondaryLabel,
+      (await bewks.list({ page: 1, pageSize: 25 })).items[0]?.secondaryLabel,
     ).toBe("Ada");
-    expect(savoro.invite).toBeUndefined();
-    expect(sano.statuses).toBeUndefined();
+    expect((await savoro.list({ page: 1, pageSize: 25 })).items[0]?.details?.[0]?.value).toBe("Never");
+    expect(bewks.invite).toBeDefined();
+    expect(bewks.statuses).toBeUndefined();
   });
 
   it.each([
