@@ -36,6 +36,10 @@ export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
     update?: (key: AdminApiKey, input: UpdateInput) => Promise<boolean>;
     pendingKeyId?: string;
   }) => ReactNode;
+  /** Optional host class for local styling without replacing the panel. */
+  className?: string;
+  /** Optional host class for the portaled confirmation dialog. */
+  dialogClassName?: string;
 }
 
 /** Lists safe metadata and reveals a raw secret only from a create/rotate response. */
@@ -46,6 +50,8 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
   renderCreate,
   renderEdit,
   renderKeys,
+  className,
+  dialogClassName,
 }: ApiKeysPanelProps<CreateInput, UpdateInput>) {
   const [keys, setKeys] = useState<readonly AdminApiKey[]>();
   const [secret, setSecret] = useState<string>();
@@ -73,12 +79,14 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
     return (
       <AdminPanelStateView
         state={{ kind: "error", detail: loadError, onRetry: () => void load() }}
+        className={className}
       />
     );
   if (!keys)
     return (
       <AdminPanelStateView
         state={{ kind: "loading", label: "Loading API keys…" }}
+        className={className}
       />
     );
   const lifecycleKeys = keys.map((key) => ({
@@ -161,7 +169,7 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
     ? (key: AdminApiKey) => setConfirmation({ action: "rotate", key })
     : undefined;
   return (
-    <section className="admin-kit__keys" aria-label={title}>
+    <section className={["admin-kit__keys", className].filter(Boolean).join(" ")} aria-label={title}>
       <h2>{title}</h2>
       {loadError ? (
         <AdminPanelStateView
@@ -242,6 +250,7 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
       </ul>}
       <AdminConfirmationDialog
         open={Boolean(confirmation)}
+        className={dialogClassName}
         title={confirmation?.action === "rotate" ? "Rotate API key" : "Revoke API key"}
         description={
           confirmation?.action === "rotate"

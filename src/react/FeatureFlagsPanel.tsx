@@ -18,10 +18,12 @@ const sourceLabel: Record<
 
 export interface FeatureFlagsPanelProps {
   adapter: AdminFeatureFlagsAdapter;
+  /** Optional host class for local styling without replacing the panel. */
+  className?: string;
 }
 
 /** A source-aware flag panel that never offers a misleading mutable control. */
-export function FeatureFlagsPanel({ adapter }: FeatureFlagsPanelProps) {
+export function FeatureFlagsPanel({ adapter, className }: FeatureFlagsPanelProps) {
   const [snapshot, setSnapshot] = useState<AdminFeatureFlagsSnapshot>();
   const [error, setError] = useState<string>();
   const [pendingKey, setPendingKey] = useState<string>();
@@ -47,12 +49,14 @@ export function FeatureFlagsPanel({ adapter }: FeatureFlagsPanelProps) {
     return (
       <AdminPanelStateView
         state={{ kind: "error", detail: error, onRetry: () => void load() }}
+        className={className}
       />
     );
   if (!snapshot)
     return (
       <AdminPanelStateView
         state={{ kind: "loading", label: "Loading feature flags…" }}
+        className={className}
       />
     );
 
@@ -75,7 +79,7 @@ export function FeatureFlagsPanel({ adapter }: FeatureFlagsPanelProps) {
   };
 
   return (
-    <section className="admin-kit__flags" aria-label="Feature flags">
+    <section className={["admin-kit__flags", className].filter(Boolean).join(" ")} aria-label="Feature flags">
       <header className="admin-kit__flags-header">
         <h2>Feature flags</h2>
         <p>

@@ -7,16 +7,16 @@ export type AdminPanelState =
   | { kind: 'error'; title?: string; detail: string; onRetry?: () => void };
 
 /** Accessible, framework-style-neutral state surface for adapter-backed panels. */
-export function AdminPanelStateView({ state }: { state: AdminPanelState }) {
+export function AdminPanelStateView({ state, className }: { state: AdminPanelState; className?: string }) {
   if (state.kind === 'ready') return <>{state.children}</>;
 
   if (state.kind === 'loading') {
-    return <p aria-live="polite" className="admin-kit__state">{state.label ?? 'Loading…'}</p>;
+    return <p aria-live="polite" className={['admin-kit__state', className].filter(Boolean).join(' ')}>{state.label ?? 'Loading…'}</p>;
   }
 
   if (state.kind === 'empty') {
     return (
-      <div className="admin-kit__state" role="status">
+      <div className={['admin-kit__state', className].filter(Boolean).join(' ')} role="status">
         <strong>{state.title}</strong>
         {state.detail ? <p>{state.detail}</p> : null}
       </div>
@@ -24,7 +24,7 @@ export function AdminPanelStateView({ state }: { state: AdminPanelState }) {
   }
 
   return (
-    <div className="admin-kit__state admin-kit__state--error" role="alert">
+    <div className={['admin-kit__state', 'admin-kit__state--error', className].filter(Boolean).join(' ')} role="alert">
       <strong>{state.title ?? 'Unable to load this section'}</strong>
       <p>{state.detail}</p>
       {state.onRetry ? <button type="button" onClick={state.onRetry}>Try again</button> : null}

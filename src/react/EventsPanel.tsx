@@ -12,9 +12,11 @@ export interface EventsPanelProps {
   title?: string;
   search?: { placeholder?: string };
   pageSize?: number;
+  /** Optional host class for local styling without replacing the panel. */
+  className?: string;
 }
 
-export function EventsPanel({ adapter, title = "Administrative events", search, pageSize = 25 }: EventsPanelProps) {
+export function EventsPanel({ adapter, title = "Administrative events", search, pageSize = 25, className }: EventsPanelProps) {
   const [query, setQuery] = useState<AdminEventsQuery>({ page: 1, pageSize });
   const [result, setResult] = useState<AdminEventsPage>();
   const [error, setError] = useState<string>();
@@ -34,12 +36,12 @@ export function EventsPanel({ adapter, title = "Administrative events", search, 
 
   useEffect(() => { void load(); }, [adapter, query]);
   const updateQuery = (patch: Partial<AdminEventsQuery>) => setQuery((current) => ({ ...current, ...patch, page: 1 }));
-  if (error && !result) return <AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} />;
-  if (!result) return <AdminPanelStateView state={{ kind: "loading", label: "Loading administrative events…" }} />;
+  if (error && !result) return <AdminPanelStateView className={className} state={{ kind: "error", detail: error, onRetry: () => void load() }} />;
+  if (!result) return <AdminPanelStateView className={className} state={{ kind: "loading", label: "Loading administrative events…" }} />;
   const pages = Math.max(1, Math.ceil(result.total / result.pageSize));
 
   return (
-    <section className="admin-kit__events" aria-label={title}>
+    <section className={["admin-kit__events", className].filter(Boolean).join(" ")} aria-label={title}>
       <header className="admin-kit__events-header">
         <div><h2>{title}</h2>{result.source ? <p>Source: {result.source.label}{result.source.updatedAt ? ` · updated ${result.source.updatedAt}` : ""}</p> : null}</div>
         <button type="button" disabled={loading} onClick={() => void load()}>Refresh</button>

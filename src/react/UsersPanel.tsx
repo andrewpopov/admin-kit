@@ -21,6 +21,8 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
     user: User,
     context: { reload: () => Promise<void>; isPending: boolean },
   ) => ReactNode;
+  /** Optional host class for local styling without replacing the panel. */
+  className?: string;
 }
 
 /**
@@ -34,6 +36,7 @@ export function UsersPanel<User extends AdminUserSummary>({
   search: searchOptions = false,
   renderHeaderActions,
   renderUserActions,
+  className,
 }: UsersPanelProps<User>) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState(query?.search ?? "");
@@ -106,7 +109,7 @@ export function UsersPanel<User extends AdminUserSummary>({
   };
 
   return (
-    <section className="admin-kit__users" aria-label="Users">
+    <section className={["admin-kit__users", className].filter(Boolean).join(" ")} aria-label="Users">
       <header className="admin-kit__users-header">
         <div>
           <h2>Users</h2>

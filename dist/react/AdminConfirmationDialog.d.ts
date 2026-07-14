@@ -6,9 +6,11 @@ export interface AdminConfirmationDialogProps {
     onCancel: () => void;
     onConfirm: () => void;
     danger?: boolean;
+    /** Optional host class for the portaled dialog surface. */
+    className?: string;
 }
 /**
  * Host applications supply the impact language and server-side semantics;
  * this component only supplies the accessible confirmation interaction.
  */
-export declare function AdminConfirmationDialog({ open, title, description, confirmLabel, onCancel, onConfirm, danger, }: AdminConfirmationDialogProps): import("react").JSX.Element | null;
+export declare function AdminConfirmationDialog({ open, title, description, confirmLabel, onCancel, onConfirm, danger, className, }: AdminConfirmationDialogProps): import("react").JSX.Element | null;
