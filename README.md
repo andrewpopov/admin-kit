@@ -281,6 +281,11 @@ The table only includes Details when at least one returned account supplies
 `details`, and Actions only when the host supplies `renderUserActions`; the
 directory never leaves a blank column for omitted capabilities.
 
+For a richer, scan-first directory, pass `columns`. Each column declares its
+label and typed cell renderer; the host retains product-specific account facts
+and actions while the kit keeps pagination, loading, empty, and error states.
+Use this instead of overloading the default identity cell with unrelated facts.
+
 ### Scoped memberships
 
 Use `MembershipsPanel` for access within a host-defined scope, not for global

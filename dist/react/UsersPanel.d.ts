@@ -12,6 +12,8 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
     };
     /** The standard responsive semantic-table presentation. */
     presentation?: "table";
+    /** Opt-in scan-first schema for hosts with richer account metadata. */
+    columns?: readonly AdminUserTableColumn<User>[];
     renderHeaderActions?: (context: {
         reload: () => Promise<void>;
         isLoading: boolean;
@@ -23,8 +25,18 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
     /** Optional host class for local styling without replacing the panel. */
     className?: string;
 }
+export interface AdminUserTableColumn<User extends AdminUserSummary> {
+    id: string;
+    label: ReactNode;
+    render: (user: User, context: {
+        reload: () => Promise<void>;
+        isPending: boolean;
+    }) => ReactNode;
+    className?: string;
+    headerClassName?: string;
+}
 /**
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
  */
-export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, pageSize, query, search: searchOptions, presentation, renderHeaderActions, renderUserActions, className, }: UsersPanelProps<User>): import("react").JSX.Element;
+export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, pageSize, query, search: searchOptions, presentation, columns, renderHeaderActions, renderUserActions, className, }: UsersPanelProps<User>): import("react").JSX.Element;

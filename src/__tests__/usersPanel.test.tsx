@@ -50,6 +50,17 @@ describe('UsersPanel', () => {
     await waitFor(() => expect(list).toHaveBeenLastCalledWith({ page: 1, pageSize: 25, search: 'ada' }));
   });
 
+  it('renders an opt-in host table schema without the default columns', async () => {
+    const list = vi.fn().mockResolvedValue({ items: users, page: 1, pageSize: 25, total: 1 });
+    render(<UsersPanel adapter={{ list }} columns={[
+      { id: 'email', label: 'Email', render: (user) => user.label },
+      { id: 'account', label: 'Account', render: (user) => user.secondaryLabel },
+    ]} />);
+    await screen.findByText('ada@example.test');
+    expect(screen.getByRole('columnheader', { name: 'Email' })).toBeTruthy();
+    expect(screen.queryByRole('columnheader', { name: 'Role' })).toBeNull();
+  });
+
   it('keeps host header actions available while loading, empty, and failed', async () => {
     const list = vi.fn().mockResolvedValue({ items: [], page: 1, pageSize: 25, total: 0 });
     const headerAction = vi.fn(({ reload }: { reload: () => Promise<void> }) => (

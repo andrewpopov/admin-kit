@@ -11,6 +11,9 @@
 - Per-membership `canChangeRole` and `canRemove` presentation permissions.
   Inherited memberships are validated as informational and cannot expose
   mutations.
+- `UsersPanel.columns`, an opt-in typed table schema for hosts that need
+  scan-first account columns. The default portable user/role/status layout is
+  unchanged for existing consumers.
 
 ## 0.16.0
 
