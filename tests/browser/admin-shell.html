@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="../../dist/styles.css" />
+    <title>Admin Kit browser fixture</title>
+  </head>
+  <body>
+    <main>
+      <section class="admin-kit__workspace">
+        <header class="admin-kit__workspace-header">
+          <div><h1>Users</h1><p>Manage account roles and lifecycle.</p></div>
+          <div class="admin-kit__workspace-actions">
+            <button class="admin-kit__button admin-kit__button--primary" type="button">Invite user</button>
+            <button class="admin-kit__button" type="button">Export</button>
+          </div>
+        </header>
+        <section class="admin-kit__workspace-content" aria-label="Users">
+          <div class="admin-kit__table-wrap">
+            <table class="admin-kit__table admin-kit__users-table">
+              <thead><tr><th>User</th><th>Role</th><th>Last active</th><th>Actions</th></tr></thead>
+              <tbody><tr><td>avery.long.email.address@example.test</td><td>Owner</td><td>Today</td><td><button class="admin-kit__button" type="button">Manage</button></td></tr></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

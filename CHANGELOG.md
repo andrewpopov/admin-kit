@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.16.0
+
+### Added
+
+- `AdminActionButton`, the shared neutral, primary, and destructive button
+  primitive for host-rendered admin actions. It defaults to `type="button"` so
+  toolbar actions cannot accidentally submit an enclosing form.
+- A Chromium regression fixture that verifies one page landmark and proves that
+  a narrow users table remains inside its own horizontal scroller at 390px.
+- Pull-request, main-branch, and tag release checks for unit, type, tarball,
+  generated-asset, and browser verification.
+
+### Changed
+
+- `AdminWorkspace` accepts `as="section"` for composition in a host-owned main
+  landmark; standalone routes retain the `main` default.
+- Portal group labels are presentational navigation labels instead of document
+  headings, preventing navigation from preceding the route's page heading.
+- The workspace header and content now establish shrinkable layout boundaries,
+  so wide tables no longer expand the document on narrow screens.
+
 ## 0.15.0
 
 ### Fixed

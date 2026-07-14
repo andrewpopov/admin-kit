@@ -93,7 +93,7 @@ export function AdminPortal({
         {visibleGroups.map((group) => (
           <section className="admin-kit__portal-group" key={group.id}>
             <header className="admin-kit__portal-group-header">
-              <h2>{group.label}</h2>
+              <p className="admin-kit__portal-group-label">{group.label}</p>
               {group.description ? <p>{group.description}</p> : null}
             </header>
             <ul className="admin-kit__portal-list">

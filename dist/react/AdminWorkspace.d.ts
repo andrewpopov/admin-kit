@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
 export interface AdminWorkspaceProps {
+    /**
+     * The landmark used for the workspace. Keep the default for a standalone
+     * route; choose `section` when the host page already owns the only `main`.
+     */
+    as?: "main" | "section";
     title: string;
     description?: ReactNode;
     actions?: ReactNode;
@@ -9,4 +14,4 @@ export interface AdminWorkspaceProps {
     className?: string;
 }
 /** Standard semantic framing for dense administrative and operational views. */
-export declare function AdminWorkspace({ title, description, actions, summary, toolbar, children, className }: AdminWorkspaceProps): import("react").JSX.Element;
+export declare function AdminWorkspace({ as, title, description, actions, summary, toolbar, children, className }: AdminWorkspaceProps): import("react").JSX.Element;

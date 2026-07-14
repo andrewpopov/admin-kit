@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SettingsPanel = exports.OperationalJobsPanel = exports.BackupsPanel = exports.AdminStatusSummary = exports.EventsPanel = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminWorkspace = exports.AdminPanelStateView = exports.AdminPortal = exports.AdminConsole = exports.AdminConfirmationDialog = void 0;
+exports.SettingsPanel = exports.OperationalJobsPanel = exports.BackupsPanel = exports.AdminStatusSummary = exports.EventsPanel = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminWorkspace = exports.AdminPanelStateView = exports.AdminPortal = exports.AdminConsole = exports.AdminConfirmationDialog = exports.AdminActionButton = void 0;
+var AdminActionButton_1 = require("./AdminActionButton");
+Object.defineProperty(exports, "AdminActionButton", { enumerable: true, get: function () { return AdminActionButton_1.AdminActionButton; } });
 var AdminConfirmationDialog_1 = require("./AdminConfirmationDialog");
 Object.defineProperty(exports, "AdminConfirmationDialog", { enumerable: true, get: function () { return AdminConfirmationDialog_1.AdminConfirmationDialog; } });
 var AdminConsole_1 = require("./AdminConsole");
