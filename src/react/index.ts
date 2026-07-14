@@ -23,6 +23,7 @@ export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";
 export { AdminWorkspace, type AdminWorkspaceProps } from "./AdminWorkspace";
 export {
   UsersPanel,
+  type AdminUserTableColumn,
   type UsersPanelProps,
 } from "./UsersPanel";
 export {
