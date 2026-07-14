@@ -211,13 +211,13 @@
   gap: 1.5rem;
   padding: 1rem;
 }
-.admin-kit__portal-group-header h2, .admin-kit__portal-group-header p { margin: 0; }
-.admin-kit__portal-group-header h2 {
+.admin-kit__portal-group-header p { margin: 0; }
+.admin-kit__portal-group-label {
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.admin-kit__portal-group-header p { color: var(--admin-kit-muted); font-size: 0.875rem; margin-top: 0.25rem; }
+.admin-kit__portal-group-header p:not(.admin-kit__portal-group-label) { color: var(--admin-kit-muted); font-size: 0.875rem; margin-top: 0.25rem; }
 .admin-kit__portal-list { display: grid; gap: 0.375rem; list-style: none; margin: 0.75rem 0 0; padding: 0; }
 .admin-kit__portal-link {
   appearance: none;
@@ -242,12 +242,13 @@
 .admin-kit__portal-link[aria-current="page"] { color: var(--admin-kit-accent); font-weight: 700; }
 .admin-kit__portal-link[aria-disabled="true"], .admin-kit__portal-link:disabled { cursor: not-allowed; opacity: 0.55; }
 .admin-kit__portal-content { min-width: 0; }
-.admin-kit__workspace { display: grid; gap: 1rem; margin-inline: auto; max-width: 80rem; padding: 1rem; }
+.admin-kit__workspace { box-sizing: border-box; display: grid; gap: 1rem; margin-inline: auto; max-width: 80rem; min-width: 0; padding: 1rem; width: 100%; }
 .admin-kit__workspace-header { align-items: start; display: flex; gap: 1rem; justify-content: space-between; }
+.admin-kit__workspace-header > * { min-width: 0; }
 .admin-kit__workspace-header h1 { font-size: 1.5rem; letter-spacing: -0.02em; margin: 0; }
 .admin-kit__workspace-header p { color: var(--admin-kit-muted); margin: 0.25rem 0 0; }
 .admin-kit__workspace-actions, .admin-kit__workspace-toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-.admin-kit__workspace-summary, .admin-kit__workspace-content { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); box-shadow: var(--admin-kit-shadow); padding: 1rem; }
+.admin-kit__workspace-summary, .admin-kit__workspace-content { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); box-shadow: var(--admin-kit-shadow); min-width: 0; padding: 1rem; }
 .admin-kit__status-summary { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); margin: 0; }
 .admin-kit__status { border-left: 3px solid var(--admin-kit-border-strong); padding: 0.5rem 0.75rem; }.admin-kit__status--healthy { border-color: var(--admin-kit-success); }.admin-kit__status--warning { border-color: var(--admin-kit-warning); }.admin-kit__status--critical { border-color: var(--admin-kit-danger); }
 .admin-kit__status dt, .admin-kit__status small, .admin-kit__operations header p, .admin-kit__settings header p, .admin-kit__operations td small, .admin-kit__settings label small { color: var(--admin-kit-muted); }.admin-kit__status dd { font-weight: 700; margin: 0.125rem 0; }
@@ -300,7 +301,12 @@
 .admin-kit__dialog h2 { font-size: 1.25rem; letter-spacing: -0.015em; margin: 0; }
 .admin-kit__dialog p { color: var(--admin-kit-muted); margin: 0.75rem 0 0; }
 .admin-kit__dialog-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: flex-end; margin-top: 1.75rem; }
-.admin-kit__dialog-actions button:last-child:not(.admin-kit__button--danger) { background: var(--admin-kit-accent); border-color: var(--admin-kit-accent); color: var(--admin-kit-on-accent); }
+.admin-kit__button { appearance: none; background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); cursor: pointer; font: inherit; min-block-size: 2.5rem; padding: 0.5rem 0.75rem; }
+.admin-kit__button:hover:not(:disabled) { background: var(--admin-kit-surface-subtle); }
+.admin-kit__button:focus-visible { outline: 3px solid color-mix(in srgb, var(--admin-kit-accent) 50%, transparent); outline-offset: 2px; }
+.admin-kit__button:disabled { cursor: not-allowed; opacity: 0.55; }
+.admin-kit__button--primary, .admin-kit__dialog-actions button:last-child:not(.admin-kit__button--danger) { background: var(--admin-kit-accent); border-color: var(--admin-kit-accent); color: var(--admin-kit-on-accent); }
+.admin-kit__button--primary:hover:not(:disabled) { background: var(--admin-kit-accent-strong); border-color: var(--admin-kit-accent-strong); }
 .admin-kit__button--danger { background: var(--admin-kit-danger); border-color: var(--admin-kit-danger); color: var(--admin-kit-on-danger); }
 .admin-kit__button--danger:hover:not(:disabled) { background: var(--admin-kit-danger-strong); border-color: var(--admin-kit-danger-strong); }
 
@@ -346,6 +352,8 @@
 .admin-kit__key-actions button:last-child:hover:not(:disabled) { background: var(--admin-kit-danger-soft); border-color: var(--admin-kit-danger); }
 
 @media (max-width: 48rem) {
+  .admin-kit__workspace-header { align-items: stretch; flex-direction: column; }
+  .admin-kit__workspace-actions { width: 100%; }
   .admin-kit__portal { grid-template-columns: minmax(0, 1fr); }
   .admin-kit__portal-navigation { border-radius: var(--admin-kit-radius-sm); }
   .admin-kit__portal-list { grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); }

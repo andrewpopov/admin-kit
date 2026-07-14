@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 const packageRoot = new URL('..', import.meta.url).pathname;
 const pkg = JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8'));
-const expectedExports = ['defineAdminConsole', 'normalizeAdminFailure', 'AdminConsole'];
+const expectedExports = ['defineAdminConsole', 'normalizeAdminFailure', 'AdminActionButton', 'AdminConsole'];
 const workDir = mkdtempSync(join(tmpdir(), 'admin-kit-verify-'));
 
 function run(command, args, options = {}) {

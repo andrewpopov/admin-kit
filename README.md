@@ -342,9 +342,26 @@ filters the host can execute.
 
 Use `AdminWorkspace` as the default frame for every administrative route. It
 owns semantic page framing and consistent layout; the host still owns route
-guards, product wording, and action semantics. Put dense records in tables and
-put health facts in `AdminStatusSummary` rather than creating one-off metric
-cards.
+guards, product wording, and action semantics. It renders a `main` landmark by
+default. If the host page already owns the sole `main`, use `as="section"` so
+landmarks remain valid. Put dense records in tables and put health facts in
+`AdminStatusSummary` rather than creating one-off metric cards.
+
+Use `AdminActionButton` for actions supplied through a host-owned workspace,
+toolbar, or render callback. `tone="primary"` is for the one dominant action
+on a view, `tone="danger"` is for destructive actions, and the default neutral
+tone is for secondary actions. The primitive provides only presentation and a
+safe `type="button"`; route guards and server authorization remain host-owned.
+
+```tsx
+<AdminWorkspace
+  as="section"
+  title="Backups"
+  actions={<AdminActionButton tone="primary">Run backup</AdminActionButton>}
+>
+  <BackupsPanel adapter={backups} />
+</AdminWorkspace>
+```
 
 `BackupsPanel` is only for hosts that expose real backup artifacts and an
 authorized restore operation. Use `OperationalJobsPanel` for scheduled tasks,
@@ -365,7 +382,14 @@ npm test
 npm run typecheck
 npm run build
 npm run verify:pack
+npm run test:browser
 ```
+
+Pull requests and `main` run the same unit, type, package-consumer, generated
+asset, and Chromium checks. A release tag must equal the package version and
+have a matching changelog heading. After a tag is merged, consumers must update
+their git dependency with `npm update` (or the package-manager equivalent),
+verify the installed version, and run their affected admin journey.
 
 ## Migration guidance
 

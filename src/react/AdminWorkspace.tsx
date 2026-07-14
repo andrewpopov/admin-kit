@@ -1,6 +1,11 @@
-import type { ReactNode } from "react";
+import type { ElementType, ReactNode } from "react";
 
 export interface AdminWorkspaceProps {
+  /**
+   * The landmark used for the workspace. Keep the default for a standalone
+   * route; choose `section` when the host page already owns the only `main`.
+   */
+  as?: "main" | "section";
   title: string;
   description?: ReactNode;
   actions?: ReactNode;
@@ -11,8 +16,10 @@ export interface AdminWorkspaceProps {
 }
 
 /** Standard semantic framing for dense administrative and operational views. */
-export function AdminWorkspace({ title, description, actions, summary, toolbar, children, className }: AdminWorkspaceProps) {
-  return <main className={["admin-kit__workspace", className].filter(Boolean).join(" ")}>
+export function AdminWorkspace({ as = "main", title, description, actions, summary, toolbar, children, className }: AdminWorkspaceProps) {
+  const Workspace = as as ElementType;
+
+  return <Workspace className={["admin-kit__workspace", className].filter(Boolean).join(" ")}>
     <header className="admin-kit__workspace-header">
       <div><h1>{title}</h1>{description ? <p>{description}</p> : null}</div>
       {actions ? <div className="admin-kit__workspace-actions">{actions}</div> : null}
@@ -20,5 +27,5 @@ export function AdminWorkspace({ title, description, actions, summary, toolbar, 
     {summary ? <section className="admin-kit__workspace-summary" aria-label={`${title} summary`}>{summary}</section> : null}
     {toolbar ? <div className="admin-kit__workspace-toolbar">{toolbar}</div> : null}
     <section className="admin-kit__workspace-content" aria-label={title}>{children}</section>
-  </main>;
+  </Workspace>;
 }

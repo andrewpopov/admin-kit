@@ -32,8 +32,9 @@ describe('AdminPortal', () => {
       <AdminPortal activeSection="catalog" groups={groups} onSectionChange={() => undefined} />,
     );
 
-    expect(screen.getByRole('heading', { name: 'Core administration' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Application' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Core administration' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Application' })).toBeNull();
+    expect(screen.getByText('Core administration').className).toContain('admin-kit__portal-group-label');
     expect(screen.queryByText('Security')).toBeNull();
     expect(screen.getByRole('button', { name: 'Catalog' }).getAttribute('aria-current')).toBe('page');
     expect(screen.getByText('Catalog content')).toBeTruthy();

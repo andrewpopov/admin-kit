@@ -1,4 +1,9 @@
 export {
+  AdminActionButton,
+  type AdminActionButtonProps,
+  type AdminActionTone,
+} from "./AdminActionButton";
+export {
   AdminConfirmationDialog,
   type AdminConfirmationDialogProps,
 } from "./AdminConfirmationDialog";
