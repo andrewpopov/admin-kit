@@ -33,7 +33,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.7.0
+npm install github:andrewpopov/admin-kit#v0.11.0
 ```
 
 `react` is a peer dependency. Import default styles only if they suit the host
@@ -289,6 +289,20 @@ filters the host can execute.
   search={{ placeholder: "Action, actor, or resource" }}
 />
 ```
+
+### Operational workspace
+
+Use `AdminWorkspace` as the default frame for every administrative route. It
+owns semantic page framing and consistent layout; the host still owns route
+guards, product wording, and action semantics. Put dense records in tables and
+put health facts in `AdminStatusSummary` rather than creating one-off metric
+cards.
+
+`BackupsPanel` is only for hosts that expose real backup artifacts and an
+authorized restore operation. Use `OperationalJobsPanel` for scheduled tasks,
+imports, synchronizations, and retention work. `SettingsPanel` maps a
+host-owned load/save adapter to typed text, sensitive, and boolean fields; it
+does not infer setting keys or make policy decisions.
 
 ## Release requirements
 

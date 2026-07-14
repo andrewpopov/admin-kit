@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.1
+
+- Document the default workspace and the boundary between backup and operational-job panels.
+
 ## 0.11.0
 
 - Add a reusable operational-jobs panel for scheduled, import, sync, and retention runs.
