@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { AdminTheme, type AdminThemeName } from './AdminTheme';
 import type { AdminAppFrame } from './AdminApp';
 
@@ -33,6 +33,7 @@ export function AdminAppShell({
   className,
 }: AdminAppShellProps) {
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
+  const mobileNavigationId = `admin-kit-mobile-navigation-${useId().replace(/:/g, '')}`;
   const closeMobileNavigation = () => setMobileNavigationOpen(false);
 
   return (
@@ -45,7 +46,7 @@ export function AdminAppShell({
           {frame.actions ? <div className="admin-kit__app-actions">{frame.actions}</div> : null}
         </header> : null}
       <button
-        aria-controls="admin-kit-mobile-navigation"
+        aria-controls={mobileNavigationId}
         aria-expanded={mobileNavigationOpen}
         className="admin-kit__app-shell-mobile-toggle"
         onClick={() => setMobileNavigationOpen((open) => !open)}
@@ -54,7 +55,7 @@ export function AdminAppShell({
         {mobileNavigationLabel}
       </button>
       {mobileNavigationOpen ? (
-        <nav aria-label={ariaLabel} className="admin-kit__app-shell-mobile-navigation" id="admin-kit-mobile-navigation">
+        <nav aria-label={ariaLabel} className="admin-kit__app-shell-mobile-navigation" id={mobileNavigationId}>
           {renderNavigation({ idPrefix: 'admin-kit-mobile', onNavigate: closeMobileNavigation })}
         </nav>
       ) : null}

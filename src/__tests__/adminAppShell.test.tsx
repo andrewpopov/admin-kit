@@ -28,4 +28,10 @@ describe('AdminAppShell', () => {
     const { container } = render(<AdminAppShell renderNavigation={() => <a href="/admin">Home</a>}><p>Content</p></AdminAppShell>);
     expect(container.querySelector('h1')).toBeNull();
   });
+
+  it('uses unique mobile navigation IDs for independently mounted shells', () => {
+    render(<><AdminAppShell renderNavigation={() => <a href="/admin">One</a>}>One</AdminAppShell><AdminAppShell renderNavigation={() => <a href="/admin">Two</a>}>Two</AdminAppShell></>);
+    const toggles = screen.getAllByRole('button', { name: 'Browse administration' });
+    expect(toggles[0]?.getAttribute('aria-controls')).not.toBe(toggles[1]?.getAttribute('aria-controls'));
+  });
 });
