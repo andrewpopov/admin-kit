@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.21.1
+
+### Fixed
+
+- `admin-kit-conformance` now discovers package manifests in workspace consumers.
+
 ## 0.21.0
 
 ### Added
