@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminCard = AdminCard;
 exports.AdminField = AdminField;
 exports.AdminStack = AdminStack;
+exports.AdminSwitch = AdminSwitch;
 const jsx_runtime_1 = require("react/jsx-runtime");
 /** A canonical container for product-specific content inside an admin section. */
 function AdminCard({ title, description, actions, children, className }) {
@@ -15,4 +16,8 @@ function AdminField({ label, hint, error, children, className }) {
 /** A stable vertical rhythm for custom extension content. */
 function AdminStack({ children, gap = "md", className }) {
     return (0, jsx_runtime_1.jsx)("div", { className: ["admin-kit__stack", `admin-kit__stack--${gap}`, className].filter(Boolean).join(" "), children: children });
+}
+/** A full-row, labelled switch for consequential binary admin settings. */
+function AdminSwitch({ checked, label, description, statusLabel, className, type = "button", ...props }) {
+    return ((0, jsx_runtime_1.jsxs)("button", { ...props, "aria-checked": checked, className: ["admin-kit__switch", className].filter(Boolean).join(" "), "data-state": checked ? "on" : "off", role: "switch", type: type, children: [(0, jsx_runtime_1.jsx)("span", { "aria-hidden": "true", className: "admin-kit__switch-track", children: (0, jsx_runtime_1.jsx)("span", {}) }), (0, jsx_runtime_1.jsxs)("span", { className: "admin-kit__switch-copy", children: [(0, jsx_runtime_1.jsx)("strong", { children: label }), description ? (0, jsx_runtime_1.jsx)("span", { children: description }) : null] }), (0, jsx_runtime_1.jsx)("span", { className: "admin-kit__switch-status", children: statusLabel ?? (checked ? "On" : "Off") })] }));
 }

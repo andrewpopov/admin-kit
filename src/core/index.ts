@@ -14,6 +14,7 @@ export {
   type AdminConsoleDefinition,
   type AdminPage,
   type AdminPageQuery,
+  type AdminSortDirection,
   type AdminPortalDefinition,
   type AdminPortalSectionDefinition,
   type AdminSectionDefinition,

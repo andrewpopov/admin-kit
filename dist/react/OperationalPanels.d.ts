@@ -12,9 +12,14 @@ export interface OperationalJobsPanelProps {
     className?: string;
     /** Overrides the default timestamp presentation for startedAt / finishedAt. */
     formatTimestamp?: (iso: string) => string;
+    /** Explains the useful zero-run state instead of rendering an unexplained empty table. */
+    emptyState?: {
+        title: string;
+        detail?: string;
+    };
 }
 /** Displays host-owned scheduled, import, and retention runs without mislabeling them as backups. */
-export declare function OperationalJobsPanel({ adapter, title, runLabel, pageSize, className, formatTimestamp }: OperationalJobsPanelProps): import("react").JSX.Element;
+export declare function OperationalJobsPanel({ adapter, title, runLabel, pageSize, className, formatTimestamp, emptyState }: OperationalJobsPanelProps): import("react").JSX.Element;
 export interface BackupsPanelProps {
     adapter: AdminBackupsAdapter;
     title?: string;

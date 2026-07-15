@@ -15,13 +15,14 @@ export interface EventsPanelProps {
   title?: string;
   search?: { placeholder?: string };
   pageSize?: number;
+  presentation?: "feed" | "table";
   /** Optional host class for local styling without replacing the panel. */
   className?: string;
   /** Overrides the default timestamp presentation for occurredAt / source.updatedAt. */
   formatTimestamp?: (iso: string) => string;
 }
 
-export function EventsPanel({ adapter, title = "Administrative events", search, pageSize = 25, className, formatTimestamp }: EventsPanelProps) {
+export function EventsPanel({ adapter, title = "Administrative events", search, pageSize = 25, presentation = "feed", className, formatTimestamp }: EventsPanelProps) {
   const [query, setQuery] = useState<AdminEventsQuery>({ page: 1, pageSize });
   const [searchInput, setSearchInput] = useState(query.search ?? "");
   const [result, setResult] = useState<AdminEventsPage>();
@@ -80,7 +81,9 @@ export function EventsPanel({ adapter, title = "Administrative events", search, 
         {adapter.outcomes ? <label><span>Outcome</span><select value={query.outcome ?? ""} onChange={(event) => updateQuery({ outcome: event.target.value as AdminEventsQuery["outcome"] || undefined })}><option value="">All</option>{adapter.outcomes.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label> : null}
       </div>
       {error ? <AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} /> : null}
-      {result.items.length === 0 ? <AdminPanelStateView state={{ kind: "empty", title: "No administrative events found." }} /> : <ol className="admin-kit__events-list">{result.items.map((event) => <li key={event.id}><div><strong>{event.action}</strong><p>{event.message}</p><span>{formatAdminTimestamp(event.occurredAt, formatTimestamp)} · {event.category} · {event.severity} · {event.outcome}</span>{event.actor ? <span> · actor: {event.actor.label}</span> : null}{event.resource ? <span> · resource: {event.resource.label}</span> : null}</div>{event.metadata ? <details><summary>Details</summary><dl>{Object.entries(event.metadata).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></details> : null}</li>)}</ol>}
+      {result.items.length === 0 ? <AdminPanelStateView state={{ kind: "empty", title: "No administrative events found." }} /> : presentation === "table" ? (
+        <div className="admin-kit__table-wrap admin-kit__events-table-wrap"><table className="admin-kit__table admin-kit__events-table"><thead><tr><th scope="col">Occurred</th><th scope="col">Event</th><th scope="col">Actor</th><th scope="col">Resource</th><th scope="col">Outcome</th><th scope="col">Details</th></tr></thead><tbody>{result.items.map((event) => <tr key={event.id}><td>{formatAdminTimestamp(event.occurredAt, formatTimestamp)}</td><td><strong>{event.action}</strong><small>{event.message}</small></td><td>{event.actor?.label ?? "—"}</td><td>{event.resource?.label ?? "—"}</td><td><span className={`admin-kit__event-outcome admin-kit__event-outcome--${event.outcome}`}>{event.outcome}</span><small>{event.severity} · {event.category}</small></td><td>{event.metadata ? <details><summary>View</summary><dl>{Object.entries(event.metadata).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></details> : "—"}</td></tr>)}</tbody></table></div>
+      ) : <ol className="admin-kit__events-list">{result.items.map((event) => <li key={event.id}><div><strong>{event.action}</strong><p>{event.message}</p><span>{formatAdminTimestamp(event.occurredAt, formatTimestamp)} · {event.category} · {event.severity} · {event.outcome}</span>{event.actor ? <span> · actor: {event.actor.label}</span> : null}{event.resource ? <span> · resource: {event.resource.label}</span> : null}</div>{event.metadata ? <details><summary>Details</summary><dl>{Object.entries(event.metadata).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></details> : null}</li>)}</ol>}
       <footer className="admin-kit__events-pagination"><span>Page {result.page} of {pages} · {result.total} events</span><button type="button" disabled={loading || result.page <= 1} onClick={() => setQuery((current) => ({ ...current, page: (current.page ?? 1) - 1 }))}>Previous</button><button type="button" disabled={loading || result.page >= pages} onClick={() => setQuery((current) => ({ ...current, page: (current.page ?? 1) + 1 }))}>Next</button></footer>
     </section>
   );

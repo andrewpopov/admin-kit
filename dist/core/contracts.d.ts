@@ -68,7 +68,10 @@ export interface AdminPageQuery {
     page?: number;
     pageSize?: number;
     search?: string;
+    sort?: string;
+    order?: AdminSortDirection;
 }
+export type AdminSortDirection = "asc" | "desc";
 export interface AdminPage<T> {
     items: readonly T[];
     page: number;

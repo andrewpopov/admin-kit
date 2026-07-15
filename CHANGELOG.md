@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.22.0
+
+### Added
+
+- `UsersPanel` custom columns can opt into server-backed sorting and declare an
+  initial sort direction.
+- `AdminSwitch` provides a labelled, full-row binary setting control.
+- `OperationalJobsPanel` accepts an explanatory zero-run state.
+
+### Changed
+
+- `EventsPanel` can render administrative events as a scan-first semantic table.
+
 ## 0.21.2
 
 ### Fixed

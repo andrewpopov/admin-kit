@@ -36,11 +36,14 @@ export {
   type AdminFieldProps,
   AdminStack,
   type AdminStackProps,
+  AdminSwitch,
+  type AdminSwitchProps,
 } from "./AdminPrimitives";
 export {
   UsersPanel,
   type AdminUserTableCellContext,
   type AdminUserTableColumn,
+  type AdminUserTableSort,
   type UsersPanelProps,
 } from "./UsersPanel";
 export {

@@ -51,6 +51,22 @@ describe("operational panels", () => {
     expect(screen.getByRole("table").classList.contains("admin-kit__table")).toBe(true);
   });
 
+  it("explains the zero-run state while keeping the run action available", async () => {
+    const run = vi.fn().mockResolvedValue(undefined);
+    const list = vi.fn().mockResolvedValue({ items: [], page: 1, pageSize: 25, total: 0 });
+    render(<OperationalJobsPanel
+      adapter={{ list, run: { execute: run } }}
+      emptyState={{ title: "No retention runs yet.", detail: "The policy is active before the first manual run." }}
+      runLabel="Run retention now"
+    />);
+
+    await screen.findByText("No retention runs yet.");
+    expect(screen.getByText("The policy is active before the first manual run.")).toBeTruthy();
+    expect(screen.queryByRole("table")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Run retention now" }));
+    await waitFor(() => expect(run).toHaveBeenCalledOnce());
+  });
+
   it("paginates backups instead of silently truncating past the first page, and shows the true total", async () => {
     const makeBackup = (id: string) => ({ id, label: `Backup ${id}`, createdAt: "Today", state: "completed" as const });
     const page1 = Array.from({ length: 25 }, (_, i) => makeBackup(`p1-${i}`));

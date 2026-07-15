@@ -332,7 +332,12 @@ directory never leaves a blank column for omitted capabilities.
 For a richer, scan-first directory, pass `columns`. Each column declares its
 label and typed cell renderer; the host retains product-specific account facts
 and actions while the kit keeps pagination, loading, empty, and error states.
-Use this instead of overloading the default identity cell with unrelated facts.
+Set `sortable: true` on columns backed by host API sorting, and declare
+`defaultSort` when the directory should open in a known order. The panel sends
+the stable column `id` as `query.sort` with `query.order`; the host must validate
+and map that value rather than interpolating arbitrary database fields. Use
+custom columns instead of overloading the default identity cell with unrelated
+facts.
 
 ### Scoped memberships
 
@@ -456,9 +461,14 @@ filters the host can execute.
 ```tsx
 <EventsPanel
   adapter={events}
+  presentation="table"
   search={{ placeholder: "Action, actor, or resource" }}
 />
 ```
+
+The default `feed` presentation favors narrative inspection. Use `table` for
+high-volume audit trails where operators compare timestamps, actors, resources,
+outcomes, and details across rows.
 
 ### Runtime logs
 
@@ -540,7 +550,14 @@ safe `type="button"`; route guards and server authorization remain host-owned.
 authorized restore operation. Use `OperationalJobsPanel` for scheduled tasks,
 imports, synchronizations, and retention work. `SettingsPanel` maps a
 host-owned load/save adapter to typed text, sensitive, and boolean fields; it
-does not infer setting keys or make policy decisions.
+does not infer setting keys or make policy decisions. Give
+`OperationalJobsPanel` an `emptyState` when policy remains active before the
+first recorded run; the panel keeps the run action visible without showing an
+unexplained empty table.
+
+Use `AdminSwitch` for consequential binary settings whose label, current state,
+and impact should form one large target. It owns presentation and accessible
+switch semantics while the host owns persistence and authorization.
 
 ## Fleet capability boundary
 
