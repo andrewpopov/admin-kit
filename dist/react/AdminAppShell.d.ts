@@ -6,8 +6,8 @@ export interface AdminAppShellNavigationContext {
     onNavigate?: () => void;
 }
 export interface AdminAppShellProps {
-    /** Required application-level framing for a routed administration area. */
-    frame: AdminAppFrame;
+    /** Optional application-level framing; omit it when host chrome already supplies identity. */
+    frame?: AdminAppFrame;
     /** Hosts render their route-aware navigation from their validated registry. */
     renderNavigation: (context: AdminAppShellNavigationContext) => ReactNode;
     children: ReactNode;

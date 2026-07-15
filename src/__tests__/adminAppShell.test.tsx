@@ -23,4 +23,9 @@ describe('AdminAppShell', () => {
     fireEvent.click(screen.getByText('Users', { selector: '#admin-kit-mobile-users' }));
     expect(screen.getAllByRole('navigation', { name: 'Administration sections' })).toHaveLength(1);
   });
+
+  it('does not add a second title when the host already supplies identity chrome', () => {
+    const { container } = render(<AdminAppShell renderNavigation={() => <a href="/admin">Home</a>}><p>Content</p></AdminAppShell>);
+    expect(container.querySelector('h1')).toBeNull();
+  });
 });
