@@ -29,6 +29,23 @@ export interface AdminPortalDefinition {
     groups: readonly AdminSectionGroupDefinition[];
 }
 /**
+ * The generic administration workflows Admin Kit owns. A host may still add
+ * product-specific sections, but it must not register a generic workflow more
+ * than once under different local names.
+ */
+export declare const ADMIN_CAPABILITIES: readonly ["users", "sessions", "logs", "events", "feature-flags", "api-keys", "memberships", "backups", "operational-jobs", "settings"];
+export type AdminCapability = (typeof ADMIN_CAPABILITIES)[number];
+export interface AdminAppSectionDefinition extends AdminPortalSectionDefinition {
+    /** The workflow this route exposes; this is the consumer's migration registry. */
+    capability: AdminCapability;
+}
+export interface AdminAppGroupDefinition extends Omit<AdminSectionGroupDefinition, 'sections'> {
+    sections: readonly AdminAppSectionDefinition[];
+}
+export interface AdminAppDefinition {
+    groups: readonly AdminAppGroupDefinition[];
+}
+/**
  * Validates configuration at definition time so ambiguous navigation never
  * reaches the UI. Empty section registries and duplicate IDs are programming
  * errors, not recoverable runtime states.
@@ -39,6 +56,12 @@ export declare function defineAdminConsole(definition: AdminConsoleDefinition): 
  * unique because the host maps them to routes independently of their group.
  */
 export declare function defineAdminPortal(definition: AdminPortalDefinition): AdminPortalDefinition;
+/**
+ * Defines the canonical registry for a host administration area. It keeps the
+ * portal router-neutral while making duplicate generic workflows a definition
+ * error rather than a later migration surprise.
+ */
+export declare function defineAdminApp(definition: AdminAppDefinition): AdminAppDefinition;
 export interface AdminPageQuery {
     page?: number;
     pageSize?: number;

@@ -1,5 +1,6 @@
 export { AdminActionButton, type AdminActionButtonProps, type AdminActionTone, } from "./AdminActionButton";
 export { AdminConfirmationDialog, type AdminConfirmationDialogProps, } from "./AdminConfirmationDialog";
+export { AdminApp, type AdminAppProps, type AdminAppReactGroup, type AdminAppReactSection, } from './AdminApp';
 export { AdminConsole, type AdminConsoleProps, type AdminReactSection, } from "./AdminConsole";
 export { AdminPortal, type AdminPortalNavigationItemProps, type AdminPortalProps, type AdminPortalReactGroup, type AdminPortalReactSection, } from "./AdminPortal";
 export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";

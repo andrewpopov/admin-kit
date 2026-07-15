@@ -8,6 +8,12 @@ export {
   type AdminConfirmationDialogProps,
 } from "./AdminConfirmationDialog";
 export {
+  AdminApp,
+  type AdminAppProps,
+  type AdminAppReactGroup,
+  type AdminAppReactSection,
+} from './AdminApp';
+export {
   AdminConsole,
   type AdminConsoleProps,
   type AdminReactSection,

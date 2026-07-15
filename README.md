@@ -65,6 +65,47 @@ or a policy-specific credential form. A host page may compose one or more kit
 panels; it should not reimplement a matching panel merely to use local routing,
 styling, or transport.
 
+### Canonical application shape
+
+Use `AdminApp` as the single shell for a host administration area. It is the
+same router-neutral portal interaction model, but its sections carry a required
+capability name. This makes the host registry the explicit answer to “where is
+our users/logs/settings/admin workflow?”, and rejects duplicate generic
+workflows before the UI renders.
+
+```tsx
+import { AdminApp, UsersPanel } from "@andrewpopov/admin-kit/react";
+
+<AdminApp
+  activeSection={routeSection}
+  groups={[
+    {
+      id: "access",
+      label: "Access",
+      sections: [
+        {
+          id: "users",
+          label: "Users",
+          capability: "users",
+          render: () => <UsersPanel adapter={usersAdapter} />,
+        },
+      ],
+    },
+  ]}
+  renderNavigationItem={renderRouterLink}
+/>;
+```
+
+The supported capability names are `users`, `sessions`, `logs`, `events`,
+`feature-flags`, `api-keys`, `memberships`, `backups`, `operational-jobs`, and
+`settings`. Keep a small adapter next to the route and let the panel own the
+generic interaction lifecycle.
+
+`AdminConsole` is deprecated. Existing consumers may migrate incrementally,
+but new administration areas must use `AdminApp`. `AdminPortal` remains a
+lower-level escape hatch for a genuinely product-specific navigation surface;
+it is not the default for a normal admin application.
+
 The stylesheet follows a host `.dark` class automatically. Its defaults are
 available even when a panel is rendered without an `.admin-kit` wrapper, so
 portaled confirmations retain the same readable theme.
