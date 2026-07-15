@@ -13,6 +13,11 @@ describe("operational panels", () => {
     expect(table.classList.contains("admin-kit__table")).toBe(true);
     expect(screen.getByRole("columnheader", { name: "Backup" }).getAttribute("scope")).toBe("col");
   });
+  it("explains the empty backup state and keeps the recovery action prominent", async () => {
+    render(<BackupsPanel adapter={{ list: vi.fn().mockResolvedValue({ items: [], page: 1, pageSize: 25, total: 0 }), run: { execute: vi.fn() } }} runLabel="Run backup now" />);
+    expect(await screen.findByText("No backups yet. Run a backup to create your first recovery point.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Run backup now" }).classList.contains("admin-kit__button--primary")).toBe(true);
+  });
   it("does not restore a backup until the confirmation dialog is confirmed", async () => {
     const restore = vi.fn().mockResolvedValue(undefined);
     render(

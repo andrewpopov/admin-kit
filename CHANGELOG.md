@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.24.3
+
+### Changed
+
+- Made `AdminAppShell` navigation independently scrollable and compacted its mobile trigger.
+- Added explicit empty-state guidance and primary recovery action styling to `BackupsPanel`.
+- Allowed hosts to name an `EventsPanel` refresh action by scope.
+
 ## 0.24.2
 
 ### Fixed

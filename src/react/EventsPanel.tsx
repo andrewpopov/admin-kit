@@ -13,6 +13,7 @@ const SEARCH_DEBOUNCE_MS = 250;
 export interface EventsPanelProps {
   adapter: AdminEventsAdapter;
   title?: string;
+  refreshLabel?: string;
   search?: { placeholder?: string };
   pageSize?: number;
   presentation?: "feed" | "table";
@@ -22,7 +23,7 @@ export interface EventsPanelProps {
   formatTimestamp?: (iso: string) => string;
 }
 
-export function EventsPanel({ adapter, title = "Administrative events", search, pageSize = 25, presentation = "feed", className, formatTimestamp }: EventsPanelProps) {
+export function EventsPanel({ adapter, title = "Administrative events", refreshLabel = "Refresh", search, pageSize = 25, presentation = "feed", className, formatTimestamp }: EventsPanelProps) {
   const [query, setQuery] = useState<AdminEventsQuery>({ page: 1, pageSize });
   const [searchInput, setSearchInput] = useState(query.search ?? "");
   const [result, setResult] = useState<AdminEventsPage>();
@@ -72,7 +73,7 @@ export function EventsPanel({ adapter, title = "Administrative events", search, 
     <section className={["admin-kit__events", className].filter(Boolean).join(" ")} aria-label={title}>
       <header className="admin-kit__events-header">
         <div><h2>{title}</h2>{result.source ? <p>Source: {result.source.label}{result.source.updatedAt ? ` · updated ${formatAdminTimestamp(result.source.updatedAt, formatTimestamp)}` : ""}</p> : null}</div>
-        <button type="button" disabled={loading} onClick={() => void load()}>Refresh</button>
+        <button type="button" disabled={loading} onClick={() => void load()}>{refreshLabel}</button>
       </header>
       <div className="admin-kit__events-filters">
         {search ? <label><span>Search</span><input type="search" placeholder={search.placeholder} value={searchInput} onChange={(event) => updateSearch(event.target.value)} /></label> : null}
