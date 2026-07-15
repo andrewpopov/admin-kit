@@ -555,6 +555,10 @@ does not infer setting keys or make policy decisions. Give
 first recorded run; the panel keeps the run action visible without showing an
 unexplained empty table.
 
+Boolean settings use the same labelled `AdminSwitch` treatment as other admin
+policy controls, so the label, description, current state, and hit target remain
+one coherent control while the panel preserves its explicit save flow.
+
 Use `AdminSwitch` for consequential binary settings whose label, current state,
 and impact should form one large target. It owns presentation and accessible
 switch semantics while the host owns persistence and authorization.
