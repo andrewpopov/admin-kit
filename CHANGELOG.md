@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.20.0
+
+### Changed
+
+- `AdminApp` now requires an application-level `frame` with a title and owns
+  the canonical themed header around grouped administration navigation.
+- The named `core` theme is the required visual boundary for `AdminApp`,
+  `AdminWorkspace`, and `AdminTheme`; the old opt-in, host-overridable styling
+  model is no longer the supported contract.
+
+### Added
+
+- `AdminTheme`, `AdminCard`, `AdminField`, and `AdminStack` for product-specific
+  extension content that keeps the same visual system as kit-owned panels.
+
 ## 0.19.1
 
 ### Added

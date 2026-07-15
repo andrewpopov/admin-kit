@@ -19,7 +19,7 @@ export interface AdminWorkspaceProps {
 export function AdminWorkspace({ as = "main", title, description, actions, summary, toolbar, children, className }: AdminWorkspaceProps) {
   const Workspace = as as ElementType;
 
-  return <Workspace className={["admin-kit__workspace", className].filter(Boolean).join(" ")}>
+  return <Workspace className={["admin-kit", "admin-kit--theme-core", "admin-kit__workspace", className].filter(Boolean).join(" ")} data-admin-kit-theme="core">
     <header className="admin-kit__workspace-header">
       <div><h1>{title}</h1>{description ? <p>{description}</p> : null}</div>
       {actions ? <div className="admin-kit__workspace-actions">{actions}</div> : null}

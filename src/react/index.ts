@@ -9,6 +9,7 @@ export {
 } from "./AdminConfirmationDialog";
 export {
   AdminApp,
+  type AdminAppFrame,
   type AdminAppProps,
   type AdminAppReactGroup,
   type AdminAppReactSection,
@@ -27,6 +28,15 @@ export {
 } from "./AdminPortal";
 export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";
 export { AdminWorkspace, type AdminWorkspaceProps } from "./AdminWorkspace";
+export { AdminTheme, type AdminThemeName, type AdminThemeProps } from "./AdminTheme";
+export {
+  AdminCard,
+  type AdminCardProps,
+  AdminField,
+  type AdminFieldProps,
+  AdminStack,
+  type AdminStackProps,
+} from "./AdminPrimitives";
 export {
   UsersPanel,
   type AdminUserTableCellContext,

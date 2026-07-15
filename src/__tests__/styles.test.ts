@@ -65,6 +65,10 @@ describe("Admin Kit styles", () => {
   });
 
   it("provides a complete reusable visual system for admin panels", () => {
+    expect(styles).toContain(".admin-kit--theme-core {");
+    expect(styles).toContain(".admin-kit__app-header");
+    expect(styles).toContain(".admin-kit__card");
+    expect(styles).toContain(".admin-kit__field");
     expect(styles).toContain("--admin-kit-surface-subtle:");
     expect(styles).toContain("--admin-kit-accent-soft:");
     expect(styles).toContain(".admin-kit__dialog-actions button:last-child:not(.admin-kit__button--danger)");

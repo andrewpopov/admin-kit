@@ -81,14 +81,14 @@ export function AdminPortal({
 
   if (!active) {
     return (
-      <section className={['admin-kit', 'admin-kit__portal-empty', className].filter(Boolean).join(' ')}>
+      <section className={['admin-kit', 'admin-kit--theme-core', 'admin-kit__portal-empty', className].filter(Boolean).join(' ')} data-admin-kit-theme="core">
         {sections.length === 0 ? emptyState : inactiveSectionState?.(activeSection) ?? 'This administration section is unavailable.'}
       </section>
     );
   }
 
   return (
-    <section className={['admin-kit', 'admin-kit__portal', className].filter(Boolean).join(' ')}>
+    <section className={['admin-kit', 'admin-kit--theme-core', 'admin-kit__portal', className].filter(Boolean).join(' ')} data-admin-kit-theme="core">
       <nav aria-label={ariaLabel} className="admin-kit__portal-navigation">
         {visibleGroups.map((group) => (
           <section className="admin-kit__portal-group" key={group.id}>

@@ -137,6 +137,7 @@ describe('AdminApp', () => {
   it('uses the portal interaction contract while requiring a capability registry', () => {
     render(
       <AdminApp
+        frame={{ title: 'Administration', description: 'Manage access and operations.' }}
         activeSection="users"
         groups={[{
           id: 'core',
@@ -148,5 +149,7 @@ describe('AdminApp', () => {
     );
 
     expect(screen.getByText('User content')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Administration' })).toBeTruthy();
+    expect(screen.getByText('Manage access and operations.')).toBeTruthy();
   });
 });

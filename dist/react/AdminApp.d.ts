@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { type AdminAppGroupDefinition, type AdminAppSectionDefinition } from '../core';
 import { type AdminPortalNavigationItemProps, type AdminPortalProps } from './AdminPortal';
+import { type AdminThemeName } from './AdminTheme';
 export interface AdminAppReactSection extends AdminAppSectionDefinition {
     render: () => ReactNode;
 }
@@ -10,11 +11,20 @@ export interface AdminAppReactGroup extends Omit<AdminAppGroupDefinition, 'secti
 type WithAdminAppGroups<T> = T extends AdminPortalProps ? Omit<T, 'groups'> & {
     groups: readonly AdminAppReactGroup[];
 } : never;
-export type AdminAppProps = WithAdminAppGroups<AdminPortalProps>;
+export interface AdminAppFrame {
+    title: ReactNode;
+    description?: ReactNode;
+    actions?: ReactNode;
+}
+export type AdminAppProps = WithAdminAppGroups<AdminPortalProps> & {
+    /** Required application-level framing for a complete Admin Kit screen. */
+    frame: AdminAppFrame;
+    theme?: AdminThemeName;
+};
 /**
  * The canonical Admin Kit application shell. Use this for every host
  * administration area; the lower-level AdminPortal remains available only for
  * product-specific navigation that has no capability registry.
  */
-export declare function AdminApp(props: AdminAppProps): import("react").JSX.Element;
+export declare function AdminApp({ frame, theme, className, ...portalProps }: AdminAppProps): import("react").JSX.Element;
 export type { AdminPortalNavigationItemProps };
