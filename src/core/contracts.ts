@@ -52,7 +52,9 @@ export const ADMIN_CAPABILITIES = [
   'settings',
 ] as const;
 
-export type AdminCapability = (typeof ADMIN_CAPABILITIES)[number];
+export type AdminKitCapability = (typeof ADMIN_CAPABILITIES)[number];
+export type AdminCustomCapability = `custom:${string}`;
+export type AdminCapability = AdminKitCapability | AdminCustomCapability;
 
 export interface AdminAppSectionDefinition extends AdminPortalSectionDefinition {
   /** The workflow this route exposes; this is the consumer's migration registry. */
@@ -135,7 +137,9 @@ export function defineAdminApp(definition: AdminAppDefinition): AdminAppDefiniti
   const capabilities = new Set<AdminCapability>();
   for (const group of definition.groups) {
     for (const section of group.sections) {
-      if (!ADMIN_CAPABILITIES.includes(section.capability)) {
+      const isCustomCapability = section.capability.startsWith('custom:')
+        && section.capability.slice('custom:'.length).trim().length > 0;
+      if (!isCustomCapability && !ADMIN_CAPABILITIES.includes(section.capability as AdminKitCapability)) {
         throw new Error(`Unknown admin capability: ${section.capability}.`);
       }
       if (capabilities.has(section.capability)) {

@@ -90,7 +90,9 @@ function defineAdminApp(definition) {
     const capabilities = new Set();
     for (const group of definition.groups) {
         for (const section of group.sections) {
-            if (!exports.ADMIN_CAPABILITIES.includes(section.capability)) {
+            const isCustomCapability = section.capability.startsWith('custom:')
+                && section.capability.slice('custom:'.length).trim().length > 0;
+            if (!isCustomCapability && !exports.ADMIN_CAPABILITIES.includes(section.capability)) {
                 throw new Error(`Unknown admin capability: ${section.capability}.`);
             }
             if (capabilities.has(section.capability)) {

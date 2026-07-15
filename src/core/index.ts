@@ -9,6 +9,8 @@ export {
   type AdminAppGroupDefinition,
   type AdminAppSectionDefinition,
   type AdminCapability,
+  type AdminCustomCapability,
+  type AdminKitCapability,
   type AdminConsoleDefinition,
   type AdminPage,
   type AdminPageQuery,

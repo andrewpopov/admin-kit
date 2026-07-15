@@ -1,12 +1,14 @@
 # Changelog
 
-## 0.19.0
+## 0.19.1
 
 ### Added
 
 - `AdminApp`, the canonical grouped administration shell. Its required
   capability registry makes duplicate generic workflows a definition error and
   provides one migration target for every host app.
+- Product-specific sections can declare a namespaced `custom:<name>` capability
+  alongside the kit-owned workflows.
 
 ### Deprecated
 

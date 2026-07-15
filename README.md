@@ -98,8 +98,9 @@ import { AdminApp, UsersPanel } from "@andrewpopov/admin-kit/react";
 
 The supported capability names are `users`, `sessions`, `logs`, `events`,
 `feature-flags`, `api-keys`, `memberships`, `backups`, `operational-jobs`, and
-`settings`. Keep a small adapter next to the route and let the panel own the
-generic interaction lifecycle.
+`settings`. Product-specific sections use a descriptive `custom:<name>` value,
+such as `custom:catalog` or `custom:home-assistant`. Keep a small adapter next
+to a generic route and let the panel own the generic interaction lifecycle.
 
 `AdminConsole` is deprecated. Existing consumers may migrate incrementally,
 but new administration areas must use `AdminApp`. `AdminPortal` remains a
