@@ -8,8 +8,8 @@ export interface AdminAppShellNavigationContext {
 }
 
 export interface AdminAppShellProps {
-  /** Required application-level framing for a routed administration area. */
-  frame: AdminAppFrame;
+  /** Optional application-level framing; omit it when host chrome already supplies identity. */
+  frame?: AdminAppFrame;
   /** Hosts render their route-aware navigation from their validated registry. */
   renderNavigation: (context: AdminAppShellNavigationContext) => ReactNode;
   children: ReactNode;
@@ -37,13 +37,13 @@ export function AdminAppShell({
 
   return (
     <AdminTheme as="section" className={['admin-kit__app-shell', className].filter(Boolean).join(' ')} theme={theme}>
-      <header className="admin-kit__app-header">
-        <div>
-          <h1>{frame.title}</h1>
-          {frame.description ? <p>{frame.description}</p> : null}
-        </div>
-        {frame.actions ? <div className="admin-kit__app-actions">{frame.actions}</div> : null}
-      </header>
+      {frame ? <header className="admin-kit__app-header">
+          <div>
+            <h1>{frame.title}</h1>
+            {frame.description ? <p>{frame.description}</p> : null}
+          </div>
+          {frame.actions ? <div className="admin-kit__app-actions">{frame.actions}</div> : null}
+        </header> : null}
       <button
         aria-controls="admin-kit-mobile-navigation"
         aria-expanded={mobileNavigationOpen}

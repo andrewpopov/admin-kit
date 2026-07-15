@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.24.1
+
+### Changed
+
+- `AdminAppShell` no longer requires a frame when host chrome already supplies
+  the application identity.
+
 ## 0.24.0
 
 ### Added
