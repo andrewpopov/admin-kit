@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.21.2
+
+### Fixed
+
+- Conformance now proves the stylesheet is loaded from a `main` or `layout`
+  entry point and requires every direct consumer declaration to pin this release.
+- Tarball verification includes failure canaries for missing entry-point CSS and
+  an outdated consumer package tag.
+
 ## 0.21.1
 
 ### Fixed

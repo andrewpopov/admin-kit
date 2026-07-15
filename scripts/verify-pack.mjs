@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -16,6 +16,15 @@ function run(command, args, options = {}) {
 function fail(message) {
   console.error(`\n[verify:pack] FAIL: ${message}\n`);
   process.exit(1);
+}
+
+function expectConformanceFailure(directory, message) {
+  try {
+    run('node', ['node_modules/.bin/admin-kit-conformance'], { cwd: directory, stdio: 'pipe' });
+  } catch (error) {
+    if (String(error.stderr).includes(message)) return;
+  }
+  fail(`Conformance canary did not fail for: ${message}`);
 }
 
 try {
@@ -56,10 +65,18 @@ try {
   if (!run('node', ['smoke.cjs'], { cwd: consumerDir }).includes('CJS exports OK')) {
     fail('CommonJS consumer smoke did not report success.');
   }
-  writeFileSync(join(consumerDir, 'src.tsx'), `import '${pkg.name}/styles.css';\nexport const App = () => <div />;`);
+  writeFileSync(join(consumerDir, 'package.json'), JSON.stringify({ name: 'admin-kit-consumer', private: true, dependencies: { [pkg.name]: `github:andrewpopov/admin-kit#v${pkg.version}` } }, null, 2));
+  mkdirSync(join(consumerDir, 'src'));
+  writeFileSync(join(consumerDir, 'src', 'main.tsx'), `import '${pkg.name}/styles.css';\nexport const App = () => <div />;`);
   if (!run('node', ['node_modules/.bin/admin-kit-conformance'], { cwd: consumerDir }).includes('PASS')) {
     fail('Conformance binary did not accept a valid consumer.');
   }
+  writeFileSync(join(consumerDir, 'src', 'main.tsx'), 'export const App = () => <div />;');
+  writeFileSync(join(consumerDir, 'src', 'unused.tsx'), `import '${pkg.name}/styles.css';`);
+  expectConformanceFailure(consumerDir, 'application main or layout entry point');
+  writeFileSync(join(consumerDir, 'src', 'main.tsx'), `import '${pkg.name}/styles.css';\nexport const App = () => <div />;`);
+  writeFileSync(join(consumerDir, 'package.json'), JSON.stringify({ name: 'admin-kit-consumer', private: true, dependencies: { [pkg.name]: 'github:andrewpopov/admin-kit#v0.20.0' } }, null, 2));
+  expectConformanceFailure(consumerDir, `pin ${pkg.name} to v${pkg.version}`);
 
   console.log('[verify:pack] PASS: tarball installs and exports its public surface.');
 } finally {

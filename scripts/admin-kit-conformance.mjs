@@ -3,6 +3,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const root = process.cwd();
+const packageVersion = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 const ignored = new Set(['node_modules', 'dist', '.git', '.worktree', 'coverage', 'test-results']);
 const sourceFiles = [];
 const packageManifests = [];
@@ -27,11 +28,24 @@ if (!existsSync(join(root, 'package.json'))) fail(['Run this command from a cons
 walk(root);
 const files = sourceFiles.map((path) => ({ path, text: readFileSync(path, 'utf8') }));
 const errors = [];
-if (!packageManifests.some((path) => readFileSync(path, 'utf8').includes('"@andrewpopov/admin-kit"'))) {
+const adminKitSpecs = packageManifests.flatMap((path) => {
+  const manifest = JSON.parse(readFileSync(path, 'utf8'));
+  return ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']
+    .map((field) => manifest[field]?.['@andrewpopov/admin-kit'])
+    .filter(Boolean)
+    .map((specifier) => ({ path, specifier }));
+});
+if (!adminKitSpecs.length) {
   errors.push('No package manifest declares @andrewpopov/admin-kit.');
 }
-if (!files.some(({ text }) => /['"]@andrewpopov\/admin-kit\/styles\.css['"]/.test(text))) {
-  errors.push('Import @andrewpopov/admin-kit/styles.css from the application entry point.');
+for (const { path, specifier } of adminKitSpecs) {
+  if (!String(specifier).includes(`v${packageVersion}`)) {
+    errors.push(`${relative(root, path)}: pin @andrewpopov/admin-kit to v${packageVersion}.`);
+  }
+}
+const entryFiles = files.filter(({ path }) => /(?:^|\/)(?:main|layout)\.(?:[cm]?[jt]sx?)$/.test(path));
+if (!entryFiles.some(({ text }) => /['"]@andrewpopov\/admin-kit\/styles\.css['"]/.test(text))) {
+  errors.push('Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.');
 }
 for (const { path, text } of files) {
   if (!/\.(?:tsx|jsx)$/.test(path)) continue;
