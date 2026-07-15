@@ -4,7 +4,7 @@ import { join, relative } from 'node:path';
 
 const root = process.cwd();
 const packageVersion = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
-const ignored = new Set(['node_modules', 'dist', '.git', '.worktree', 'coverage', 'test-results']);
+const ignored = new Set(['node_modules', 'dist', '.git', '.next', '.worktree', 'coverage', 'test-results']);
 const sourceFiles = [];
 const packageManifests = [];
 
