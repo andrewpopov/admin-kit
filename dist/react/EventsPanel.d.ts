@@ -2,6 +2,7 @@ import { type AdminEventsAdapter } from "../core";
 export interface EventsPanelProps {
     adapter: AdminEventsAdapter;
     title?: string;
+    refreshLabel?: string;
     search?: {
         placeholder?: string;
     };
@@ -12,4 +13,4 @@ export interface EventsPanelProps {
     /** Overrides the default timestamp presentation for occurredAt / source.updatedAt. */
     formatTimestamp?: (iso: string) => string;
 }
-export declare function EventsPanel({ adapter, title, search, pageSize, presentation, className, formatTimestamp }: EventsPanelProps): import("react").JSX.Element;
+export declare function EventsPanel({ adapter, title, refreshLabel, search, pageSize, presentation, className, formatTimestamp }: EventsPanelProps): import("react").JSX.Element;
