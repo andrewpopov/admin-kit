@@ -16,4 +16,5 @@ export interface AdminConsoleProps {
  * authorization dependency: the host determines navigation, supplies panels,
  * and enforces every action on the server.
  */
+/** @deprecated Use AdminApp with grouped sections and a capability registry. */
 export declare function AdminConsole({ activeSection, sections, onSectionChange, ariaLabel, className, }: AdminConsoleProps): import("react").JSX.Element;

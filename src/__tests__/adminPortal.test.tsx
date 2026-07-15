@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AdminPortal } from '../react';
+import { AdminApp, AdminPortal } from '../react';
 import type { AdminPortalProps } from '../react';
 
 afterEach(cleanup);
@@ -130,5 +130,23 @@ describe('AdminPortal', () => {
   it('rejects inert default navigation from untyped consumers', () => {
     const invalid = { activeSection: 'users', groups } as unknown as AdminPortalProps;
     expect(() => AdminPortal(invalid)).toThrow(/needs onSectionChange/i);
+  });
+});
+
+describe('AdminApp', () => {
+  it('uses the portal interaction contract while requiring a capability registry', () => {
+    render(
+      <AdminApp
+        activeSection="users"
+        groups={[{
+          id: 'core',
+          label: 'Core administration',
+          sections: [{ id: 'users', label: 'Users', capability: 'users', render: () => <p>User content</p> }],
+        }]}
+        onSectionChange={() => undefined}
+      />,
+    );
+
+    expect(screen.getByText('User content')).toBeTruthy();
   });
 });

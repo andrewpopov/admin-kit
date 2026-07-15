@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `AdminApp`, the canonical grouped administration shell. Its required
+  capability registry makes duplicate generic workflows a definition error and
+  provides one migration target for every host app.
+
+### Deprecated
+
+- `AdminConsole`. Use `AdminApp` for new administration areas.
+
 ## 0.18.0
 
 ### Added

@@ -35,6 +35,39 @@ export interface AdminPortalDefinition {
 }
 
 /**
+ * The generic administration workflows Admin Kit owns. A host may still add
+ * product-specific sections, but it must not register a generic workflow more
+ * than once under different local names.
+ */
+export const ADMIN_CAPABILITIES = [
+  'users',
+  'sessions',
+  'logs',
+  'events',
+  'feature-flags',
+  'api-keys',
+  'memberships',
+  'backups',
+  'operational-jobs',
+  'settings',
+] as const;
+
+export type AdminCapability = (typeof ADMIN_CAPABILITIES)[number];
+
+export interface AdminAppSectionDefinition extends AdminPortalSectionDefinition {
+  /** The workflow this route exposes; this is the consumer's migration registry. */
+  capability: AdminCapability;
+}
+
+export interface AdminAppGroupDefinition extends Omit<AdminSectionGroupDefinition, 'sections'> {
+  sections: readonly AdminAppSectionDefinition[];
+}
+
+export interface AdminAppDefinition {
+  groups: readonly AdminAppGroupDefinition[];
+}
+
+/**
  * Validates configuration at definition time so ambiguous navigation never
  * reaches the UI. Empty section registries and duplicate IDs are programming
  * errors, not recoverable runtime states.
@@ -89,6 +122,35 @@ export function defineAdminPortal(definition: AdminPortalDefinition): AdminPorta
   });
 
   return Object.freeze({ groups: Object.freeze(groups) });
+}
+
+/**
+ * Defines the canonical registry for a host administration area. It keeps the
+ * portal router-neutral while making duplicate generic workflows a definition
+ * error rather than a later migration surprise.
+ */
+export function defineAdminApp(definition: AdminAppDefinition): AdminAppDefinition {
+  defineAdminPortal(definition);
+
+  const capabilities = new Set<AdminCapability>();
+  for (const group of definition.groups) {
+    for (const section of group.sections) {
+      if (!ADMIN_CAPABILITIES.includes(section.capability)) {
+        throw new Error(`Unknown admin capability: ${section.capability}.`);
+      }
+      if (capabilities.has(section.capability)) {
+        throw new Error(`Duplicate admin capability: ${section.capability}.`);
+      }
+      capabilities.add(section.capability);
+    }
+  }
+
+  return Object.freeze({
+    groups: Object.freeze(definition.groups.map((group) => Object.freeze({
+      ...group,
+      sections: Object.freeze(group.sections.map((section) => Object.freeze({ ...section }))),
+    }))),
+  });
 }
 
 export interface AdminPageQuery {

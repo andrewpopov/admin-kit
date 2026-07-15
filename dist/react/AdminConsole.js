@@ -8,6 +8,7 @@ const react_1 = require("react");
  * authorization dependency: the host determines navigation, supplies panels,
  * and enforces every action on the server.
  */
+/** @deprecated Use AdminApp with grouped sections and a capability registry. */
 function AdminConsole({ activeSection, sections, onSectionChange, ariaLabel = 'Administration sections', className, }) {
     const idBase = (0, react_1.useId)();
     const active = sections.find((section) => section.id === activeSection) ?? sections[0];

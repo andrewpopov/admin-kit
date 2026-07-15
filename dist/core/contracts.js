@@ -1,8 +1,27 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ADMIN_CAPABILITIES = void 0;
 exports.defineAdminConsole = defineAdminConsole;
 exports.defineAdminPortal = defineAdminPortal;
+exports.defineAdminApp = defineAdminApp;
 exports.normalizeAdminFailure = normalizeAdminFailure;
+/**
+ * The generic administration workflows Admin Kit owns. A host may still add
+ * product-specific sections, but it must not register a generic workflow more
+ * than once under different local names.
+ */
+exports.ADMIN_CAPABILITIES = [
+    'users',
+    'sessions',
+    'logs',
+    'events',
+    'feature-flags',
+    'api-keys',
+    'memberships',
+    'backups',
+    'operational-jobs',
+    'settings',
+];
 /**
  * Validates configuration at definition time so ambiguous navigation never
  * reaches the UI. Empty section registries and duplicate IDs are programming
@@ -60,6 +79,32 @@ function defineAdminPortal(definition) {
         return Object.freeze({ ...group, sections: Object.freeze(sections) });
     });
     return Object.freeze({ groups: Object.freeze(groups) });
+}
+/**
+ * Defines the canonical registry for a host administration area. It keeps the
+ * portal router-neutral while making duplicate generic workflows a definition
+ * error rather than a later migration surprise.
+ */
+function defineAdminApp(definition) {
+    defineAdminPortal(definition);
+    const capabilities = new Set();
+    for (const group of definition.groups) {
+        for (const section of group.sections) {
+            if (!exports.ADMIN_CAPABILITIES.includes(section.capability)) {
+                throw new Error(`Unknown admin capability: ${section.capability}.`);
+            }
+            if (capabilities.has(section.capability)) {
+                throw new Error(`Duplicate admin capability: ${section.capability}.`);
+            }
+            capabilities.add(section.capability);
+        }
+    }
+    return Object.freeze({
+        groups: Object.freeze(definition.groups.map((group) => Object.freeze({
+            ...group,
+            sections: Object.freeze(group.sections.map((section) => Object.freeze({ ...section }))),
+        }))),
+    });
 }
 /** Normalizes arbitrary transport failures without coupling the package to fetch or an API envelope. */
 function normalizeAdminFailure(error) {

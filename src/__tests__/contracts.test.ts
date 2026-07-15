@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  defineAdminApp,
   defineAdminConsole,
   defineAdminPortal,
   validateAdminApiKeyCreated,
@@ -93,6 +94,28 @@ describe("defineAdminPortal", () => {
     ],
   ])("rejects ambiguous grouped navigation", (definition, message) => {
     expect(() => defineAdminPortal(definition)).toThrow(message);
+  });
+});
+
+describe("defineAdminApp", () => {
+  it("freezes the canonical capability registry", () => {
+    const app = defineAdminApp({
+      groups: [{
+        id: "core",
+        label: "Core administration",
+        sections: [{ id: "users", label: "Users", capability: "users" }],
+      }],
+    });
+
+    expect(app.groups[0]?.sections[0]?.capability).toBe("users");
+    expect(Object.isFrozen(app.groups[0]?.sections[0])).toBe(true);
+  });
+
+  it.each([
+    [{ groups: [{ id: "core", label: "Core", sections: [{ id: "users", label: "Users", capability: "unknown" }] }] }, /unknown admin capability/i],
+    [{ groups: [{ id: "core", label: "Core", sections: [{ id: "users", label: "Users", capability: "users" }, { id: "people", label: "People", capability: "users" }] }] }, /duplicate admin capability/i],
+  ])("rejects an invalid capability registry", (definition, message) => {
+    expect(() => defineAdminApp(definition as never)).toThrow(message);
   });
 });
 
