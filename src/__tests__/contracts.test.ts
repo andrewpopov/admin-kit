@@ -103,16 +103,21 @@ describe("defineAdminApp", () => {
       groups: [{
         id: "core",
         label: "Core administration",
-        sections: [{ id: "users", label: "Users", capability: "users" }],
+        sections: [
+          { id: "users", label: "Users", capability: "users" },
+          { id: "catalog", label: "Catalog", capability: "custom:catalog" },
+        ],
       }],
     });
 
     expect(app.groups[0]?.sections[0]?.capability).toBe("users");
+    expect(app.groups[0]?.sections[1]?.capability).toBe("custom:catalog");
     expect(Object.isFrozen(app.groups[0]?.sections[0])).toBe(true);
   });
 
   it.each([
     [{ groups: [{ id: "core", label: "Core", sections: [{ id: "users", label: "Users", capability: "unknown" }] }] }, /unknown admin capability/i],
+    [{ groups: [{ id: "core", label: "Core", sections: [{ id: "catalog", label: "Catalog", capability: "custom: " }] }] }, /unknown admin capability/i],
     [{ groups: [{ id: "core", label: "Core", sections: [{ id: "users", label: "Users", capability: "users" }, { id: "people", label: "People", capability: "users" }] }] }, /duplicate admin capability/i],
   ])("rejects an invalid capability registry", (definition, message) => {
     expect(() => defineAdminApp(definition as never)).toThrow(message);

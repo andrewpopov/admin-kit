@@ -34,7 +34,9 @@ export interface AdminPortalDefinition {
  * than once under different local names.
  */
 export declare const ADMIN_CAPABILITIES: readonly ["users", "sessions", "logs", "events", "feature-flags", "api-keys", "memberships", "backups", "operational-jobs", "settings"];
-export type AdminCapability = (typeof ADMIN_CAPABILITIES)[number];
+export type AdminKitCapability = (typeof ADMIN_CAPABILITIES)[number];
+export type AdminCustomCapability = `custom:${string}`;
+export type AdminCapability = AdminKitCapability | AdminCustomCapability;
 export interface AdminAppSectionDefinition extends AdminPortalSectionDefinition {
     /** The workflow this route exposes; this is the consumer's migration registry. */
     capability: AdminCapability;
