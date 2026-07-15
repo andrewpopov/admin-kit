@@ -22,7 +22,7 @@ try {
   console.log('[verify:pack] Building...');
   run('npm', ['run', 'build'], { cwd: packageRoot, stdio: 'inherit' });
 
-  for (const file of ['dist/index.js', 'dist/index.d.ts', 'dist/styles.css']) {
+  for (const file of ['dist/index.js', 'dist/index.d.ts', 'dist/styles.css', 'dist/admin-kit-conformance.mjs']) {
     if (!existsSync(join(packageRoot, file))) fail(`${file} is missing after build.`);
   }
 
@@ -30,7 +30,7 @@ try {
   const packed = JSON.parse(run('npm', ['pack', '--json', '--pack-destination', workDir], { cwd: packageRoot }));
   const tarballPath = join(workDir, packed[0].filename);
   const contents = run('tar', ['-tzf', tarballPath]);
-  for (const file of ['package/dist/index.js', 'package/dist/index.d.ts', 'package/dist/styles.css']) {
+  for (const file of ['package/dist/index.js', 'package/dist/index.d.ts', 'package/dist/styles.css', 'package/dist/admin-kit-conformance.mjs']) {
     if (!contents.includes(file)) fail(`${file} is missing from the tarball.`);
   }
 
@@ -55,6 +55,10 @@ try {
   writeFileSync(join(consumerDir, 'smoke.cjs'), smoke);
   if (!run('node', ['smoke.cjs'], { cwd: consumerDir }).includes('CJS exports OK')) {
     fail('CommonJS consumer smoke did not report success.');
+  }
+  writeFileSync(join(consumerDir, 'src.tsx'), `import '${pkg.name}/styles.css';\nexport const App = () => <div />;`);
+  if (!run('node', ['node_modules/.bin/admin-kit-conformance'], { cwd: consumerDir }).includes('PASS')) {
+    fail('Conformance binary did not accept a valid consumer.');
   }
 
   console.log('[verify:pack] PASS: tarball installs and exports its public surface.');
