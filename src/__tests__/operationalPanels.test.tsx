@@ -45,6 +45,21 @@ describe("operational panels", () => {
     render(<SettingsPanel adapter={{ load: vi.fn().mockResolvedValue([{ id: "retention", label: "Retention", value: "30" }]), save: { execute: vi.fn() } }} />);
     expect(await screen.findByDisplayValue("30")).toBeTruthy();
   });
+  it("uses the shared switch for boolean settings and saves the staged value", async () => {
+    const save = vi.fn().mockResolvedValue(undefined);
+    render(<SettingsPanel adapter={{
+      load: vi.fn().mockResolvedValue([{ id: "registration", label: "Public registration", description: "Allow visitors to create accounts.", type: "boolean", value: false }]),
+      save: { execute: save },
+    }} />);
+
+    const registration = await screen.findByRole("switch", { name: /Public registration/ });
+    expect(registration.getAttribute("aria-checked")).toBe("false");
+    fireEvent.click(registration);
+    expect(registration.getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByText("Enabled")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    await waitFor(() => expect(save).toHaveBeenCalledWith({ values: { registration: true } }));
+  });
   it("uses a distinct operational-jobs vocabulary for scheduled work", async () => {
     render(<OperationalJobsPanel title="Retention" runLabel="Run retention" adapter={{ list: vi.fn().mockResolvedValue({ items: [{ id: "r1", label: "Retention policy", startedAt: "Today", state: "completed" }], page: 1, pageSize: 25, total: 1 }) }} />);
     expect(await screen.findByText("Retention policy")).toBeTruthy();

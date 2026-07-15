@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.23.0
+
+### Changed
+
+- Boolean `SettingsPanel` fields now use the shared labelled switch treatment
+  instead of a detached checkbox.
+
 ## 0.22.0
 
 ### Added
