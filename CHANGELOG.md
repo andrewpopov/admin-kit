@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.23.1
+
+### Fixed
+
+- `admin-kit-conformance` now ignores generated Next.js build output, while
+  continuing to reject host source files that override core theme tokens.
+
 ## 0.23.0
 
 ### Changed
