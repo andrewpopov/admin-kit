@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.24.0
+
+### Added
+
+- `AdminAppShell` gives URL-owning hosts a responsive canonical admin frame,
+  desktop/mobile navigation landmarks, and route-aware navigation render seam.
+
 ## 0.23.1
 
 ### Fixed

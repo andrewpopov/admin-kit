@@ -15,6 +15,11 @@ export {
   type AdminAppReactSection,
 } from './AdminApp';
 export {
+  AdminAppShell,
+  type AdminAppShellNavigationContext,
+  type AdminAppShellProps,
+} from './AdminAppShell';
+export {
   AdminConsole,
   type AdminConsoleProps,
   type AdminReactSection,
