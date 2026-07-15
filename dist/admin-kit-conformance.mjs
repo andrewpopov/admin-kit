@@ -5,12 +5,14 @@ import { join, relative } from 'node:path';
 const root = process.cwd();
 const ignored = new Set(['node_modules', 'dist', '.git', '.worktree', 'coverage', 'test-results']);
 const sourceFiles = [];
+const packageManifests = [];
 
 function walk(directory) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     if (ignored.has(entry.name)) continue;
     const path = join(directory, entry.name);
     if (entry.isDirectory()) walk(path);
+    else if (entry.name === 'package.json') packageManifests.push(path);
     else if (/\.(?:[cm]?[jt]sx?|css)$/.test(entry.name)) sourceFiles.push(path);
   }
 }
@@ -25,8 +27,7 @@ if (!existsSync(join(root, 'package.json'))) fail(['Run this command from a cons
 walk(root);
 const files = sourceFiles.map((path) => ({ path, text: readFileSync(path, 'utf8') }));
 const errors = [];
-const packageManifest = readFileSync(join(root, 'package.json'), 'utf8');
-if (!packageManifest.includes('"@andrewpopov/admin-kit"')) {
+if (!packageManifests.some((path) => readFileSync(path, 'utf8').includes('"@andrewpopov/admin-kit"'))) {
   errors.push('No package manifest declares @andrewpopov/admin-kit.');
 }
 if (!files.some(({ text }) => /['"]@andrewpopov\/admin-kit\/styles\.css['"]/.test(text))) {
