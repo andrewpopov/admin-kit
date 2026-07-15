@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.24.2
+
+### Fixed
+
+- `AdminAppShell` now generates a unique mobile-navigation ID for each mounted
+  shell, preserving unambiguous `aria-controls` relationships.
+
 ## 0.24.1
 
 ### Changed
