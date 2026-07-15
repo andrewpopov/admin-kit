@@ -25,6 +25,33 @@
   --admin-kit-shadow: 0 1px 2px rgb(15 23 42 / 6%), 0 8px 20px rgb(15 23 42 / 5%);
 }
 
+/* The core preset deliberately re-declares the public tokens on the Admin Kit
+   boundary. Product styles can no longer accidentally recolor or reshape a
+   shared admin surface through inherited application variables. */
+.admin-kit--theme-core {
+  --admin-kit-surface: #ffffff;
+  --admin-kit-surface-subtle: #f6f8fc;
+  --admin-kit-border: #dfe4ee;
+  --admin-kit-border-strong: #c7d0df;
+  --admin-kit-text: #172033;
+  --admin-kit-muted: #61708a;
+  --admin-kit-accent: #3156c7;
+  --admin-kit-accent-strong: #2647aa;
+  --admin-kit-accent-soft: #e9eeff;
+  --admin-kit-on-accent: #ffffff;
+  --admin-kit-danger: #b63838;
+  --admin-kit-danger-strong: #9c2e2e;
+  --admin-kit-danger-soft: #fff1f1;
+  --admin-kit-on-danger: #ffffff;
+  --admin-kit-success: #166534;
+  --admin-kit-success-soft: #dcfce7;
+  --admin-kit-warning: #92400e;
+  --admin-kit-warning-soft: #fff7d6;
+  --admin-kit-radius: 0.75rem;
+  --admin-kit-radius-sm: 0.5rem;
+  --admin-kit-shadow: 0 1px 2px rgb(15 23 42 / 6%), 0 8px 20px rgb(15 23 42 / 5%);
+}
+
 /* Dark token values, shared by the authoritative `.dark` class and the
    opt-in `[data-admin-kit-theme="auto"]` media hook below, so the two
    never drift out of sync. */
@@ -51,6 +78,28 @@
 }
 
 .dark {
+  --admin-kit-surface: var(--admin-kit-dark-surface);
+  --admin-kit-surface-subtle: var(--admin-kit-dark-surface-subtle);
+  --admin-kit-border: var(--admin-kit-dark-border);
+  --admin-kit-border-strong: var(--admin-kit-dark-border-strong);
+  --admin-kit-text: var(--admin-kit-dark-text);
+  --admin-kit-muted: var(--admin-kit-dark-muted);
+  --admin-kit-accent: var(--admin-kit-dark-accent);
+  --admin-kit-accent-strong: var(--admin-kit-dark-accent-strong);
+  --admin-kit-accent-soft: var(--admin-kit-dark-accent-soft);
+  --admin-kit-on-accent: var(--admin-kit-dark-on-accent);
+  --admin-kit-danger: var(--admin-kit-dark-danger);
+  --admin-kit-danger-strong: var(--admin-kit-dark-danger-strong);
+  --admin-kit-danger-soft: var(--admin-kit-dark-danger-soft);
+  --admin-kit-on-danger: var(--admin-kit-dark-on-danger);
+  --admin-kit-success: var(--admin-kit-dark-success);
+  --admin-kit-success-soft: var(--admin-kit-dark-success-soft);
+  --admin-kit-warning: var(--admin-kit-dark-warning);
+  --admin-kit-warning-soft: var(--admin-kit-dark-warning-soft);
+  --admin-kit-shadow: var(--admin-kit-dark-shadow);
+}
+
+.dark .admin-kit--theme-core {
   --admin-kit-surface: var(--admin-kit-dark-surface);
   --admin-kit-surface-subtle: var(--admin-kit-dark-surface-subtle);
   --admin-kit-border: var(--admin-kit-dark-border);
@@ -106,7 +155,7 @@
 .admin-kit__events,
 .admin-kit__flags {
   color: var(--admin-kit-text);
-  font-family: inherit;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.5;
 }
 
@@ -202,6 +251,13 @@
   gap: 1.5rem;
   grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
 }
+.admin-kit__app { box-sizing: border-box; display: grid; gap: 1.5rem; margin-inline: auto; max-width: 96rem; min-width: 0; padding: 1.5rem; }
+.admin-kit__app-header, .admin-kit__app-actions { align-items: start; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
+.admin-kit__app-header > div:first-child { min-width: 0; }
+.admin-kit__app-header h1 { font-size: clamp(1.75rem, 3vw, 2.25rem); letter-spacing: -0.035em; margin: 0; }
+.admin-kit__app-header p { color: var(--admin-kit-muted); margin: 0.375rem 0 0; max-width: 48rem; }
+.admin-kit__app-actions { justify-content: flex-end; }
+.admin-kit__app-portal { padding: 0; }
 .admin-kit__portal-navigation {
   align-content: start;
   background: var(--admin-kit-surface-subtle);
@@ -256,6 +312,16 @@
 .admin-kit__table-wrap { border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); overflow-x: auto; }.admin-kit__table { border-collapse: collapse; min-width: 42rem; width: 100%; }.admin-kit__table th, .admin-kit__table td { border-bottom: 1px solid var(--admin-kit-border); padding: 0.75rem 1rem; text-align: left; vertical-align: middle; }.admin-kit__table th { background: var(--admin-kit-surface-subtle); color: var(--admin-kit-muted); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }.admin-kit__table tbody tr:last-child td { border-bottom: 0; }.admin-kit__table tbody tr:hover { background: var(--admin-kit-surface-subtle); }.admin-kit__operations td small { display: block; }.admin-kit__state-pill { border-radius: 999px; font-size: .8125rem; padding: .25rem .5rem; }.admin-kit__state-pill--completed { background: var(--admin-kit-success-soft); color: var(--admin-kit-success); }.admin-kit__state-pill--running { background: var(--admin-kit-warning-soft); color: var(--admin-kit-warning); }.admin-kit__state-pill--failed { background: var(--admin-kit-danger-soft); color: var(--admin-kit-danger); }
 .admin-kit__settings > label { display: grid; gap: .375rem; max-width: 38rem; }.admin-kit__settings input[type="text"], .admin-kit__settings input[type="password"] { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: .5rem .75rem; }
 .admin-kit__portal-empty { color: var(--admin-kit-muted); padding: 1rem; }
+
+.admin-kit__card { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); box-shadow: var(--admin-kit-shadow); min-width: 0; }
+.admin-kit__card-header { align-items: start; border-bottom: 1px solid var(--admin-kit-border); display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; padding: 1rem; }
+.admin-kit__card-header h2, .admin-kit__card-header p { margin: 0; }
+.admin-kit__card-header h2 { font-size: 1.125rem; letter-spacing: -0.01em; }
+.admin-kit__card-header p, .admin-kit__field-hint { color: var(--admin-kit-muted); }
+.admin-kit__card-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.admin-kit__card-content { min-width: 0; padding: 1rem; }
+.admin-kit__stack { display: grid; }.admin-kit__stack--sm { gap: 0.5rem; }.admin-kit__stack--md { gap: 1rem; }.admin-kit__stack--lg { gap: 1.5rem; }
+.admin-kit__field { display: grid; gap: 0.375rem; max-width: 38rem; }.admin-kit__field-label { font-size: 0.875rem; font-weight: 700; }.admin-kit__field input, .admin-kit__field select, .admin-kit__field textarea { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: 0.5rem 0.75rem; }.admin-kit__field textarea { min-block-size: 6rem; resize: vertical; }.admin-kit__field-error { color: var(--admin-kit-danger); }
 
 .admin-kit__state,
 .admin-kit__events-list > li,
@@ -406,6 +472,8 @@
 .admin-kit__key-actions button:last-child:hover:not(:disabled) { background: var(--admin-kit-danger-soft); border-color: var(--admin-kit-danger); }
 
 @media (max-width: 48rem) {
+  .admin-kit__app { padding: 1rem; }
+  .admin-kit__app-header, .admin-kit__app-actions { align-items: stretch; flex-direction: column; }
   .admin-kit__workspace-header { align-items: stretch; flex-direction: column; }
   .admin-kit__workspace-actions { width: 100%; }
   .admin-kit__portal { grid-template-columns: minmax(0, 1fr); }

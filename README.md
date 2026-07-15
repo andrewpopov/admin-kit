@@ -43,8 +43,9 @@ npm install github:andrewpopov/admin-kit#v0.18.0
 `react` and `react-dom` are peer dependencies (`^18 || ^19`). `react-dom` is
 required because confirmation dialogs render through a portal.
 
-Import default styles only if they suit the host application; the components also
-work with host-owned styling.
+Import the stylesheet for every Admin Kit surface. `AdminApp`, `AdminWorkspace`,
+and `AdminTheme` apply the named `core` preset, which is the supported visual
+contract across products.
 
 ```ts
 import "@andrewpopov/admin-kit/styles.css";
@@ -77,6 +78,7 @@ workflows before the UI renders.
 import { AdminApp, UsersPanel } from "@andrewpopov/admin-kit/react";
 
 <AdminApp
+  frame={{ title: "Administration", description: "Manage access and operations." }}
   activeSection={routeSection}
   groups={[
     {
@@ -108,8 +110,7 @@ lower-level escape hatch for a genuinely product-specific navigation surface;
 it is not the default for a normal admin application.
 
 The stylesheet follows a host `.dark` class automatically. Its defaults are
-available even when a panel is rendered without an `.admin-kit` wrapper, so
-portaled confirmations retain the same readable theme.
+also available for portaled confirmations outside the themed surface.
 
 The default stylesheet supplies a restrained visual system: raised panel
 surfaces, responsive controls, clear primary/destructive action hierarchy, and
@@ -118,49 +119,26 @@ styles by overriding the `--admin-kit-*` variables on an app or admin wrapper.
 
 ## Styling contract
 
-Admin Kit is intentionally unopinionated about the host application's brand.
-The default stylesheet is an opt-in baseline, not a styling boundary. Hosts can
-override its custom properties on a wrapper, then use the component `className`
-seams for a narrow product-specific adjustment. Package selectors use `:where()`
-where possible so an equally targeted host rule wins without `!important`.
+Admin Kit is intentionally opinionated about shared administrative UI. Every
+admin route must import `@andrewpopov/admin-kit/styles.css` and render through
+`AdminApp`, `AdminWorkspace`, or `AdminTheme`; those boundaries apply the named
+`core` preset, including typography, spacing, color, controls, and responsive
+behavior. Product-specific content belongs inside the package's `AdminCard`,
+`AdminField`, and `AdminStack` primitives rather than a second local admin
+design system.
 
 ```tsx
-<div className="acme-admin">
-  <UsersPanel adapter={users} className="acme-admin__users" />
-  <ApiKeysPanel
-    adapter={apiKeys}
-    className="acme-admin__keys"
-    dialogClassName="acme-admin__key-dialog"
-  />
-</div>
+<AdminTheme>
+  <AdminCard title="Credential policy">
+    <AdminStack>
+      <AdminField label="Expiry"><select>{/* host-owned options */}</select></AdminField>
+    </AdminStack>
+  </AdminCard>
+</AdminTheme>
 ```
 
 ```css
-.acme-admin {
-  --admin-kit-surface: var(--app-card);
-  --admin-kit-surface-subtle: var(--app-muted-surface);
-  --admin-kit-border: var(--app-border);
-  --admin-kit-text: var(--app-foreground);
-  --admin-kit-muted: var(--app-muted-foreground);
-  --admin-kit-accent: var(--app-primary);
-  --admin-kit-accent-strong: var(--app-primary-hover);
-  --admin-kit-accent-soft: var(--app-primary-subtle);
-  --admin-kit-radius: var(--app-radius);
-
-  /* Label color used ON an accent or danger fill. Set these whenever you
-     override the fills: a light accent with a light on-accent is how you get an
-     unreadable button. */
-  --admin-kit-on-accent: var(--app-primary-foreground);
-  --admin-kit-on-danger: var(--app-danger-foreground);
-  --admin-kit-danger-strong: var(--app-danger-hover);
-
-  /* Status surfaces (healthy/warning pills, the secret-reveal callout). */
-  --admin-kit-success: var(--app-success);
-  --admin-kit-warning: var(--app-warning);
-}
-
-.acme-admin__users .admin-kit__users-table { box-shadow: none; }
-.acme-admin__keys > button { border-radius: 999px; }
+.product-only-detail { max-inline-size: 56rem; }
 ```
 
 `className` is available on every panel — the shells (`AdminConsole`,
@@ -168,7 +146,9 @@ where possible so an equally targeted host rule wins without `!important`.
 `EventsPanel`, `LogsPanel`, `ApiKeysPanel`, `MembershipsPanel`, `SessionsPanel`), the operational panels
 (`OperationalJobsPanel`, `BackupsPanel`, `SettingsPanel`), and
 `AdminPanelStateView`. Their stable
-`admin-kit__*` classes are supported styling hooks.
+`admin-kit__*` classes are supported layout hooks. Do not override the core
+tokens, button treatments, or component geometry; use the extension primitives
+for product-specific content instead.
 
 Package selectors keep their pseudo-classes inside `:where()`, so an equally
 targeted host rule wins without `!important` — and the package itself ships no
