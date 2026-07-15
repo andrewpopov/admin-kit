@@ -37,7 +37,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.17.0
+npm install github:andrewpopov/admin-kit#v0.18.0
 ```
 
 `react` and `react-dom` are peer dependencies (`^18 || ^19`). `react-dom` is
@@ -49,6 +49,21 @@ work with host-owned styling.
 ```ts
 import "@andrewpopov/admin-kit/styles.css";
 ```
+
+## Consumer migration policy
+
+Use the kit by default whenever an administration feature matches one of its
+capability contracts: portal navigation, users, sessions, logs, events,
+feature flags, API keys, memberships, backups, operational jobs, or basic
+settings. Keep one small host adapter beside the page; it translates the host
+API and domain vocabulary while the kit owns loading, error, confirmation,
+pagination, filtering, and safe mutation state.
+
+Keep a host-owned page when the workflow is genuinely product-specific—for
+example catalog curation, AI-provider configuration, restore/import wizards,
+or a policy-specific credential form. A host page may compose one or more kit
+panels; it should not reimplement a matching panel merely to use local routing,
+styling, or transport.
 
 The stylesheet follows a host `.dark` class automatically. Its defaults are
 available even when a panel is rendered without an `.admin-kit` wrapper, so
