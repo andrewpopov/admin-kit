@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { type AdminPageQuery, type AdminUserSummary, type AdminUsersAdapter } from "../core";
+import { type AdminPageQuery, type AdminSortDirection, type AdminUserSummary, type AdminUsersAdapter } from "../core";
 export interface UsersPanelProps<User extends AdminUserSummary> {
     adapter: AdminUsersAdapter<User>;
     title?: string;
@@ -14,6 +14,8 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
     presentation?: "table";
     /** Opt-in scan-first schema for hosts with richer account metadata. */
     columns?: readonly AdminUserTableColumn<User>[];
+    /** Initial server-backed sort for a sortable custom column. */
+    defaultSort?: AdminUserTableSort;
     renderHeaderActions?: (context: {
         reload: () => Promise<void>;
         isLoading: boolean;
@@ -31,6 +33,11 @@ export interface AdminUserTableColumn<User extends AdminUserSummary> {
     render: (user: User, context: AdminUserTableCellContext) => ReactNode;
     className?: string;
     headerClassName?: string;
+    sortable?: boolean;
+}
+export interface AdminUserTableSort {
+    columnId: string;
+    direction: AdminSortDirection;
 }
 export interface AdminUserTableCellContext {
     reload: () => Promise<void>;
@@ -42,4 +49,4 @@ export interface AdminUserTableCellContext {
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
  */
-export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, pageSize, query, search: searchOptions, presentation, columns, renderHeaderActions, renderUserActions, className, }: UsersPanelProps<User>): import("react").JSX.Element;
+export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderUserActions, className, }: UsersPanelProps<User>): import("react").JSX.Element;

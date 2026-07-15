@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SettingsPanel = exports.OperationalJobsPanel = exports.BackupsPanel = exports.AdminStatusSummary = exports.SessionsPanel = exports.LogsPanel = exports.MembershipsPanel = exports.EventsPanel = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminStack = exports.AdminField = exports.AdminCard = exports.AdminTheme = exports.AdminWorkspace = exports.AdminPanelStateView = exports.AdminPortal = exports.AdminConsole = exports.AdminApp = exports.AdminConfirmationDialog = exports.AdminActionButton = void 0;
+exports.SettingsPanel = exports.OperationalJobsPanel = exports.BackupsPanel = exports.AdminStatusSummary = exports.SessionsPanel = exports.LogsPanel = exports.MembershipsPanel = exports.EventsPanel = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminSwitch = exports.AdminStack = exports.AdminField = exports.AdminCard = exports.AdminTheme = exports.AdminWorkspace = exports.AdminPanelStateView = exports.AdminPortal = exports.AdminConsole = exports.AdminApp = exports.AdminConfirmationDialog = exports.AdminActionButton = void 0;
 var AdminActionButton_1 = require("./AdminActionButton");
 Object.defineProperty(exports, "AdminActionButton", { enumerable: true, get: function () { return AdminActionButton_1.AdminActionButton; } });
 var AdminConfirmationDialog_1 = require("./AdminConfirmationDialog");
@@ -21,6 +21,7 @@ var AdminPrimitives_1 = require("./AdminPrimitives");
 Object.defineProperty(exports, "AdminCard", { enumerable: true, get: function () { return AdminPrimitives_1.AdminCard; } });
 Object.defineProperty(exports, "AdminField", { enumerable: true, get: function () { return AdminPrimitives_1.AdminField; } });
 Object.defineProperty(exports, "AdminStack", { enumerable: true, get: function () { return AdminPrimitives_1.AdminStack; } });
+Object.defineProperty(exports, "AdminSwitch", { enumerable: true, get: function () { return AdminPrimitives_1.AdminSwitch; } });
 var UsersPanel_1 = require("./UsersPanel");
 Object.defineProperty(exports, "UsersPanel", { enumerable: true, get: function () { return UsersPanel_1.UsersPanel; } });
 var FeatureFlagsPanel_1 = require("./FeatureFlagsPanel");

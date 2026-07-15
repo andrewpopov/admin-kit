@@ -6,8 +6,8 @@ export { AdminPortal, type AdminPortalNavigationItemProps, type AdminPortalProps
 export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";
 export { AdminWorkspace, type AdminWorkspaceProps } from "./AdminWorkspace";
 export { AdminTheme, type AdminThemeName, type AdminThemeProps } from "./AdminTheme";
-export { AdminCard, type AdminCardProps, AdminField, type AdminFieldProps, AdminStack, type AdminStackProps, } from "./AdminPrimitives";
-export { UsersPanel, type AdminUserTableCellContext, type AdminUserTableColumn, type UsersPanelProps, } from "./UsersPanel";
+export { AdminCard, type AdminCardProps, AdminField, type AdminFieldProps, AdminStack, type AdminStackProps, AdminSwitch, type AdminSwitchProps, } from "./AdminPrimitives";
+export { UsersPanel, type AdminUserTableCellContext, type AdminUserTableColumn, type AdminUserTableSort, type UsersPanelProps, } from "./UsersPanel";
 export { FeatureFlagsPanel, type FeatureFlagsPanelProps, } from "./FeatureFlagsPanel";
 export { ApiKeysPanel, type ApiKeysPanelProps } from "./ApiKeysPanel";
 export { EventsPanel, type EventsPanelProps } from "./EventsPanel";

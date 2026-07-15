@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 export interface AdminCardProps {
   title?: ReactNode;
@@ -55,4 +55,32 @@ export interface AdminStackProps {
 /** A stable vertical rhythm for custom extension content. */
 export function AdminStack({ children, gap = "md", className }: AdminStackProps) {
   return <div className={["admin-kit__stack", `admin-kit__stack--${gap}`, className].filter(Boolean).join(" ")}>{children}</div>;
+}
+
+export interface AdminSwitchProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+  checked: boolean;
+  label: ReactNode;
+  description?: ReactNode;
+  statusLabel?: ReactNode;
+}
+
+/** A full-row, labelled switch for consequential binary admin settings. */
+export function AdminSwitch({ checked, label, description, statusLabel, className, type = "button", ...props }: AdminSwitchProps) {
+  return (
+    <button
+      {...props}
+      aria-checked={checked}
+      className={["admin-kit__switch", className].filter(Boolean).join(" ")}
+      data-state={checked ? "on" : "off"}
+      role="switch"
+      type={type}
+    >
+      <span aria-hidden="true" className="admin-kit__switch-track"><span /></span>
+      <span className="admin-kit__switch-copy">
+        <strong>{label}</strong>
+        {description ? <span>{description}</span> : null}
+      </span>
+      <span className="admin-kit__switch-status">{statusLabel ?? (checked ? "On" : "Off")}</span>
+    </button>
+  );
 }

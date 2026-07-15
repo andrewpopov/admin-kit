@@ -61,6 +61,29 @@ describe('UsersPanel', () => {
     expect(screen.queryByRole('columnheader', { name: 'Role' })).toBeNull();
   });
 
+  it('sends custom-column sorting to the adapter and exposes the active direction', async () => {
+    const list = vi.fn().mockResolvedValue({ items: users, page: 1, pageSize: 25, total: 1 });
+    render(<UsersPanel
+      adapter={{ list }}
+      columns={[
+        { id: 'email', label: 'Email', sortable: true, render: (user) => user.label },
+        { id: 'createdAt', label: 'Created', sortable: true, render: () => 'Jul 10, 2026' },
+      ]}
+      defaultSort={{ columnId: 'createdAt', direction: 'desc' }}
+    />);
+
+    await screen.findByText('ada@example.test');
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ sort: 'createdAt', order: 'desc', page: 1 }));
+    expect(screen.getByRole('columnheader', { name: /Created/ }).getAttribute('aria-sort')).toBe('descending');
+
+    fireEvent.click(screen.getByRole('button', { name: /Email/ }));
+    await waitFor(() => expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ sort: 'email', order: 'asc', page: 1 })));
+    expect(screen.getByRole('columnheader', { name: /Email/ }).getAttribute('aria-sort')).toBe('ascending');
+
+    fireEvent.click(screen.getByRole('button', { name: /Email/ }));
+    await waitFor(() => expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ sort: 'email', order: 'desc', page: 1 })));
+  });
+
   it('keeps host header actions available while loading, empty, and failed', async () => {
     const list = vi.fn().mockResolvedValue({ items: [], page: 1, pageSize: 25, total: 0 });
     const headerAction = vi.fn(({ reload }: { reload: () => Promise<void> }) => (

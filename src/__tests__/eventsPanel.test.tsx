@@ -39,6 +39,17 @@ describe("EventsPanel", () => {
     expect(screen.getByText(/stamp:2026-07-13T00:01:00\.000Z/)).toBeTruthy();
   });
 
+  it("offers a scan-first semantic table presentation", async () => {
+    render(<EventsPanel adapter={{ list: vi.fn().mockResolvedValue(page) }} presentation="table" />);
+
+    await screen.findByRole("table");
+    expect(screen.getByRole("columnheader", { name: "Occurred" })).toBeTruthy();
+    expect(screen.getByRole("columnheader", { name: "Outcome" })).toBeTruthy();
+    expect(screen.getByText("Ada")).toBeTruthy();
+    expect(screen.getByText("success")).toBeTruthy();
+    expect(screen.queryByRole("list")).toBeNull();
+  });
+
   it("renders retryable errors without stale event content", async () => {
     const list = vi.fn().mockRejectedValue(new Error("Audit source unavailable"));
     render(<EventsPanel adapter={{ list }} />);

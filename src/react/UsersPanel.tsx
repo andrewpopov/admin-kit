@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   type AdminPage,
   type AdminPageQuery,
+  type AdminSortDirection,
   type AdminUserSummary,
   type AdminUsersAdapter,
 } from "../core";
@@ -18,6 +19,8 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
   presentation?: "table";
   /** Opt-in scan-first schema for hosts with richer account metadata. */
   columns?: readonly AdminUserTableColumn<User>[];
+  /** Initial server-backed sort for a sortable custom column. */
+  defaultSort?: AdminUserTableSort;
   renderHeaderActions?: (context: {
     reload: () => Promise<void>;
     isLoading: boolean;
@@ -36,6 +39,12 @@ export interface AdminUserTableColumn<User extends AdminUserSummary> {
   render: (user: User, context: AdminUserTableCellContext) => ReactNode;
   className?: string;
   headerClassName?: string;
+  sortable?: boolean;
+}
+
+export interface AdminUserTableSort {
+  columnId: string;
+  direction: AdminSortDirection;
 }
 
 export interface AdminUserTableCellContext {
@@ -57,6 +66,7 @@ export function UsersPanel<User extends AdminUserSummary>({
   search: searchOptions = false,
   presentation = "table",
   columns,
+  defaultSort,
   renderHeaderActions,
   renderUserActions,
   className,
@@ -68,6 +78,7 @@ export function UsersPanel<User extends AdminUserSummary>({
   const [actionError, setActionError] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string>();
+  const [sort, setSort] = useState<AdminUserTableSort | undefined>(defaultSort);
   const latestLoadId = useRef(0);
 
   const load = async () => {
@@ -78,6 +89,7 @@ export function UsersPanel<User extends AdminUserSummary>({
       const nextResult = await adapter.list({
         ...query,
         search: search || undefined,
+        ...(sort ? { sort: sort.columnId, order: sort.direction } : {}),
         page,
         pageSize,
       });
@@ -98,7 +110,7 @@ export function UsersPanel<User extends AdminUserSummary>({
     // `loadId === latestLoadId.current` check because the effect that would
     // have bumped it for the new query hasn't started yet.
     return () => { latestLoadId.current += 1; };
-  }, [adapter, page, pageSize, query?.search, search]);
+  }, [adapter, page, pageSize, query?.search, search, sort?.columnId, sort?.direction]);
 
   useEffect(() => {
     setSearch(query?.search ?? "");
@@ -107,6 +119,14 @@ export function UsersPanel<User extends AdminUserSummary>({
   const setSearchAndResetPage = (value: string) => {
     setPage(1);
     setSearch(value);
+  };
+
+  const updateSort = (columnId: string) => {
+    setPage(1);
+    setSort((current) => ({
+      columnId,
+      direction: current?.columnId === columnId && current.direction === "asc" ? "desc" : "asc",
+    }));
   };
 
   const updateRole = async (userId: string, role: string) => {
@@ -170,7 +190,10 @@ export function UsersPanel<User extends AdminUserSummary>({
           ) : null}
           {actionError ? <p className="admin-kit__action-error" role="alert">{actionError}</p> : null}
           {presentation === "table" ? (() => {
-            if (columns?.length) return <div className="admin-kit__table-wrap admin-kit__users-table-wrap"><table className="admin-kit__table admin-kit__users-table admin-kit__users-table--custom"><thead><tr>{columns.map((column) => <th className={column.headerClassName} key={column.id} scope="col">{column.label}</th>)}</tr></thead><tbody>{result.items.map((user) => <tr key={user.id} aria-busy={pendingUserId === user.id}>{columns.map((column) => <td className={column.className} key={column.id}>{column.render(user, { reload: load, isPending: pendingUserId === user.id, setRole: (role) => updateRole(user.id, role), setStatus: (status) => updateStatus(user.id, status) })}</td>)}</tr>)}</tbody></table></div>;
+            if (columns?.length) return <div className="admin-kit__table-wrap admin-kit__users-table-wrap"><table className="admin-kit__table admin-kit__users-table admin-kit__users-table--custom"><thead><tr>{columns.map((column) => {
+              const direction = sort?.columnId === column.id ? sort.direction : undefined;
+              return <th aria-sort={column.sortable ? direction === "asc" ? "ascending" : direction === "desc" ? "descending" : "none" : undefined} className={column.headerClassName} key={column.id} scope="col">{column.sortable ? <button className="admin-kit__sort-button" type="button" onClick={() => updateSort(column.id)}>{column.label}<span aria-hidden="true">{direction === "asc" ? "↑" : direction === "desc" ? "↓" : "↕"}</span></button> : column.label}</th>;
+            })}</tr></thead><tbody>{result.items.map((user) => <tr key={user.id} aria-busy={pendingUserId === user.id}>{columns.map((column) => <td className={column.className} key={column.id}>{column.render(user, { reload: load, isPending: pendingUserId === user.id, setRole: (role) => updateRole(user.id, role), setStatus: (status) => updateStatus(user.id, status) })}</td>)}</tr>)}</tbody></table></div>;
             const hasDetails = result.items.some((user) => user.details?.length);
             const hasActions = Boolean(renderUserActions);
             return <div className="admin-kit__table-wrap admin-kit__users-table-wrap"><table className={`admin-kit__table admin-kit__users-table${hasDetails ? " admin-kit__users-table--with-details" : ""}`}><thead><tr><th scope="col">User</th>{hasDetails ? <th scope="col">Details</th> : null}<th scope="col">Role</th><th scope="col">Status</th>{hasActions ? <th scope="col">Actions</th> : null}</tr></thead><tbody>

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 export interface AdminCardProps {
     title?: ReactNode;
     description?: ReactNode;
@@ -24,3 +24,11 @@ export interface AdminStackProps {
 }
 /** A stable vertical rhythm for custom extension content. */
 export declare function AdminStack({ children, gap, className }: AdminStackProps): import("react").JSX.Element;
+export interface AdminSwitchProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+    checked: boolean;
+    label: ReactNode;
+    description?: ReactNode;
+    statusLabel?: ReactNode;
+}
+/** A full-row, labelled switch for consequential binary admin settings. */
+export declare function AdminSwitch({ checked, label, description, statusLabel, className, type, ...props }: AdminSwitchProps): import("react").JSX.Element;
