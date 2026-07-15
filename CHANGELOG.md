@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.21.0
+
+### Added
+
+- `admin-kit-conformance`, a consumer CLI that enforces the shared stylesheet,
+  framed `AdminApp`, and non-overridable core theme contract.
+
 ## 0.20.0
 
 ### Changed

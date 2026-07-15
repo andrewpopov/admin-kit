@@ -119,6 +119,13 @@ styles by overriding the `--admin-kit-*` variables on an app or admin wrapper.
 
 ## Styling contract
 
+### Enforcement
+
+Add `"verify:admin-kit": "admin-kit-conformance"` to every consumer and run
+it in the local verification lane. The command rejects consumers that omit the
+stylesheet, use `AdminApp` without its required frame, or override core
+`--admin-kit-*` tokens from host CSS.
+
 Admin Kit is intentionally opinionated about shared administrative UI. Every
 admin route must import `@andrewpopov/admin-kit/styles.css` and render through
 `AdminApp`, `AdminWorkspace`, or `AdminTheme`; those boundaries apply the named
