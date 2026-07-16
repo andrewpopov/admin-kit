@@ -37,7 +37,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.18.0
+npm install github:andrewpopov/admin-kit#v0.24.3
 ```
 
 `react` and `react-dom` are peer dependencies (`^18 || ^19`). `react-dom` is
