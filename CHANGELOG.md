@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.25.0
+
+### Added
+
+- New `./bridges` subpath export with reference adapter factories —
+  `createFeatureFlagsAdapter`, `createBackupsAdapter`, and
+  `createApiKeysAdapter` — that map `feature-flags-kit`, `db-backup`, and
+  `api-access-kit` shaped objects onto admin-kit's `AdminFeatureFlagsAdapter`,
+  `AdminBackupsAdapter`, and `AdminApiKeysAdapter` contracts. Each bridge is
+  typed against a structural mirror of the backend's shape, so admin-kit
+  gains no runtime dependency on any of the three packages.
+
 ## 0.24.3
 
 ### Changed

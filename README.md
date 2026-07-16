@@ -563,6 +563,96 @@ Use `AdminSwitch` for consequential binary settings whose label, current state,
 and impact should form one large target. It owns presentation and accessible
 switch semantics while the host owns persistence and authorization.
 
+## Reference bridges
+
+The `./bridges` subpath ships adapter factories that translate three common
+backend packages onto admin-kit's core adapter contracts, so consumers stop
+hand-writing the same glue. admin-kit does **not** depend on any of these
+backends at runtime — each factory's input is typed against a structural
+interface that mirrors the backend's real shape (documented in each bridge
+file as a "foreign contract"). A consumer passes its real backend objects
+in; structural typing does the rest, and the bridge compiles even when the
+backend package isn't installed.
+
+```ts
+import { createFeatureFlagsAdapter, createBackupsAdapter, createApiKeysAdapter } from "@andrewpopov/admin-kit/bridges";
+```
+
+### `createFeatureFlagsAdapter({ flags, registry, setEnabled? })`
+
+Wraps a `feature-flags-kit` `SyncFlags`/`AsyncFlags` front end and its
+registry into an `AdminFeatureFlagsAdapter`.
+
+- `flags.snapshot()` is called on every `list()` — pass `() =>
+  flags.snapshot()` for `SyncFlags`, or `() => flags.loadSnapshot()` for
+  `AsyncFlags` (so `list()` always forces a fresh read rather than serving a
+  stale cache).
+- Store health maps `ok` -> `healthy`, `store-unavailable` -> `unavailable`,
+  with a fixed detail message on the latter.
+- `label`/`description` are joined from `registry` by key; `label` falls
+  back to the key itself, since the backend registry has no `label` field.
+- `mutable` is true only when a flag's `source` is `store` **and** the host
+  supplied `setEnabled` — a bridge with no write seam never claims a flag is
+  mutable.
+- `updatedAt` is always omitted: the backend records no such timestamp.
+- `setEnabled` (when wired) calls the host's seam, then re-evaluates the
+  snapshot and returns the resulting `AdminFeatureFlag` rather than assuming
+  the write took effect as requested (an env override or store-error policy
+  could still shadow it).
+
+### `createBackupsAdapter({ listBackups, runBackup?, restoreBackup? })`
+
+Wraps a `db-backup` listing (and optional run/restore) into an
+`AdminBackupsAdapter`.
+
+- `listBackups` returns the full backup list; pagination is computed
+  in-memory over it, since db-backup has no server-side paging of its own.
+- `id` is the backup's `fileName`; `label` strips db-backup's `.gz`/`.gpg`
+  suffixes from it.
+- `size` is formatted from `sizeBytes` into a human-readable string (`B` /
+  `KB` / `MB` / ...).
+- `state` is hardcoded to `"completed"`: db-backup's `BackupEntry` only ever
+  describes a backup that already finished successfully — it cannot
+  represent a running or failed job yet (tracked as PKG-28). Once db-backup
+  exposes job status, this bridge should stop hardcoding the value.
+- `run`/`restore` are present on the returned adapter only when
+  `runBackup`/`restoreBackup` are supplied.
+
+### `createApiKeysAdapter({ store, listCredentials, issue, issueReplacement, prefix, peppers, nameOf, now? })`
+
+Wraps an `api-access-kit`-shaped credential store into an
+`AdminApiKeysAdapter`.
+
+- `listCredentials` is host-supplied: `api-access-kit` has no built-in
+  "list all credentials" query.
+- `issue`/`issueReplacement` are host closures that call the backend's own
+  `issueApiAccessCredential`/`issueReplacementApiAccessCredential` (which own
+  the crypto and the pepper); this bridge only persists the result via
+  `store.create`/`store.replaceActive` and maps it for display.
+- `maskedKey` reimplements the backend's mask format (`${prefix}${id}.…`)
+  without importing it.
+- State mapping: `revokedAt` set -> `revoked`; an `expiresAt` in the past ->
+  `expired`; otherwise `active`. A credential signed under a pepper version
+  absent from `peppers`, or with an unparseable `expiresAt`, folds to
+  `revoked` (documented in the bridge) rather than `expired`, since an
+  invalid credential must never present as merely time-expired.
+- `scopes`/`createdAt`/`expiresAt`/`revokedAt` pass through directly from the
+  foreign credential.
+- `name` has no backend equivalent — supply `nameOf(credential)` to derive
+  it.
+- `create`/`rotate` return `{ key, secret }`; `revoke` calls
+  `store.revokeActive`.
+
+### What bridges intentionally do not cover
+
+Users, sessions, and memberships are host-owned by design: admin-kit has no
+generic bridge for them because there is no single reference backend shape
+to bridge to across the fleet — each host's identity/session model differs
+enough that generalizing it would recreate the union-of-every-product-page
+anti-pattern this package avoids elsewhere. Hosts implement
+`AdminUsersAdapter`/`AdminSessionsAdapter`/`AdminMembershipsAdapter`
+directly against their own data.
+
 ## Fleet capability boundary
 
 The kit is a behavioral superset of repeated administration workflows, not a
