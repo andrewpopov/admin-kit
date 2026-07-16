@@ -1,8 +1,20 @@
 # Shared package standards
 
-*Canonical standard for every `andrewpopov/*` package under `~/proj/packages/`. Each package repo carries a `STANDARDS.md` that must match this file — this is the source of truth; the per-repo copies are synced from it. Written 2026-07-09, consolidating the existing per-repo `STANDARDS.md` (distribution / build / versioning / CI) with the engineering standards derived from the db-backup consolidation. Every engineering rule below cites the real defect that motivated it.*
+*Canonical standard for every `andrewpopov/*` package under `~/proj/packages/`. Each package repo carries a `STANDARDS.md` that must match this file — this is the source of truth; the per-repo copies are synchronized from it. Every engineering rule below cites the real defect that motivated it.*
 
 The governing rule: **a shared package must be a superset of the best implementation across all of its consumers.** Consolidation is only a win if the shared version is more feature-rich and more reliable than the hand-rolled copy it replaces. See [`shared-packages-extraction.md`](shared-packages-extraction.md) for where the boundaries go and why.
+
+### Who these packages are for — and who they are NOT for
+
+Every `andrewpopov/*` package under `~/proj/packages/` is **Node/TypeScript**, consumed via a `github:` dependency. A repo that cannot `npm install` is **not a consumer and is not an adoption target**.
+
+**`fidash` is EXCLUDED. It is Python / FastAPI and will never adopt these kits.** Do not put it on an adoption list, do not open "adopt <kit> in fidash" tickets, and do not treat it as a gap that a kit bump could close. fidash's security work — SSRF validation, rate limiting, client-IP resolution, admin guards — is implemented **natively in Python and stays there**. `zirkbot` (no HTTP server) and `budget` are likewise not HTTP-kit consumers; check `shared-packages-extraction.md` for the current stack table before assuming any repo is a target.
+
+**But excluded ≠ ignored.** fidash is still a legitimate *source* of design to port INTO a kit — its rate limiting and boot-time security preflight were the fleet's best when audited, and a Python implementation can still be the best implementation the superset rule points at. The direction is one-way: **read fidash, copy the idea into the kit, in the kit's own language.** Never the reverse.
+
+Two corollaries, both learned the hard way (2026-07-13):
+- **A cross-language comparison is not an adoption blocker.** An audit repeatedly flagged "the kit is worse than fidash" as if it blocked adoption. It never could — fidash cannot import a Node package. The finding was still *useful* (it named a real kit gap), but the recommended action was wrong.
+- **Excluded repos still get fixed, in their own language.** fidash held the fleet's only live leftmost-XFF bug. The fix was a Python change to `security/network.py`, made *at the same time as* porting the correct precedence into `express-security-kit` — one idea, two implementations, because there is no other option.
 
 ---
 
@@ -35,13 +47,23 @@ Two shapes, both valid:
 - **Tags are immutable.** Never move or delete a published tag — a moved tag silently poisons consumer lockfiles that resolved it. Fix forward with a new patch tag.
 - Tag format `vX.Y.Z` (matches the `#vX.Y.Z` install ref).
 
-### Branch protection, CI, release checklist
+### Branch protection, local verification, release checklist
 
-`master` is protected: PR + green CI + owner merges. `enforce_admins: true`; `required_approving_review_count: 0` (a solo owner cannot approve their own PR).
+The default branch is protected: PR + owner merge, `enforce_admins: true`, and
+`required_approving_review_count: 0` (a solo owner cannot approve their own
+PR). External status checks are intentionally not required: this fleet uses
+local verification as the release authority.
 
-CI runs on every PR and on `master`: `npm ci` → `npm test` → `npm run verify:pack` (packs the tarball, installs it into a throwaway project, requires it as a consumer would) → for TS packages, `npm run build` and fail on a dirty `git diff -- dist/`. A tag-triggered `release-guard` job asserts the tag equals `package.json` version and has a CHANGELOG entry.
+Before opening or merging a PR, run the package's authoritative local gate:
+type check (where applicable), tests, build, `verify:pack` (packs the tarball
+and installs it into a throwaway consumer), and an audit when that package
+defines one. Record the exact commands and results in the PR. If optional CI is
+enabled later, it is corroborating evidence, not a substitute for local proof.
 
-Release: version bump rides in the change PR → merge on green → `git tag vX.Y.Z <merge commit> && git push origin vX.Y.Z` → in each consuming app, bump the `#vX.Y.Z` ref, run `npm update <pkg>`, **verify the installed version**, then run the app's affected flow.
+Release: version bump rides in the change PR → run the local release gate →
+merge → `git tag vX.Y.Z <merge commit> && git push origin vX.Y.Z` → in each
+consuming app, bump the `#vX.Y.Z` ref, run `npm update <pkg>`, **verify the
+installed version**, then run the app's affected flow.
 
 ### A manifest that disagrees with its lockfile is a bug
 
@@ -163,30 +185,12 @@ Do not rename `typecheck` to `verify:types` on a TS package: it would be cosmeti
 
 ---
 
-## Part 3 — Conformance (as of 2026-07-09)
+## Conformance audits
 
-Each row verified against the source, not inferred from a script name.
-
-| Package | Shape | STANDARDS.md | type gate | exec bounds (standard 3) |
-|---|---|---|---|---|
-| `db-backup` v0.7.0 | JS + hand-written `.d.ts` | yes | `verify:types` | ✅ all, at the `normalizeRuntime` choke point |
-| `prisma-tools` v0.4.0 | JS + hand-written `.d.ts` | yes | `verify:types` | ✅ all, at the `spawnSync` choke point |
-| `release-kit` v0.1.0 | TS → committed `dist/` | **NO** | `typecheck` + dist-freshness | ✅ 2 of 2 (`hygiene.ts:39`, `publish.ts:49`) |
-| `express-security-kit` v1.0.0 | TS → committed `dist/` | **NO** | `typecheck` + dist-freshness | n/a — runs no external commands |
-| `deploy-kit` v0.5.0 | JS + hand-written `.d.ts` | yes | `verify:types` | ⚠️ **capability ships disabled** |
-
-Remaining gaps:
-
-1. **`deploy-kit` runs every deploy step unbounded.** `stepTimeoutSeconds` defaults to `null` and no consumer sets it. Give it a sane default. (`tunnel.js` is correctly unbounded — it *is* the long-running process.)
-2. `express-security-kit` and `release-kit` have **no `STANDARDS.md`**.
-3. `deploy-kit` removed a config key (`ensureTunnelOnDeploy`) without sweeping consumers — savoro still sets it and breaks on the next dependency refresh (standard 7, PTRY-226).
-4. The per-repo `STANDARDS.md` copies should be synced from this file rather than maintained by hand.
-
-Closed since this doc was written: db-backup's missing engine seam (standard 2) and silent `cp` fallback (standard 5) — v0.7.0; db-backup and prisma-tools command bounds (standard 3) — v0.7.0 / v0.4.0.
-
-## The Pi deploy failure mode
-
-`npm ci` on the Raspberry Pi reaches GitHub to resolve `github:` deps at deploy time. `deploy-kit` must prefer lockfile/offline-cache installs and degrade gracefully when GitHub is unreachable, so a GitHub outage cannot break a deploy that changes no dependencies.
+The rules above are durable; package versions, current gates, and remaining
+gaps are not. Record fleet conformance in `packages-meta` and delivery work in
+Cairn, then update this standard only when the underlying rule changes. Do not
+keep a dated package-status table here.
 
 ---
 
