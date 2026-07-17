@@ -4,6 +4,17 @@
   "description": "Router-neutral, capability-driven React admin UI primitives. Apps own routes, transport, policy, authorization enforcement, and custom sections.",
   "author": "Andrew Popov",
   "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/andrewpopov/admin-kit.git" },
+  "bugs": { "url": "https://github.com/andrewpopov/admin-kit/issues" },
+  "homepage": "https://github.com/andrewpopov/admin-kit#readme",
+  "keywords": [
+    "admin",
+    "react",
+    "admin-ui",
+    "capability-driven",
+    "router-neutral",
+    "typescript"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
