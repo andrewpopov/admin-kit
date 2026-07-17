@@ -7,7 +7,7 @@ const core_1 = require("../core");
 const AdminConfirmationDialog_1 = require("./AdminConfirmationDialog");
 const AdminPanelState_1 = require("./AdminPanelState");
 /** Lists safe metadata and reveals a raw secret only from a create/rotate response. */
-function ApiKeysPanel({ adapter, title = "API keys", createInput, renderCreate, renderEdit, renderKeys, className, dialogClassName, formatTimestamp, }) {
+function ApiKeysPanel({ adapter, title = "API keys", createInput, renderCreate, renderEdit, renderKeys, renderPosture, renderShortcuts, className, dialogClassName, formatTimestamp, }) {
     const [keys, setKeys] = (0, react_1.useState)();
     const [secret, setSecret] = (0, react_1.useState)();
     const [loadError, setLoadError] = (0, react_1.useState)();
@@ -60,6 +60,15 @@ function ApiKeysPanel({ adapter, title = "API keys", createInput, renderCreate, 
         ...key,
         state: (0, core_1.resolveAdminApiKeyState)(key),
     }));
+    let postureControls;
+    if (renderPosture || renderShortcuts) {
+        const summary = (0, core_1.summarizeAdminApiKeys)(keys);
+        postureControls = {
+            summary,
+            posture: (0, core_1.deriveAdminApiKeysPosture)(summary),
+            queue: (0, core_1.deriveAdminApiKeysQueue)(summary),
+        };
+    }
     const create = async (input) => {
         const epoch = adapterEpoch.current;
         setPending("create");
@@ -149,7 +158,7 @@ function ApiKeysPanel({ adapter, title = "API keys", createInput, renderCreate, 
     const requestRotate = adapter.rotate
         ? (key) => setConfirmation({ action: "rotate", key })
         : undefined;
-    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__keys", className].filter(Boolean).join(" "), "aria-label": title, children: [(0, jsx_runtime_1.jsx)("h2", { children: title }), loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? (0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError }) : null, secret ? ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__secret", role: "alert", children: [(0, jsx_runtime_1.jsx)("strong", { children: "Copy this secret now. It will not be shown again." }), (0, jsx_runtime_1.jsx)("code", { children: secret }), (0, jsx_runtime_1.jsx)("button", { type: "button", onClick: () => void copySecret(), children: "Copy secret" }), copyStatus ? (0, jsx_runtime_1.jsx)("span", { "aria-live": "polite", children: copyStatus }) : null, (0, jsx_runtime_1.jsx)("button", { type: "button", onClick: () => setSecret(undefined), children: "I copied it" })] })) : null, renderCreate ? (renderCreate({
+    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__keys", className].filter(Boolean).join(" "), "aria-label": title, children: [(0, jsx_runtime_1.jsx)("h2", { children: title }), loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? (0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError }) : null, secret ? ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__secret", role: "alert", children: [(0, jsx_runtime_1.jsx)("strong", { children: "Copy this secret now. It will not be shown again." }), (0, jsx_runtime_1.jsx)("code", { children: secret }), (0, jsx_runtime_1.jsx)("button", { type: "button", onClick: () => void copySecret(), children: "Copy secret" }), copyStatus ? (0, jsx_runtime_1.jsx)("span", { "aria-live": "polite", children: copyStatus }) : null, (0, jsx_runtime_1.jsx)("button", { type: "button", onClick: () => setSecret(undefined), children: "I copied it" })] })) : null, renderPosture && postureControls ? renderPosture(postureControls) : null, renderShortcuts && postureControls ? renderShortcuts(postureControls) : null, renderCreate ? (renderCreate({
                 create,
                 pending: pending === "create",
             })) : createInput !== undefined ? ((0, jsx_runtime_1.jsx)("button", { type: "button", disabled: pending === "create", onClick: () => void create(createInput), children: "Create API key" })) : null, renderKeys ? renderKeys({

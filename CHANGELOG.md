@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.27.1
+
+### Fixed
+
+- Rebuild the committed `dist/` output: the v0.27.0 tag shipped a stale build
+  missing the posture derivations and `renderPosture`/`renderShortcuts` slots
+  it announced. No source changes.
+
 ## 0.27.0
 
 ### Added
