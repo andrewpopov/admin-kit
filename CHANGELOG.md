@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.27.0
+
+### Added
+
+- `summarizeAdminApiKeys`, `deriveAdminApiKeysPosture`, and
+  `deriveAdminApiKeysQueue` core exports derive posture facts (active,
+  revoked, expired, unused-active counts and a follow-up queue) from a set of
+  API keys, carrying no copy of their own.
+- `ApiKeysPanel` accepts `renderPosture` and `renderShortcuts` slots, each
+  given `{ summary, posture, queue }`, so hosts can render a posture/health
+  summary and navigation shortcuts above the create/list regions in their own
+  vocabulary. Both slots are optional and rendered bare (no wrapper markup);
+  omitting them leaves existing consumers byte-identical.
+
 ## 0.26.0
 
 ### Changed

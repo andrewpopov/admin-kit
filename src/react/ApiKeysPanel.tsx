@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   type AdminApiKey,
+  type AdminApiKeyQueueItem,
   type AdminApiKeysAdapter,
+  type AdminApiKeysPosture,
+  type AdminApiKeysSummary,
+  deriveAdminApiKeysPosture,
+  deriveAdminApiKeysQueue,
   formatAdminTimestamp,
   resolveAdminApiKeyState,
+  summarizeAdminApiKeys,
   validateAdminApiKeyCreated,
   validateAdminApiKeys,
 } from "../core";
@@ -37,6 +43,24 @@ export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
     update?: (key: AdminApiKey, input: UpdateInput) => Promise<boolean>;
     pendingKeyId?: string;
   }) => ReactNode;
+  /**
+   * Renders a host-vocabulary posture/health summary above the create/list
+   * regions; the kit derives the facts, the host owns copy and links.
+   */
+  renderPosture?: (controls: {
+    summary: AdminApiKeysSummary;
+    posture: AdminApiKeysPosture;
+    queue: readonly AdminApiKeyQueueItem[];
+  }) => ReactNode;
+  /**
+   * Renders host navigation tiles/shortcuts (hosts own routes); badge counts
+   * come from the summary.
+   */
+  renderShortcuts?: (controls: {
+    summary: AdminApiKeysSummary;
+    posture: AdminApiKeysPosture;
+    queue: readonly AdminApiKeyQueueItem[];
+  }) => ReactNode;
   /** Optional host class for local styling without replacing the panel. */
   className?: string;
   /** Optional host class for the portaled confirmation dialog. */
@@ -53,6 +77,8 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
   renderCreate,
   renderEdit,
   renderKeys,
+  renderPosture,
+  renderShortcuts,
   className,
   dialogClassName,
   formatTimestamp,
@@ -121,6 +147,17 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
     ...key,
     state: resolveAdminApiKeyState(key),
   }));
+  let postureControls:
+    | { summary: AdminApiKeysSummary; posture: AdminApiKeysPosture; queue: readonly AdminApiKeyQueueItem[] }
+    | undefined;
+  if (renderPosture || renderShortcuts) {
+    const summary = summarizeAdminApiKeys(keys);
+    postureControls = {
+      summary,
+      posture: deriveAdminApiKeysPosture(summary),
+      queue: deriveAdminApiKeysQueue(summary),
+    };
+  }
   const create = async (input: CreateInput): Promise<boolean> => {
     const epoch = adapterEpoch.current;
     setPending("create");
@@ -222,6 +259,8 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
           </button>
         </div>
       ) : null}
+      {renderPosture && postureControls ? renderPosture(postureControls) : null}
+      {renderShortcuts && postureControls ? renderShortcuts(postureControls) : null}
       {renderCreate ? (
         renderCreate({
           create,
