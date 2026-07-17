@@ -17,7 +17,10 @@ function mapSnapshot(snapshot, registry, mutationSeamProvided) {
             // Only a store-backed flag can be toggled, and only when the host
             // actually wired a mutation seam — a read-only bridge never lies about
             // mutability. `updatedAt` is omitted: the backend records no such field.
-            mutable: flag.source === "store" && mutationSeamProvided,
+            // Snapshot-level health also gates this: `AsyncFlags` keeps serving
+            // last-known-good rows with `source: 'store'` while degraded, and a
+            // write against an unavailable store cannot be trusted to land.
+            mutable: flag.source === "store" && mutationSeamProvided && snapshot.health === "ok",
         };
     });
     return {
@@ -36,7 +39,7 @@ function createFeatureFlagsAdapter(options) {
     const { flags, registry, setEnabled } = options;
     const adapter = {
         async list() {
-            const snapshot = await flags.snapshot();
+            const snapshot = await flags.loadSnapshot();
             return (0, featureFlags_1.validateAdminFeatureFlagsSnapshot)(mapSnapshot(snapshot, registry, Boolean(setEnabled)));
         },
     };
@@ -45,9 +48,11 @@ function createFeatureFlagsAdapter(options) {
             ...adapter,
             async setEnabled(input) {
                 // Enforce the mutability contract list() reports: only store-sourced
-                // flags are writable; env/default-sourced flags must be rejected, not
-                // forwarded to the host write seam.
-                const before = await flags.snapshot();
+                // flags on a healthy snapshot are writable; env/default-sourced
+                // flags, and any flag read from a degraded (store-unavailable)
+                // snapshot, must be rejected rather than forwarded to the host write
+                // seam.
+                const before = await flags.loadSnapshot();
                 const current = before.all().find((flag) => flag.key === input.key);
                 if (!current) {
                     throw new Error(`Unknown feature flag: ${input.key}`);
@@ -55,10 +60,13 @@ function createFeatureFlagsAdapter(options) {
                 if (current.source !== 'store') {
                     throw new Error(`Feature flag ${input.key} is not mutable (source: ${current.source})`);
                 }
+                if (before.health !== 'ok') {
+                    throw new Error(`Feature flag ${input.key} is not mutable (store health: ${before.health})`);
+                }
                 await setEnabled(input);
                 // Re-evaluate rather than assume the write applied cleanly — a
                 // store-error policy or env override could still shadow it.
-                const snapshot = await flags.snapshot();
+                const snapshot = await flags.loadSnapshot();
                 const mapped = mapSnapshot(snapshot, registry, true);
                 const updated = mapped.flags.find((flag) => flag.key === input.key);
                 if (!updated) {

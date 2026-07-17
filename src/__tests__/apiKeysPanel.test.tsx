@@ -281,6 +281,105 @@ describe("ApiKeysPanel", () => {
     await waitFor(() => expect(revoke).toHaveBeenCalledWith({ keyId: "key-1" }));
   });
 
+  it("ignores a stale list response that resolves after the adapter changes", async () => {
+    let resolveStale: ((value: unknown) => void) | undefined;
+    const staleList = vi.fn().mockImplementation(
+      () => new Promise((resolve) => { resolveStale = resolve; }),
+    );
+    const freshKey = { ...activeKey, id: "key-2", name: "Fresh" };
+    const freshList = vi.fn().mockResolvedValue([freshKey]);
+    const { rerender } = render(
+      <ApiKeysPanel adapter={{ list: staleList, create: vi.fn(), revoke: vi.fn() }} />,
+    );
+    await waitFor(() => expect(staleList).toHaveBeenCalledOnce());
+
+    // Swap the adapter before the first (stale) request resolves.
+    rerender(<ApiKeysPanel adapter={{ list: freshList, create: vi.fn(), revoke: vi.fn() }} />);
+    await screen.findByText("Fresh");
+
+    resolveStale?.([activeKey]);
+    await waitFor(() => expect(screen.getByText("Fresh")).toBeTruthy());
+    expect(screen.queryByText("Automation")).toBeNull();
+  });
+
+  it("clears a revealed secret when the adapter changes", async () => {
+    const create = vi.fn().mockResolvedValue({ key: activeKey, secret: "create-once" });
+    const { rerender } = render(
+      <ApiKeysPanel
+        createInput={{ name: "Automation" }}
+        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create, revoke: vi.fn() }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    fireEvent.click(screen.getByRole("button", { name: "Create API key" }));
+    await screen.findByText("create-once");
+
+    rerender(
+      <ApiKeysPanel
+        createInput={{ name: "Automation" }}
+        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn(), revoke: vi.fn() }}
+      />,
+    );
+
+    await waitFor(() => expect(screen.queryByText("create-once")).toBeNull());
+  });
+
+  it("drops a create response and reload that resolve after the adapter changes", async () => {
+    let resolveCreate: ((value: unknown) => void) | undefined;
+    const staleCreate = vi.fn().mockImplementation(
+      () => new Promise((resolve) => { resolveCreate = resolve; }),
+    );
+    const staleList = vi.fn().mockResolvedValue([activeKey]);
+    const freshKey = { ...activeKey, id: "key-2", name: "Fresh" };
+    const freshList = vi.fn().mockResolvedValue([freshKey]);
+    const { rerender } = render(
+      <ApiKeysPanel
+        createInput={{ name: "Automation" }}
+        adapter={{ list: staleList, create: staleCreate, revoke: vi.fn() }}
+      />,
+    );
+    await screen.findByText("Automation");
+    fireEvent.click(screen.getByRole("button", { name: "Create API key" }));
+    await waitFor(() => expect(staleCreate).toHaveBeenCalledOnce());
+
+    // Swap the adapter before the in-flight create resolves.
+    rerender(
+      <ApiKeysPanel
+        createInput={{ name: "Automation" }}
+        adapter={{ list: freshList, create: vi.fn(), revoke: vi.fn() }}
+      />,
+    );
+    await screen.findByText("Fresh");
+    const listCallsAfterSwap = staleList.mock.calls.length;
+
+    // The stale create resolves for the old adapter after the swap: its
+    // secret must not publish, and it must not trigger a reload against the
+    // old adapter that could overwrite the new adapter's keys.
+    resolveCreate?.({ key: activeKey, secret: "stale-secret" });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(screen.queryByText("stale-secret")).toBeNull();
+    expect(screen.getByText("Fresh")).toBeTruthy();
+    expect(staleList.mock.calls.length).toBe(listCallsAfterSwap);
+  });
+
+  it("clears stale keys when the adapter changes and the new adapter's load fails", async () => {
+    const { rerender } = render(
+      <ApiKeysPanel adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn(), revoke: vi.fn() }} />,
+    );
+    await screen.findByText("Automation");
+
+    rerender(
+      <ApiKeysPanel
+        adapter={{ list: vi.fn().mockRejectedValue(new Error("Key host unavailable")), create: vi.fn(), revoke: vi.fn() }}
+      />,
+    );
+
+    await screen.findByText("Key host unavailable");
+    expect(screen.queryByText("Automation")).toBeNull();
+  });
+
   it("gives a custom row the package-owned metadata update lifecycle", async () => {
     const update = vi.fn().mockResolvedValue(activeKey);
     let save: ((key: typeof activeKey, input: { expiresAt: string | null }) => Promise<boolean>) | undefined;

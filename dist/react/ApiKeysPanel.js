@@ -15,17 +15,42 @@ function ApiKeysPanel({ adapter, title = "API keys", createInput, renderCreate, 
     const [pending, setPending] = (0, react_1.useState)();
     const [copyStatus, setCopyStatus] = (0, react_1.useState)();
     const [confirmation, setConfirmation] = (0, react_1.useState)();
+    const latestLoadId = (0, react_1.useRef)(0);
+    // Bumped only when the `adapter` prop itself changes (unlike `latestLoadId`,
+    // which also advances on every ordinary reload). Mutations capture this at
+    // the start and re-check it after their await: if it moved, the adapter
+    // that issued the mutation is no longer current, so its result must not be
+    // published or used to trigger a reload.
+    const adapterEpoch = (0, react_1.useRef)(0);
     const load = async () => {
+        const loadId = ++latestLoadId.current;
         setLoadError(undefined);
         try {
-            setKeys((0, core_1.validateAdminApiKeys)(await adapter.list()));
+            const nextKeys = (0, core_1.validateAdminApiKeys)(await adapter.list());
+            if (loadId === latestLoadId.current)
+                setKeys(nextKeys);
         }
         catch (reason) {
-            setLoadError(reason instanceof Error ? reason.message : "Unable to load API keys.");
+            if (loadId === latestLoadId.current) {
+                setLoadError(reason instanceof Error ? reason.message : "Unable to load API keys.");
+            }
         }
     };
     (0, react_1.useEffect)(() => {
+        adapterEpoch.current += 1;
+        // A failed load under the new adapter must not fall through to
+        // displaying the previous adapter's keys.
+        setKeys(undefined);
         void load();
+        // Invalidate synchronously with the transition: without this, a request
+        // in flight for the previous adapter can still resolve and pass the
+        // `loadId === latestLoadId.current` check because the effect that would
+        // have bumped it for the new adapter hasn't started yet.
+        return () => { latestLoadId.current += 1; };
+    }, [adapter]);
+    (0, react_1.useEffect)(() => {
+        setSecret(undefined);
+        setCopyStatus(undefined);
     }, [adapter]);
     if (loadError && !keys)
         return ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() }, className: className }));
@@ -36,10 +61,13 @@ function ApiKeysPanel({ adapter, title = "API keys", createInput, renderCreate, 
         state: (0, core_1.resolveAdminApiKeyState)(key),
     }));
     const create = async (input) => {
+        const epoch = adapterEpoch.current;
         setPending("create");
         setActionError(undefined);
         try {
             const result = (0, core_1.validateAdminApiKeyCreated)(await adapter.create(input));
+            if (epoch !== adapterEpoch.current)
+                return true;
             setSecret(result.secret);
             setCopyStatus(undefined);
             await load();
@@ -56,11 +84,13 @@ function ApiKeysPanel({ adapter, title = "API keys", createInput, renderCreate, 
     const update = async (key, input) => {
         if (!adapter.update)
             return false;
+        const epoch = adapterEpoch.current;
         setPending(key.id);
         setActionError(undefined);
         try {
             await adapter.update({ keyId: key.id, update: input });
-            await load();
+            if (epoch === adapterEpoch.current)
+                await load();
             return true;
         }
         catch (reason) {
@@ -88,6 +118,7 @@ function ApiKeysPanel({ adapter, title = "API keys", createInput, renderCreate, 
         if (!confirmation)
             return;
         const { action, key } = confirmation;
+        const epoch = adapterEpoch.current;
         setPending(key.id);
         setActionError(undefined);
         try {
@@ -96,10 +127,13 @@ function ApiKeysPanel({ adapter, title = "API keys", createInput, renderCreate, 
             }
             else if (adapter.rotate) {
                 const result = (0, core_1.validateAdminApiKeyCreated)(await adapter.rotate({ keyId: key.id }));
-                setSecret(result.secret);
-                setCopyStatus(undefined);
+                if (epoch === adapterEpoch.current) {
+                    setSecret(result.secret);
+                    setCopyStatus(undefined);
+                }
             }
-            await load();
+            if (epoch === adapterEpoch.current)
+                await load();
             setConfirmation(undefined);
         }
         catch (reason) {

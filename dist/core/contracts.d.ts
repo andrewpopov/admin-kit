@@ -83,5 +83,11 @@ export interface AdminAdapterFailure {
     retryable: boolean;
     code?: string;
 }
-/** Normalizes arbitrary transport failures without coupling the package to fetch or an API envelope. */
+/**
+ * Normalizes arbitrary transport failures without coupling the package to
+ * fetch or an API envelope. `retryable` and `code` are only honored when the
+ * thrown value carries them (a boolean `retryable`, a string `code`);
+ * otherwise `retryable` defaults to `false` and `code` is left unset, since
+ * an unrecognized failure shape carries no evidence that retrying will help.
+ */
 export declare function normalizeAdminFailure(error: unknown): AdminAdapterFailure;

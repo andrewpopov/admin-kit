@@ -305,18 +305,67 @@ describe("admin adapter helpers", () => {
   it("preserves an error message without coupling to an HTTP response type", () => {
     expect(normalizeAdminFailure(new Error("Network unavailable"))).toEqual({
       message: "Network unavailable",
+      retryable: false,
+    });
+  });
+
+  it("defaults retryable to false and leaves code unset for an unrecognized failure shape", () => {
+    expect(normalizeAdminFailure("boom")).toEqual({
+      message: "The administration request failed.",
+      retryable: false,
+    });
+  });
+
+  it("honors a boolean retryable and string code carried on the thrown value", () => {
+    const error = Object.assign(new Error("Rate limited"), {
       retryable: true,
+      code: "RATE_LIMITED",
+    });
+    expect(normalizeAdminFailure(error)).toEqual({
+      message: "Rate limited",
+      retryable: true,
+      code: "RATE_LIMITED",
+    });
+  });
+
+  it("ignores non-boolean retryable and non-string code on the thrown value", () => {
+    const error = Object.assign(new Error("Odd shape"), {
+      retryable: "yes",
+      code: 42,
+    });
+    expect(normalizeAdminFailure(error)).toEqual({
+      message: "Odd shape",
+      retryable: false,
     });
   });
 
   it("creates immutable consumer-shaped page data", () => {
     const page = createAdminPageFixture(
       [{ id: "first" }, { id: "second" }],
-      2,
+      1,
       25,
     );
-    expect(page).toMatchObject({ page: 2, pageSize: 25, total: 2 });
+    expect(page).toMatchObject({ page: 1, pageSize: 25, total: 2 });
     expect(Object.isFrozen(page.items)).toBe(true);
+  });
+
+  it("accepts an explicit total so a later page of a larger collection is representable", () => {
+    const page = createAdminPageFixture([{ id: "third" }], 2, 2, 3);
+    expect(page).toMatchObject({ page: 2, pageSize: 2, total: 3 });
+  });
+
+  it("rejects an explicit total that the page and pageSize prove impossible", () => {
+    // Page 2 with pageSize 2 implies at least 2 prior items; a total of 2
+    // cannot fit 2 prior items plus this page's 1 item.
+    expect(() => createAdminPageFixture([{ id: "third" }], 2, 2, 2)).toThrow(
+      /exceeds total/i,
+    );
+  });
+
+  it("rejects a total smaller than the provided items", () => {
+    expect(() => createAdminPageFixture([{ id: "a" }, { id: "b" }], 1, 25, 1)).toThrow(
+      /total cannot be smaller than the number of items/i,
+    );
   });
 });
 

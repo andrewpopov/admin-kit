@@ -221,4 +221,59 @@ describe('UsersPanel', () => {
     expect(screen.queryByRole('columnheader', { name: 'Details' })).toBeNull();
     expect(screen.queryByRole('columnheader', { name: 'Actions' })).toBeNull();
   });
+
+  it('reloads when a non-search query field changes', async () => {
+    const list = vi.fn().mockImplementation(async ({ page, pageSize, status }) => ({
+      items: users,
+      page,
+      pageSize,
+      total: 1,
+      status,
+    }));
+    const { rerender } = render(
+      <UsersPanel adapter={{ list }} pageSize={25} query={{ status: 'active' } as never} />,
+    );
+
+    await screen.findByText('Ada Lovelace');
+    await waitFor(() => expect(list).toHaveBeenLastCalledWith({ page: 1, pageSize: 25, status: 'active', search: undefined }));
+
+    // The `search` field is unchanged, but another query field changed; the
+    // old dependency array (keyed only on `query?.search`) would never
+    // re-fetch here.
+    rerender(<UsersPanel adapter={{ list }} pageSize={25} query={{ status: 'suspended' } as never} />);
+    await waitFor(() => expect(list).toHaveBeenLastCalledWith({ page: 1, pageSize: 25, status: 'suspended', search: undefined }));
+  });
+
+  it('steps back to the last valid page when the result set shrinks below the current page', async () => {
+    const bigTotal = { items: users, page: 3, pageSize: 25, total: 60 };
+    const shrunkTotal = { items: users, page: 1, pageSize: 25, total: 30 };
+    const list = vi.fn()
+      .mockResolvedValueOnce(bigTotal)
+      .mockResolvedValueOnce(bigTotal)
+      .mockResolvedValueOnce(bigTotal)
+      .mockResolvedValue(shrunkTotal);
+    let reload: (() => Promise<void>) | undefined;
+    render(
+      <UsersPanel
+        adapter={{ list }}
+        pageSize={25}
+        renderHeaderActions={(context) => {
+          reload = context.reload;
+          return null;
+        }}
+      />,
+    );
+
+    await screen.findByText('Ada Lovelace');
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(list).toHaveBeenLastCalledWith({ page: 2, pageSize: 25, search: undefined }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(list).toHaveBeenLastCalledWith({ page: 3, pageSize: 25, search: undefined }));
+
+    // A manual reload from page 3 now reports a shrunk total whose last
+    // page (2) is below the current page; the panel must clamp back
+    // instead of stranding the user on an empty page.
+    await reload?.();
+    await waitFor(() => expect(screen.getByText("Page 2 of 2")).toBeTruthy());
+  });
 });

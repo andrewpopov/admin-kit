@@ -346,4 +346,63 @@ describe("operational panels", () => {
     expect(screen.getByLabelText("Operational jobs")).toHaveProperty("className", expect.stringContaining("host-jobs"));
     expect(screen.getByLabelText("Settings")).toHaveProperty("className", expect.stringContaining("host-settings"));
   });
+
+  it("closes the restore dialog on failure so the alert error is visible", async () => {
+    const restore = vi.fn().mockRejectedValue(new Error("Restore denied"));
+    render(
+      <BackupsPanel
+        adapter={{
+          list: vi.fn().mockResolvedValue({
+            items: [{ id: "b1", label: "Daily", createdAt: "Today", state: "completed" }],
+            page: 1,
+            pageSize: 25,
+            total: 1,
+          }),
+          restore: { execute: restore },
+        }}
+      />,
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: "Restore" }));
+    fireEvent.click(screen.getByRole("button", { name: "Restore backup" }));
+
+    await waitFor(() => expect(restore).toHaveBeenCalledWith({ backupId: "b1" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(screen.getByRole("alert").textContent).toContain("Restore denied");
+  });
+
+  it("ignores a stale settings load response that resolves after the adapter changes", async () => {
+    let resolveStale: ((value: unknown) => void) | undefined;
+    const staleLoad = vi.fn().mockImplementation(
+      () => new Promise((resolve) => { resolveStale = resolve; }),
+    );
+    const freshLoad = vi.fn().mockResolvedValue([{ id: "fresh", label: "Fresh field", value: "42" }]);
+    const { rerender } = render(
+      <SettingsPanel adapter={{ load: staleLoad, save: { execute: vi.fn() } }} />,
+    );
+    await waitFor(() => expect(staleLoad).toHaveBeenCalledOnce());
+
+    rerender(<SettingsPanel adapter={{ load: freshLoad, save: { execute: vi.fn() } }} />);
+    await screen.findByDisplayValue("42");
+
+    resolveStale?.([{ id: "stale", label: "Stale field", value: "1" }]);
+    await waitFor(() => expect(screen.getByDisplayValue("42")).toBeTruthy());
+    expect(screen.queryByDisplayValue("1")).toBeNull();
+  });
+
+  it("clears stale fields when the adapter changes and the new adapter's load fails", async () => {
+    const { rerender } = render(
+      <SettingsPanel adapter={{ load: vi.fn().mockResolvedValue([{ id: "first", label: "First field", value: "hello" }]), save: { execute: vi.fn() } }} />,
+    );
+    await screen.findByDisplayValue("hello");
+
+    rerender(
+      <SettingsPanel
+        adapter={{ load: vi.fn().mockRejectedValue(new Error("Settings host unavailable")), save: { execute: vi.fn() } }}
+      />,
+    );
+
+    await screen.findByText("Settings host unavailable");
+    expect(screen.queryByDisplayValue("hello")).toBeNull();
+  });
 });

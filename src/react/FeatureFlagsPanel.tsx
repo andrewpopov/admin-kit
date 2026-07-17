@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   type AdminFeatureFlagsAdapter,
   type AdminFeatureFlagsSnapshot,
@@ -25,26 +25,47 @@ export interface FeatureFlagsPanelProps {
 
 /** A source-aware flag panel that never offers a misleading mutable control. */
 export function FeatureFlagsPanel({ adapter, title = "Feature flags", className }: FeatureFlagsPanelProps) {
+  const idBase = useId();
   const [snapshot, setSnapshot] = useState<AdminFeatureFlagsSnapshot>();
   const [loadError, setLoadError] = useState<string>();
   const [actionError, setActionError] = useState<string>();
   const [pendingKey, setPendingKey] = useState<string>();
 
+  const latestLoadId = useRef(0);
+  // Bumped only when the `adapter` prop itself changes (unlike `latestLoadId`,
+  // which also advances on every ordinary reload). `setEnabled` captures this
+  // at the start and re-checks it after its await: if it moved, the adapter
+  // that issued the mutation is no longer current, so its reload must not
+  // overwrite the new adapter's snapshot.
+  const adapterEpoch = useRef(0);
   const load = async () => {
+    const loadId = ++latestLoadId.current;
     setLoadError(undefined);
     try {
-      setSnapshot(validateAdminFeatureFlagsSnapshot(await adapter.list()));
+      const next = validateAdminFeatureFlagsSnapshot(await adapter.list());
+      if (loadId === latestLoadId.current) setSnapshot(next);
     } catch (reason) {
-      setLoadError(
-        reason instanceof Error
-          ? reason.message
-          : "Unable to load feature flags.",
-      );
+      if (loadId === latestLoadId.current) {
+        setLoadError(
+          reason instanceof Error
+            ? reason.message
+            : "Unable to load feature flags.",
+        );
+      }
     }
   };
 
   useEffect(() => {
+    adapterEpoch.current += 1;
+    // A failed load under the new adapter must not fall through to
+    // displaying the previous adapter's snapshot.
+    setSnapshot(undefined);
     void load();
+    // Invalidate synchronously with the transition: without this, a request
+    // in flight for the previous adapter can still resolve and pass the
+    // `loadId === latestLoadId.current` check because the effect that would
+    // have bumped it for the new adapter hasn't started yet.
+    return () => { latestLoadId.current += 1; };
   }, [adapter]);
 
   if (loadError && !snapshot)
@@ -64,11 +85,12 @@ export function FeatureFlagsPanel({ adapter, title = "Feature flags", className 
 
   const setEnabled = async (key: string, enabled: boolean) => {
     if (!adapter.setEnabled) return;
+    const epoch = adapterEpoch.current;
     setPendingKey(key);
     setActionError(undefined);
     try {
       await adapter.setEnabled({ key, enabled });
-      await load();
+      if (epoch === adapterEpoch.current) await load();
     } catch (reason) {
       setActionError(
         reason instanceof Error
@@ -103,7 +125,7 @@ export function FeatureFlagsPanel({ adapter, title = "Feature flags", className 
             flag.mutable &&
             snapshot.storeHealth === "healthy" &&
             Boolean(adapter.setEnabled);
-          const controlId = `admin-kit-flag-${flag.key}`;
+          const controlId = `${idBase}-flag-${flag.key}`;
           return (
             <li className="admin-kit__flag" key={flag.key}>
               <div>
@@ -115,7 +137,6 @@ export function FeatureFlagsPanel({ adapter, title = "Feature flags", className 
                 </p>
               </div>
               <input
-                aria-label={`Set ${flag.label} ${flag.enabled ? "off" : "on"}`}
                 checked={flag.enabled}
                 disabled={!canMutate || pendingKey === flag.key}
                 id={controlId}

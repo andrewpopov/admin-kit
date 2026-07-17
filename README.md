@@ -37,7 +37,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.25.0
+npm install github:andrewpopov/admin-kit#v0.26.0
 ```
 
 `react` and `react-dom` are peer dependencies (`^18 || ^19`). `react-dom` is
@@ -583,22 +583,29 @@ import { createFeatureFlagsAdapter, createBackupsAdapter, createApiKeysAdapter }
 Wraps a `feature-flags-kit` `SyncFlags`/`AsyncFlags` front end and its
 registry into an `AdminFeatureFlagsAdapter`.
 
-- `flags.snapshot()` is called on every `list()` — pass `() =>
-  flags.snapshot()` for `SyncFlags`, or `() => flags.loadSnapshot()` for
-  `AsyncFlags` (so `list()` always forces a fresh read rather than serving a
-  stale cache).
+- `flags.loadSnapshot()` is called on every `list()` and before/after every
+  `setEnabled()` — it must return a FRESH read, never a cached one. Pass
+  `() => flags.snapshot()` for `SyncFlags` (every call already re-evaluates),
+  or `() => flags.loadSnapshot()` for `AsyncFlags`. Do **not** pass `() =>
+  flags.snapshot()` for `AsyncFlags` — that returns its cached last-known-good
+  snapshot, so both `list()` and the post-write re-read in `setEnabled` would
+  silently observe a stale value instead of the write that was just made.
 - Store health maps `ok` -> `healthy`, `store-unavailable` -> `unavailable`,
   with a fixed detail message on the latter.
 - `label`/`description` are joined from `registry` by key; `label` falls
   back to the key itself, since the backend registry has no `label` field.
-- `mutable` is true only when a flag's `source` is `store` **and** the host
-  supplied `setEnabled` — a bridge with no write seam never claims a flag is
-  mutable.
+- `mutable` is true only when a flag's `source` is `store`, the host supplied
+  `setEnabled`, **and** the snapshot's health is `ok` — `AsyncFlags` keeps
+  serving last-known-good rows with `source: 'store'` while the snapshot is
+  degraded, and a write against an unavailable store cannot be trusted to
+  land, so those rows are never presented as mutable.
 - `updatedAt` is always omitted: the backend records no such timestamp.
-- `setEnabled` (when wired) calls the host's seam, then re-evaluates the
-  snapshot and returns the resulting `AdminFeatureFlag` rather than assuming
-  the write took effect as requested (an env override or store-error policy
-  could still shadow it).
+- `setEnabled` (when wired) rejects with a structured error rather than
+  calling the write seam when the target flag is not store-sourced, or when
+  the snapshot's health is not `ok`. Otherwise it calls the host's seam, then
+  re-evaluates the snapshot and returns the resulting `AdminFeatureFlag`
+  rather than assuming the write took effect as requested (an env override or
+  store-error policy could still shadow it).
 
 ### `createBackupsAdapter({ listBackups, runBackup?, restoreBackup? })`
 
@@ -606,15 +613,22 @@ Wraps a `db-backup` listing (and optional run/restore) into an
 `AdminBackupsAdapter`.
 
 - `listBackups` returns the full backup list; pagination is computed
-  in-memory over it, since db-backup has no server-side paging of its own.
+  in-memory over it, since db-backup has no server-side paging of its own. A
+  non-finite `page`/`pageSize` in the query (e.g. `NaN`) falls back to the
+  defaults (page `1` / the full list as one page) instead of producing an
+  empty page with `page: NaN` echoed back.
 - `id` is the backup's `fileName`; `label` strips db-backup's `.gz`/`.gpg`
   suffixes from it.
 - `size` is formatted from `sizeBytes` into a human-readable string (`B` /
   `KB` / `MB` / ...).
-- `state` is hardcoded to `"completed"`: db-backup's `BackupEntry` only ever
-  describes a backup that already finished successfully — it cannot
-  represent a running or failed job yet (tracked as PKG-28). Once db-backup
-  exposes job status, this bridge should stop hardcoding the value.
+- `state` mirrors db-backup's `BackupEntry.state` (`'completed'` /
+  `'running'` / `'failed'`); an absent `state` defaults to `'completed'` for
+  back-compat with entries that predate the field. `detail` prefers a
+  `'failed'` entry's `error` over `retentionLabel`/`retentionReason`.
+- `restore.execute` refuses (throwing `BackupNotRestorableError` rather than
+  calling `restoreBackup`) when the target entry's state is not
+  `'completed'` — a running or failed job has no on-disk artifact to restore
+  from.
 - `run`/`restore` are present on the returned adapter only when
   `runBackup`/`restoreBackup` are supplied.
 

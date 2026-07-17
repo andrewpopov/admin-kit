@@ -60,4 +60,48 @@ describe('admin-kit-conformance', () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain('src/app.css: do not override Admin Kit core tokens');
   });
+
+  it('rejects a frameless non-self-closing AdminApp even when a child element has frame=', () => {
+    const root = createConsumerFixture();
+    writeFileSync(
+      join(root, 'src', 'app', 'main.tsx'),
+      [
+        'import { AdminApp } from "@andrewpopov/admin-kit";',
+        'export default function Main() {',
+        '  return (',
+        '    <AdminApp>',
+        '      <SomeChild frame={{ title: "not the AdminApp frame" }} />',
+        '    </AdminApp>',
+        '  );',
+        '}',
+      ].join('\n'),
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('AdminApp requires frame={{ title, description? }}');
+  });
+
+  it('accepts a framed AdminApp', () => {
+    const root = createConsumerFixture();
+    writeFileSync(
+      join(root, 'src', 'app', 'main.tsx'),
+      [
+        'import { AdminApp } from "@andrewpopov/admin-kit";',
+        'export default function Main() {',
+        '  return (',
+        '    <AdminApp frame={{ title: "Dashboard" }}>',
+        '      <SomeChild />',
+        '    </AdminApp>',
+        '  );',
+        '}',
+      ].join('\n'),
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('[admin-kit-conformance] PASS');
+  });
 });

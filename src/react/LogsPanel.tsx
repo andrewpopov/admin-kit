@@ -56,8 +56,11 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
         search: appliedSearch || undefined,
       }));
       if (loadId === latestLoadId.current) {
+        // Render the adapter's canonicalized source (see `selectedSource`
+        // below) without feeding it back into request state: echoing it
+        // into `source` would re-trigger this effect, and an adapter that
+        // canonicalizes non-idempotently could loop indefinitely.
         setSnapshot(next);
-        if (source && next.source !== source) setSource(next.source ?? "");
       }
     } catch (reason) {
       if (loadId === latestLoadId.current) {
@@ -110,7 +113,11 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
     return <AdminPanelStateView className={className} state={{ kind: "loading", label: "Loading runtime logs…" }} />;
   }
 
-  const selectedSource = source || snapshot.source || "";
+  // Render the adapter's canonicalized source, not the possibly-aliased
+  // request value: a request for "app" that the adapter canonicalizes to
+  // "app-canonical" must show the canonical value, or the select would
+  // either show the stale alias or go blank when it isn't in `sources`.
+  const selectedSource = snapshot.source || source || "";
   const sourceDetail = snapshot.sources.find((candidate) => candidate.value === selectedSource)?.detail;
   return <section className={["admin-kit__logs", className].filter(Boolean).join(" ")} aria-label={title} aria-busy={isLoading}>
     <header className="admin-kit__logs-header"><div><h2>{title}</h2><p>{snapshot.total} matching {snapshot.total === 1 ? "line" : "lines"}{sourceDetail ? ` · ${sourceDetail}` : ""}{snapshot.generatedAt ? ` · Updated ${formatAdminTimestamp(snapshot.generatedAt, formatTimestamp)}` : ""}</p></div><div className="admin-kit__logs-actions">{pollingInterval ? <button className="admin-kit__button" type="button" role="switch" aria-checked={autoRefresh} onClick={() => setAutoRefresh((current) => !current)}>Auto-refresh {autoRefresh ? "on" : "off"}</button> : null}<button className="admin-kit__button admin-kit__button--primary" disabled={isLoading} type="button" onClick={() => void load()}>Refresh</button></div></header>

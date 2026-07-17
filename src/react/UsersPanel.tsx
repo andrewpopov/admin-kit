@@ -80,6 +80,7 @@ export function UsersPanel<User extends AdminUserSummary>({
   const [pendingUserId, setPendingUserId] = useState<string>();
   const [sort, setSort] = useState<AdminUserTableSort | undefined>(defaultSort);
   const latestLoadId = useRef(0);
+  const queryKey = JSON.stringify(query ?? null);
 
   const load = async () => {
     const loadId = ++latestLoadId.current;
@@ -110,11 +111,21 @@ export function UsersPanel<User extends AdminUserSummary>({
     // `loadId === latestLoadId.current` check because the effect that would
     // have bumped it for the new query hasn't started yet.
     return () => { latestLoadId.current += 1; };
-  }, [adapter, page, pageSize, query?.search, search, sort?.columnId, sort?.direction]);
+    // `queryKey` is a serialized snapshot of `query` so any field change
+    // (not just `search`) triggers a reload; `query` itself is not used
+    // directly as a dependency because hosts commonly pass a fresh object
+    // each render.
+  }, [adapter, page, pageSize, queryKey, search, sort?.columnId, sort?.direction]);
 
   useEffect(() => {
     setSearch(query?.search ?? "");
   }, [query?.search]);
+
+  useEffect(() => {
+    if (!result) return;
+    const lastPage = Math.max(1, Math.ceil(result.total / result.pageSize));
+    if (page > lastPage) setPage(lastPage);
+  }, [result, page]);
 
   const setSearchAndResetPage = (value: string) => {
     setPage(1);
