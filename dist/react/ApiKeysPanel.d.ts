@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { type AdminApiKey, type AdminApiKeysAdapter } from "../core";
+import { type AdminApiKey, type AdminApiKeyQueueItem, type AdminApiKeysAdapter, type AdminApiKeysPosture, type AdminApiKeysSummary } from "../core";
 export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
     adapter: AdminApiKeysAdapter<CreateInput, UpdateInput>;
     /** Product vocabulary for credentials, such as "Personal access tokens". */
@@ -27,6 +27,24 @@ export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
         update?: (key: AdminApiKey, input: UpdateInput) => Promise<boolean>;
         pendingKeyId?: string;
     }) => ReactNode;
+    /**
+     * Renders a host-vocabulary posture/health summary above the create/list
+     * regions; the kit derives the facts, the host owns copy and links.
+     */
+    renderPosture?: (controls: {
+        summary: AdminApiKeysSummary;
+        posture: AdminApiKeysPosture;
+        queue: readonly AdminApiKeyQueueItem[];
+    }) => ReactNode;
+    /**
+     * Renders host navigation tiles/shortcuts (hosts own routes); badge counts
+     * come from the summary.
+     */
+    renderShortcuts?: (controls: {
+        summary: AdminApiKeysSummary;
+        posture: AdminApiKeysPosture;
+        queue: readonly AdminApiKeyQueueItem[];
+    }) => ReactNode;
     /** Optional host class for local styling without replacing the panel. */
     className?: string;
     /** Optional host class for the portaled confirmation dialog. */
@@ -35,4 +53,4 @@ export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
     formatTimestamp?: (iso: string) => string;
 }
 /** Lists safe metadata and reveals a raw secret only from a create/rotate response. */
-export declare function ApiKeysPanel<CreateInput, UpdateInput = never>({ adapter, title, createInput, renderCreate, renderEdit, renderKeys, className, dialogClassName, formatTimestamp, }: ApiKeysPanelProps<CreateInput, UpdateInput>): import("react").JSX.Element;
+export declare function ApiKeysPanel<CreateInput, UpdateInput = never>({ adapter, title, createInput, renderCreate, renderEdit, renderKeys, renderPosture, renderShortcuts, className, dialogClassName, formatTimestamp, }: ApiKeysPanelProps<CreateInput, UpdateInput>): import("react").JSX.Element;

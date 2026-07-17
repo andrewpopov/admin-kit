@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatAdminTimestamp = exports.validateAdminSessions = exports.defineAdminSessionsAdapter = exports.validateAdminLogsSnapshot = exports.defineAdminLogsAdapter = exports.validateAdminMemberships = exports.defineAdminMembershipsAdapter = exports.validateAdminEventsPage = exports.defineAdminEventsAdapter = exports.validateAdminApiKeys = exports.validateAdminApiKeyCreated = exports.resolveAdminApiKeyState = exports.defineAdminApiKeysAdapter = exports.validateAdminFeatureFlagsSnapshot = exports.defineAdminFeatureFlagsAdapter = exports.defineAdminUsersAdapter = exports.normalizeAdminFailure = exports.defineAdminPortal = exports.defineAdminConsole = exports.defineAdminApp = exports.ADMIN_CAPABILITIES = void 0;
+exports.formatAdminTimestamp = exports.validateAdminSessions = exports.defineAdminSessionsAdapter = exports.validateAdminLogsSnapshot = exports.defineAdminLogsAdapter = exports.validateAdminMemberships = exports.defineAdminMembershipsAdapter = exports.validateAdminEventsPage = exports.defineAdminEventsAdapter = exports.summarizeAdminApiKeys = exports.deriveAdminApiKeysQueue = exports.deriveAdminApiKeysPosture = exports.validateAdminApiKeys = exports.validateAdminApiKeyCreated = exports.resolveAdminApiKeyState = exports.defineAdminApiKeysAdapter = exports.validateAdminFeatureFlagsSnapshot = exports.defineAdminFeatureFlagsAdapter = exports.defineAdminUsersAdapter = exports.normalizeAdminFailure = exports.defineAdminPortal = exports.defineAdminConsole = exports.defineAdminApp = exports.ADMIN_CAPABILITIES = void 0;
 var contracts_1 = require("./contracts");
 Object.defineProperty(exports, "ADMIN_CAPABILITIES", { enumerable: true, get: function () { return contracts_1.ADMIN_CAPABILITIES; } });
 Object.defineProperty(exports, "defineAdminApp", { enumerable: true, get: function () { return contracts_1.defineAdminApp; } });
@@ -17,6 +17,10 @@ Object.defineProperty(exports, "defineAdminApiKeysAdapter", { enumerable: true, 
 Object.defineProperty(exports, "resolveAdminApiKeyState", { enumerable: true, get: function () { return apiKeys_1.resolveAdminApiKeyState; } });
 Object.defineProperty(exports, "validateAdminApiKeyCreated", { enumerable: true, get: function () { return apiKeys_1.validateAdminApiKeyCreated; } });
 Object.defineProperty(exports, "validateAdminApiKeys", { enumerable: true, get: function () { return apiKeys_1.validateAdminApiKeys; } });
+var apiKeysPosture_1 = require("./apiKeysPosture");
+Object.defineProperty(exports, "deriveAdminApiKeysPosture", { enumerable: true, get: function () { return apiKeysPosture_1.deriveAdminApiKeysPosture; } });
+Object.defineProperty(exports, "deriveAdminApiKeysQueue", { enumerable: true, get: function () { return apiKeysPosture_1.deriveAdminApiKeysQueue; } });
+Object.defineProperty(exports, "summarizeAdminApiKeys", { enumerable: true, get: function () { return apiKeysPosture_1.summarizeAdminApiKeys; } });
 var events_1 = require("./events");
 Object.defineProperty(exports, "defineAdminEventsAdapter", { enumerable: true, get: function () { return events_1.defineAdminEventsAdapter; } });
 Object.defineProperty(exports, "validateAdminEventsPage", { enumerable: true, get: function () { return events_1.validateAdminEventsPage; } });
