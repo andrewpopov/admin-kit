@@ -122,6 +122,7 @@ export function BackupsPanel({ adapter, title = "Backups", runLabel = "Run backu
       setRestoreTarget(undefined);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Unable to restore backup.");
+      setRestoreTarget(undefined);
     } finally {
       setBusy(false);
     }
@@ -167,7 +168,29 @@ export function SettingsPanel({ adapter, title = "Settings", className }: Settin
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string>();
-  useEffect(() => { void adapter.load().then(next => { const loaded = Object.fromEntries(next.map(field => [field.id, field.value])); setFields(next); setValues(loaded); setInitialValues(loaded); }).catch(reason => setError(reason instanceof Error ? reason.message : "Unable to load settings.")); }, [adapter]);
+  const latestLoadId = useRef(0);
+  useEffect(() => {
+    const loadId = ++latestLoadId.current;
+    // A failed load under the new adapter must not fall through to
+    // displaying the previous adapter's fields.
+    setFields(undefined);
+    void adapter.load()
+      .then(next => {
+        if (loadId !== latestLoadId.current) return;
+        const loaded = Object.fromEntries(next.map(field => [field.id, field.value]));
+        setFields(next);
+        setValues(loaded);
+        setInitialValues(loaded);
+      })
+      .catch(reason => {
+        if (loadId === latestLoadId.current) setError(reason instanceof Error ? reason.message : "Unable to load settings.");
+      });
+    // Invalidate synchronously with the transition: without this, a request
+    // in flight for the previous adapter can still resolve and pass the
+    // `loadId === latestLoadId.current` check because the effect that would
+    // have bumped it for the new adapter hasn't started yet.
+    return () => { latestLoadId.current += 1; };
+  }, [adapter]);
   if (error && !fields) return <AdminPanelStateView state={{ kind: "error", detail: error }} className={className} />;
   if (!fields) return <AdminPanelStateView state={{ kind: "loading", label: "Loading settings…" }} className={className} />;
   const dirty = Object.keys(values).some(key => values[key] !== initialValues[key]);

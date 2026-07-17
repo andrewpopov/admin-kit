@@ -1,6 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.BackupNotRestorableError = void 0;
 exports.createBackupsAdapter = createBackupsAdapter;
+/** Thrown by `restore.execute` when the target entry is not `'completed'` —
+ * a running or failed job has no on-disk artifact to restore from, so the
+ * request is refused before ever reaching `restoreBackup`. */
+class BackupNotRestorableError extends Error {
+    constructor(backupId, state) {
+        super(state === "unknown"
+            ? `Backup ${backupId} is not restorable: no such backup exists.`
+            : `Backup ${backupId} is not restorable (state: ${state}).`);
+        this.name = "BackupNotRestorableError";
+        this.backupId = backupId;
+        this.state = state;
+    }
+}
+exports.BackupNotRestorableError = BackupNotRestorableError;
 const BYTE_UNITS = ["B", "KB", "MB", "GB", "TB"];
 /** Formats a byte count as a human-readable size, e.g. `sizeBytes` -> "4.2 MB". */
 function formatSize(sizeBytes) {
@@ -23,11 +38,10 @@ function mapEntry(entry) {
         label: labelFromFileName(entry.fileName),
         createdAt: entry.createdAt,
         size: formatSize(entry.sizeBytes),
-        // db-backup's BackupEntry cannot represent an in-progress or failed run —
-        // every entry it returns already succeeded and is on disk. Tracked as
-        // PKG-28: surface running/failed state once db-backup exposes job status.
-        state: "completed",
-        detail: entry.retentionLabel ?? entry.retentionReason,
+        // Absent state means 'completed' for back-compat with entries that
+        // predate db-backup's state/error fields.
+        state: entry.state ?? "completed",
+        detail: entry.error ?? entry.retentionLabel ?? entry.retentionReason,
     };
 }
 /**
@@ -39,8 +53,12 @@ function createBackupsAdapter(options) {
     const adapter = {
         async list(query = {}) {
             const all = await options.listBackups();
-            const page = Math.max(1, Math.floor(query.page ?? 1));
-            const pageSize = Math.max(1, Math.floor(query.pageSize ?? (all.length || 1)));
+            const rawPage = query.page ?? 1;
+            const rawPageSize = query.pageSize ?? (all.length || 1);
+            const page = Number.isFinite(rawPage) ? Math.max(1, Math.floor(rawPage)) : 1;
+            const pageSize = Number.isFinite(rawPageSize)
+                ? Math.max(1, Math.floor(rawPageSize))
+                : all.length || 1;
             const start = (page - 1) * pageSize;
             const items = all.slice(start, start + pageSize).map(mapEntry);
             return { items, page, pageSize, total: all.length };
@@ -55,6 +73,15 @@ function createBackupsAdapter(options) {
             ? {
                 restore: {
                     execute: async (input) => {
+                        const all = await options.listBackups();
+                        const entry = all.find((candidate) => candidate.fileName === input.backupId);
+                        // Absence must refuse, not default to `'completed'`: a
+                        // missing entry could not have produced a restorable
+                        // artifact, so treat it distinctly from a known-completed one.
+                        const state = entry ? entry.state ?? "completed" : "unknown";
+                        if (state !== "completed") {
+                            throw new BackupNotRestorableError(input.backupId, state);
+                        }
                         await options.restoreBackup(input);
                     },
                 },

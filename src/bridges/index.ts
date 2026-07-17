@@ -7,6 +7,7 @@ export {
 } from "./featureFlagsBridge";
 
 export {
+  BackupNotRestorableError,
   createBackupsAdapter,
   type CreateBackupsAdapterOptions,
   type ForeignBackupEntry,

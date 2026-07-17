@@ -9,6 +9,11 @@ export interface ForeignBackupEntry {
     sizeBytes: number;
     retentionReason?: string;
     retentionLabel?: string;
+    /** Mirrors db-backup's `BackupEntry.state`. Absent means `'completed'` —
+     * every entry predating this field was already a finished artifact. */
+    state?: "completed" | "running" | "failed";
+    /** Mirrors db-backup's `BackupEntry.error`: `'failed'` marker rows only. */
+    error?: string;
 }
 export interface CreateBackupsAdapterOptions {
     /**
@@ -20,10 +25,20 @@ export interface CreateBackupsAdapterOptions {
     listBackups: () => readonly ForeignBackupEntry[] | Promise<readonly ForeignBackupEntry[]>;
     /** Wire to `runBackupJob`/`runBackupJobAsync`. Omit to make the action absent. */
     runBackup?: () => void | Promise<void>;
-    /** Wire to `restoreBackup`. Omit to make the action absent. */
+    /** Wire to `restoreBackup`. Omit to make the action absent. Never invoked
+     * for a non-`'completed'` entry — `restore.execute` refuses those itself
+     * with a {@link BackupNotRestorableError} before reaching this seam. */
     restoreBackup?: (input: {
         backupId: string;
     }) => void | Promise<void>;
+}
+/** Thrown by `restore.execute` when the target entry is not `'completed'` —
+ * a running or failed job has no on-disk artifact to restore from, so the
+ * request is refused before ever reaching `restoreBackup`. */
+export declare class BackupNotRestorableError extends Error {
+    readonly backupId: string;
+    readonly state: "running" | "failed" | "unknown";
+    constructor(backupId: string, state: "running" | "failed" | "unknown");
 }
 /**
  * Builds an `AdminBackupsAdapter` over a `db-backup`-shaped listing (and

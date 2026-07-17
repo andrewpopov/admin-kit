@@ -18,6 +18,7 @@ function UsersPanel({ adapter, title = "Users", pageSize = 25, query, search: se
     const [pendingUserId, setPendingUserId] = (0, react_1.useState)();
     const [sort, setSort] = (0, react_1.useState)(defaultSort);
     const latestLoadId = (0, react_1.useRef)(0);
+    const queryKey = JSON.stringify(query ?? null);
     const load = async () => {
         const loadId = ++latestLoadId.current;
         setIsLoading(true);
@@ -50,10 +51,21 @@ function UsersPanel({ adapter, title = "Users", pageSize = 25, query, search: se
         // `loadId === latestLoadId.current` check because the effect that would
         // have bumped it for the new query hasn't started yet.
         return () => { latestLoadId.current += 1; };
-    }, [adapter, page, pageSize, query?.search, search, sort?.columnId, sort?.direction]);
+        // `queryKey` is a serialized snapshot of `query` so any field change
+        // (not just `search`) triggers a reload; `query` itself is not used
+        // directly as a dependency because hosts commonly pass a fresh object
+        // each render.
+    }, [adapter, page, pageSize, queryKey, search, sort?.columnId, sort?.direction]);
     (0, react_1.useEffect)(() => {
         setSearch(query?.search ?? "");
     }, [query?.search]);
+    (0, react_1.useEffect)(() => {
+        if (!result)
+            return;
+        const lastPage = Math.max(1, Math.ceil(result.total / result.pageSize));
+        if (page > lastPage)
+            setPage(lastPage);
+    }, [result, page]);
     const setSearchAndResetPage = (value) => {
         setPage(1);
         setSearch(value);

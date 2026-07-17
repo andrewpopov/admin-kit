@@ -7,6 +7,7 @@ import { join } from 'node:path';
 const packageRoot = new URL('..', import.meta.url).pathname;
 const pkg = JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8'));
 const expectedExports = ['defineAdminConsole', 'normalizeAdminFailure', 'AdminActionButton', 'AdminConsole'];
+const expectedBridgesExports = ['createFeatureFlagsAdapter', 'createBackupsAdapter', 'createApiKeysAdapter', 'BackupNotRestorableError'];
 const workDir = mkdtempSync(join(tmpdir(), 'admin-kit-verify-'));
 
 function run(command, args, options = {}) {
@@ -59,6 +60,12 @@ try {
     require('${pkg.name}/core');
     require('${pkg.name}/react');
     require('${pkg.name}/testing');
+    const bridges = require('${pkg.name}/bridges');
+    const missingBridges = ${JSON.stringify(expectedBridgesExports)}.filter((name) => typeof bridges[name] !== 'function');
+    if (missingBridges.length) {
+      console.error('Missing bridges exports: ' + missingBridges.join(', '));
+      process.exit(2);
+    }
     console.log('CJS exports OK');
   `;
   writeFileSync(join(consumerDir, 'smoke.cjs'), smoke);

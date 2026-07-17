@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.26.0
+
+### Changed
+
+- **Breaking:** `createFeatureFlagsAdapter` now requires `flags.loadSnapshot()`
+  (a fresh read) instead of `flags.snapshot()`, making it structurally
+  impossible to wire AsyncFlags' cached snapshot into the bridge's pre/post-write reads.
+- Feature-flag mutability now additionally requires snapshot `health === "ok"`;
+  `setEnabled` refuses while the store is unavailable.
+- `normalizeAdminFailure` honors `retryable`/`code` carried by the thrown value
+  and defaults `retryable` to `false` (previously always `true`).
+- Date-only timestamps (`YYYY-MM-DD`) render as calendar dates without a
+  timezone shift or fabricated time; impossible dates (e.g. Feb 31) are rejected.
+
+### Fixed
+
+- `createBackupsAdapter` passes through db-backup `state`/`error` (failed
+  backups no longer render as completed) and refuses to restore non-completed
+  or unknown backups with the new `BackupNotRestorableError`; non-finite
+  pagination inputs clamp to defaults.
+- `resolveAdminApiKeyState` resolves an unparseable `expiresAt` to `revoked`
+  (never active); `validateAdminApiKeys` rejects state/timestamp inconsistencies.
+- `ApiKeysPanel`, `FeatureFlagsPanel`, and `SettingsPanel` guard against stale
+  async responses and in-flight mutations across adapter swaps, and clear the
+  previous adapter's data on adapter change.
+- `UsersPanel` reloads on any `query` change (not just `search`) and clamps to
+  the last page when the collection shrinks.
+- `BackupsPanel` closes the restore dialog on failure so the error is visible.
+- `LogsPanel` renders the adapter's canonical source and no longer risks a
+  reload loop when an adapter canonicalizes the requested source.
+- `FeatureFlagsPanel` checkbox is named by its visible label with collision-safe
+  ids; deprecated `AdminConsole` tablist implements the ARIA tabs keyboard pattern.
+- `validateAdminEventsPage` enforces page invariants and enum membership;
+  `createAdminPageFixture` supports an explicit `total` and rejects impossible pages.
+- `admin-kit-conformance` frame check no longer credits a child element's
+  `frame=` prop to a frameless non-self-closing `<AdminApp>`.
+- `verify:pack` smokes the `./bridges` subpath; the browser test fixture is
+  rendered from the real components at `test:browser` time; vitest sets an
+  explicit 30s timeout so the suite passes on default invocation.
+
+
 ## 0.25.0
 
 ### Added

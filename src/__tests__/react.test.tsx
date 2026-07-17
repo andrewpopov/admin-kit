@@ -1,5 +1,6 @@
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   AdminConfirmationDialog,
   AdminConsole,
@@ -27,6 +28,67 @@ describe('AdminConsole', () => {
     expect(html).toContain('aria-selected="true"');
     expect(html).toContain('User content');
     expect(html).not.toContain('Flag content');
+  });
+
+  afterEach(cleanup);
+
+  it('supports arrow-key roving-tabindex navigation between tabs', () => {
+    const sections = [
+      { id: 'users', label: 'Users', render: () => <p>User content</p> },
+      { id: 'flags', label: 'Feature flags', render: () => <p>Flag content</p> },
+      { id: 'events', label: 'Events', render: () => <p>Event content</p> },
+    ];
+    let activeSection = 'users';
+    const onSectionChange = (next: string) => { activeSection = next; };
+
+    const { rerender } = render(
+      <AdminConsole activeSection={activeSection} onSectionChange={onSectionChange} sections={sections} />,
+    );
+
+    const usersTab = screen.getByRole('tab', { name: 'Users' });
+    const flagsTab = screen.getByRole('tab', { name: 'Feature flags' });
+    const eventsTab = screen.getByRole('tab', { name: 'Events' });
+
+    expect(usersTab.getAttribute('tabindex')).toBe('0');
+    expect(flagsTab.getAttribute('tabindex')).toBe('-1');
+    expect(eventsTab.getAttribute('tabindex')).toBe('-1');
+
+    fireEvent.keyDown(usersTab, { key: 'ArrowRight' });
+    expect(activeSection).toBe('flags');
+    rerender(<AdminConsole activeSection={activeSection} onSectionChange={onSectionChange} sections={sections} />);
+    expect(document.activeElement).toBe(flagsTab);
+    expect(flagsTab.getAttribute('tabindex')).toBe('0');
+    expect(usersTab.getAttribute('tabindex')).toBe('-1');
+
+    fireEvent.keyDown(flagsTab, { key: 'ArrowLeft' });
+    expect(activeSection).toBe('users');
+    rerender(<AdminConsole activeSection={activeSection} onSectionChange={onSectionChange} sections={sections} />);
+    expect(document.activeElement).toBe(usersTab);
+
+    fireEvent.keyDown(usersTab, { key: 'End' });
+    expect(activeSection).toBe('events');
+    rerender(<AdminConsole activeSection={activeSection} onSectionChange={onSectionChange} sections={sections} />);
+    expect(document.activeElement).toBe(eventsTab);
+
+    fireEvent.keyDown(eventsTab, { key: 'Home' });
+    expect(activeSection).toBe('users');
+    rerender(<AdminConsole activeSection={activeSection} onSectionChange={onSectionChange} sections={sections} />);
+    expect(document.activeElement).toBe(usersTab);
+  });
+
+  it('skips disabled tabs during arrow-key navigation', () => {
+    const sections = [
+      { id: 'users', label: 'Users', render: () => <p>User content</p> },
+      { id: 'flags', label: 'Feature flags', disabled: true, render: () => <p>Flag content</p> },
+      { id: 'events', label: 'Events', render: () => <p>Event content</p> },
+    ];
+    let activeSection = 'users';
+    const onSectionChange = (next: string) => { activeSection = next; };
+    render(<AdminConsole activeSection={activeSection} onSectionChange={onSectionChange} sections={sections} />);
+
+    const usersTab = screen.getByRole('tab', { name: 'Users' });
+    fireEvent.keyDown(usersTab, { key: 'ArrowRight' });
+    expect(activeSection).toBe('events');
   });
 });
 

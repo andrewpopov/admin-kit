@@ -49,8 +49,12 @@ if (!entryFiles.some(({ text }) => /['"]@andrewpopov\/admin-kit\/styles\.css['"]
 }
 for (const { path, text } of files) {
   if (!/\.(?:tsx|jsx)$/.test(path)) continue;
-  for (const match of text.matchAll(/<AdminApp\b([\s\S]*?)\/>|<AdminApp\b([\s\S]*?)>/g)) {
-    const attributes = match[1] ?? match[2] ?? '';
+  // Capture only the AdminApp opening tag's own attributes: consume
+  // quoted attribute values (which may contain `>`) as opaque units so the
+  // match stops at the tag's real closing `>`/`/>` instead of lazily
+  // matching through to a later child element's `/>`.
+  for (const match of text.matchAll(/<AdminApp\b((?:"[^"]*"|'[^']*'|[^>"'])*)\/?>/g)) {
+    const attributes = match[1] ?? '';
     if (!/\bframe\s*=/.test(attributes)) errors.push(`${relative(root, path)}: AdminApp requires frame={{ title, description? }}.`);
   }
 }

@@ -122,4 +122,29 @@ describe("LogsPanel", () => {
     await screen.findByText("Request completed");
     expect(screen.queryByRole("switch")).toBeNull();
   });
+
+  it("does not loop forever when the adapter canonicalizes the requested source", async () => {
+    // The adapter always echoes back a different source than requested,
+    // simulating a host that canonicalizes non-idempotently. Before the
+    // fix, feeding that value back into `source` state re-triggered the
+    // load effect on every response.
+    const read = vi.fn().mockImplementation(async ({ source }: { source?: string }) => ({
+      ...snapshot,
+      sources: [...snapshot.sources, { value: "app-canonical", label: "App (canonical)" }],
+      source: source === "app" ? "app-canonical" : "app",
+    }));
+    render(<LogsPanel adapter={adapter(read)} />);
+
+    await screen.findByText("Request completed");
+    const callsAfterInitialLoad = read.mock.calls.length;
+    // Give any runaway effect loop a chance to fire more requests.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(read.mock.calls.length).toBe(callsAfterInitialLoad);
+    // The select must reflect the adapter's canonicalized source, not the
+    // requested alias: requesting "app" canonicalizes to "app-canonical".
+    expect(screen.getByRole("combobox", { name: "Source" })).toHaveProperty(
+      "value",
+      "app-canonical",
+    );
+  });
 });

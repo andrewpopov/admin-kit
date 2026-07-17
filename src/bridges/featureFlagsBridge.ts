@@ -41,12 +41,16 @@ export interface ForeignFlagDefinition {
 
 export interface CreateFeatureFlagsAdapterOptions {
   /**
-   * Reads the current snapshot. For `SyncFlags` pass `() => flags.snapshot()`;
-   * for `AsyncFlags` pass `() => flags.loadSnapshot()` so every `list()` call
-   * observes a fresh read rather than a stale cache.
+   * Reads a FRESH snapshot — never a cached one. For `SyncFlags` pass
+   * `() => flags.snapshot()` (every call already re-evaluates); for
+   * `AsyncFlags` pass `() => flags.loadSnapshot()`, NOT `() =>
+   * flags.snapshot()` — the latter serves `AsyncFlags`'s cached
+   * last-known-good snapshot, so both `list()` and the post-write re-read in
+   * `setEnabled` would silently observe a stale value instead of the write
+   * that was just made.
    */
   flags: {
-    snapshot(): ForeignFlagSnapshot | Promise<ForeignFlagSnapshot>;
+    loadSnapshot(): ForeignFlagSnapshot | Promise<ForeignFlagSnapshot>;
   };
   registry: readonly ForeignFlagDefinition[];
   /**
@@ -79,7 +83,10 @@ function mapSnapshot(
       // Only a store-backed flag can be toggled, and only when the host
       // actually wired a mutation seam — a read-only bridge never lies about
       // mutability. `updatedAt` is omitted: the backend records no such field.
-      mutable: flag.source === "store" && mutationSeamProvided,
+      // Snapshot-level health also gates this: `AsyncFlags` keeps serving
+      // last-known-good rows with `source: 'store'` while degraded, and a
+      // write against an unavailable store cannot be trusted to land.
+      mutable: flag.source === "store" && mutationSeamProvided && snapshot.health === "ok",
     };
   });
 
@@ -103,7 +110,7 @@ export function createFeatureFlagsAdapter(
 
   const adapter: AdminFeatureFlagsAdapter = {
     async list() {
-      const snapshot = await flags.snapshot();
+      const snapshot = await flags.loadSnapshot();
       return validateAdminFeatureFlagsSnapshot(
         mapSnapshot(snapshot, registry, Boolean(setEnabled)),
       );
@@ -115,9 +122,11 @@ export function createFeatureFlagsAdapter(
       ...adapter,
       async setEnabled(input) {
         // Enforce the mutability contract list() reports: only store-sourced
-        // flags are writable; env/default-sourced flags must be rejected, not
-        // forwarded to the host write seam.
-        const before = await flags.snapshot();
+        // flags on a healthy snapshot are writable; env/default-sourced
+        // flags, and any flag read from a degraded (store-unavailable)
+        // snapshot, must be rejected rather than forwarded to the host write
+        // seam.
+        const before = await flags.loadSnapshot();
         const current = before.all().find((flag) => flag.key === input.key);
         if (!current) {
           throw new Error(`Unknown feature flag: ${input.key}`);
@@ -127,10 +136,15 @@ export function createFeatureFlagsAdapter(
             `Feature flag ${input.key} is not mutable (source: ${current.source})`,
           );
         }
+        if (before.health !== 'ok') {
+          throw new Error(
+            `Feature flag ${input.key} is not mutable (store health: ${before.health})`,
+          );
+        }
         await setEnabled(input);
         // Re-evaluate rather than assume the write applied cleanly — a
         // store-error policy or env override could still shadow it.
-        const snapshot = await flags.snapshot();
+        const snapshot = await flags.loadSnapshot();
         const mapped = mapSnapshot(snapshot, registry, true);
         const updated = mapped.flags.find((flag) => flag.key === input.key);
         if (!updated) {

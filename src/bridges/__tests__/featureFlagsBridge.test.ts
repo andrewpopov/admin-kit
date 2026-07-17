@@ -12,7 +12,7 @@ function makeSnapshot(
 describe("createFeatureFlagsAdapter", () => {
   it("maps ok health to healthy with no detail", async () => {
     const adapter = createFeatureFlagsAdapter({
-      flags: { snapshot: () => makeSnapshot([]) },
+      flags: { loadSnapshot: () => makeSnapshot([]) },
       registry: [],
     });
 
@@ -23,7 +23,7 @@ describe("createFeatureFlagsAdapter", () => {
 
   it("maps store-unavailable health to unavailable with a detail", async () => {
     const adapter = createFeatureFlagsAdapter({
-      flags: { snapshot: () => makeSnapshot([], "store-unavailable") },
+      flags: { loadSnapshot: () => makeSnapshot([], "store-unavailable") },
       registry: [],
     });
 
@@ -35,7 +35,7 @@ describe("createFeatureFlagsAdapter", () => {
   it("joins label/description from the registry by key, falling back to the key", async () => {
     const adapter = createFeatureFlagsAdapter({
       flags: {
-        snapshot: () =>
+        loadSnapshot: () =>
           makeSnapshot([
             { key: "new-checkout", enabled: true, source: "store", health: "ok" },
             { key: "undocumented-flag", enabled: false, source: "default", health: "ok" },
@@ -62,14 +62,14 @@ describe("createFeatureFlagsAdapter", () => {
     ];
 
     const withoutSeam = createFeatureFlagsAdapter({
-      flags: { snapshot: () => makeSnapshot(flags) },
+      flags: { loadSnapshot: () => makeSnapshot(flags) },
       registry: [],
     });
     const withoutSeamSnapshot = await withoutSeam.list();
     expect(withoutSeamSnapshot.flags.every((f) => f.mutable === false)).toBe(true);
 
     const withSeam = createFeatureFlagsAdapter({
-      flags: { snapshot: () => makeSnapshot(flags) },
+      flags: { loadSnapshot: () => makeSnapshot(flags) },
       registry: [],
       setEnabled: () => {},
     });
@@ -82,7 +82,7 @@ describe("createFeatureFlagsAdapter", () => {
     let stored = false;
     const adapter = createFeatureFlagsAdapter({
       flags: {
-        snapshot: () =>
+        loadSnapshot: () =>
           makeSnapshot([{ key: "toggle-me", enabled: stored, source: "store", health: "ok" }]),
       },
       registry: [{ key: "toggle-me", label: "Toggle me" }],
@@ -102,7 +102,7 @@ describe("createFeatureFlagsAdapter", () => {
 
   it("throws when setEnabled targets a key absent from the re-evaluated snapshot", async () => {
     const adapter = createFeatureFlagsAdapter({
-      flags: { snapshot: () => makeSnapshot([]) },
+      flags: { loadSnapshot: () => makeSnapshot([]) },
       registry: [],
       setEnabled: () => {},
     });
@@ -114,7 +114,7 @@ describe("createFeatureFlagsAdapter", () => {
     let writes = 0;
     const adapter = createFeatureFlagsAdapter({
       flags: {
-        snapshot: () =>
+        loadSnapshot: () =>
           makeSnapshot([{ key: "env-flag", enabled: true, source: "environment", health: "ok" }]),
       },
       registry: [{ key: "env-flag", label: "Env flag" }],
@@ -124,6 +124,47 @@ describe("createFeatureFlagsAdapter", () => {
     });
 
     await expect(adapter.setEnabled!({ key: "env-flag", enabled: false })).rejects.toThrow(
+      /not mutable/i,
+    );
+    expect(writes).toBe(0);
+  });
+
+  it("is not mutable for a store-sourced flag served from a degraded (store-unavailable) snapshot", async () => {
+    // Mirrors AsyncFlags: last-known-good rows keep source 'store' while the
+    // snapshot's overall health degrades to 'store-unavailable'.
+    const adapter = createFeatureFlagsAdapter({
+      flags: {
+        loadSnapshot: () =>
+          makeSnapshot(
+            [{ key: "store-flag", enabled: true, source: "store", health: "store-unavailable" }],
+            "store-unavailable",
+          ),
+      },
+      registry: [],
+      setEnabled: () => {},
+    });
+
+    const snapshot = await adapter.list();
+    expect(snapshot.flags.find((f) => f.key === "store-flag")!.mutable).toBe(false);
+  });
+
+  it("rejects setEnabled on a store-sourced flag from a degraded snapshot without invoking the write seam", async () => {
+    let writes = 0;
+    const adapter = createFeatureFlagsAdapter({
+      flags: {
+        loadSnapshot: () =>
+          makeSnapshot(
+            [{ key: "store-flag", enabled: true, source: "store", health: "store-unavailable" }],
+            "store-unavailable",
+          ),
+      },
+      registry: [{ key: "store-flag", label: "Store flag" }],
+      setEnabled: () => {
+        writes += 1;
+      },
+    });
+
+    await expect(adapter.setEnabled!({ key: "store-flag", enabled: false })).rejects.toThrow(
       /not mutable/i,
     );
     expect(writes).toBe(0);

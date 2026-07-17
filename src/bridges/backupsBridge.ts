@@ -10,6 +10,11 @@ export interface ForeignBackupEntry {
   sizeBytes: number;
   retentionReason?: string;
   retentionLabel?: string;
+  /** Mirrors db-backup's `BackupEntry.state`. Absent means `'completed'` —
+   * every entry predating this field was already a finished artifact. */
+  state?: "completed" | "running" | "failed";
+  /** Mirrors db-backup's `BackupEntry.error`: `'failed'` marker rows only. */
+  error?: string;
 }
 
 export interface CreateBackupsAdapterOptions {
@@ -22,8 +27,29 @@ export interface CreateBackupsAdapterOptions {
   listBackups: () => readonly ForeignBackupEntry[] | Promise<readonly ForeignBackupEntry[]>;
   /** Wire to `runBackupJob`/`runBackupJobAsync`. Omit to make the action absent. */
   runBackup?: () => void | Promise<void>;
-  /** Wire to `restoreBackup`. Omit to make the action absent. */
+  /** Wire to `restoreBackup`. Omit to make the action absent. Never invoked
+   * for a non-`'completed'` entry — `restore.execute` refuses those itself
+   * with a {@link BackupNotRestorableError} before reaching this seam. */
   restoreBackup?: (input: { backupId: string }) => void | Promise<void>;
+}
+
+/** Thrown by `restore.execute` when the target entry is not `'completed'` —
+ * a running or failed job has no on-disk artifact to restore from, so the
+ * request is refused before ever reaching `restoreBackup`. */
+export class BackupNotRestorableError extends Error {
+  readonly backupId: string;
+  readonly state: "running" | "failed" | "unknown";
+
+  constructor(backupId: string, state: "running" | "failed" | "unknown") {
+    super(
+      state === "unknown"
+        ? `Backup ${backupId} is not restorable: no such backup exists.`
+        : `Backup ${backupId} is not restorable (state: ${state}).`,
+    );
+    this.name = "BackupNotRestorableError";
+    this.backupId = backupId;
+    this.state = state;
+  }
 }
 
 const BYTE_UNITS = ["B", "KB", "MB", "GB", "TB"] as const;
@@ -52,11 +78,10 @@ function mapEntry(entry: ForeignBackupEntry): AdminBackupSummary {
     label: labelFromFileName(entry.fileName),
     createdAt: entry.createdAt,
     size: formatSize(entry.sizeBytes),
-    // db-backup's BackupEntry cannot represent an in-progress or failed run —
-    // every entry it returns already succeeded and is on disk. Tracked as
-    // PKG-28: surface running/failed state once db-backup exposes job status.
-    state: "completed",
-    detail: entry.retentionLabel ?? entry.retentionReason,
+    // Absent state means 'completed' for back-compat with entries that
+    // predate db-backup's state/error fields.
+    state: entry.state ?? "completed",
+    detail: entry.error ?? entry.retentionLabel ?? entry.retentionReason,
   };
 }
 
@@ -71,8 +96,12 @@ export function createBackupsAdapter(
   const adapter: AdminBackupsAdapter = {
     async list(query = {}) {
       const all = await options.listBackups();
-      const page = Math.max(1, Math.floor(query.page ?? 1));
-      const pageSize = Math.max(1, Math.floor(query.pageSize ?? (all.length || 1)));
+      const rawPage = query.page ?? 1;
+      const rawPageSize = query.pageSize ?? (all.length || 1);
+      const page = Number.isFinite(rawPage) ? Math.max(1, Math.floor(rawPage)) : 1;
+      const pageSize = Number.isFinite(rawPageSize)
+        ? Math.max(1, Math.floor(rawPageSize))
+        : all.length || 1;
       const start = (page - 1) * pageSize;
       const items = all.slice(start, start + pageSize).map(mapEntry);
       return { items, page, pageSize, total: all.length };
@@ -88,6 +117,15 @@ export function createBackupsAdapter(
       ? {
           restore: {
             execute: async (input: { backupId: string }) => {
+              const all = await options.listBackups();
+              const entry = all.find((candidate) => candidate.fileName === input.backupId);
+              // Absence must refuse, not default to `'completed'`: a
+              // missing entry could not have produced a restorable
+              // artifact, so treat it distinctly from a known-completed one.
+              const state = entry ? entry.state ?? "completed" : "unknown";
+              if (state !== "completed") {
+                throw new BackupNotRestorableError(input.backupId, state);
+              }
               await options.restoreBackup!(input);
             },
           },

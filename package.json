@@ -1,6 +1,6 @@
 {
   "name": "@andrewpopov/admin-kit",
-  "version": "0.25.0",
+  "version": "0.26.0",
   "description": "Router-neutral, capability-driven React admin UI primitives. Apps own routes, transport, policy, authorization enforcement, and custom sections.",
   "author": "Andrew Popov",
   "license": "MIT",
@@ -55,7 +55,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:browser": "npm run build && playwright test",
+    "test:browser": "npm run build && node scripts/render-browser-fixture.mjs && playwright test",
     "verify:pack": "node scripts/verify-pack.mjs"
   },
   "peerDependencies": {

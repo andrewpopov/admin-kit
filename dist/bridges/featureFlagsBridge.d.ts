@@ -31,12 +31,16 @@ export interface ForeignFlagDefinition {
 }
 export interface CreateFeatureFlagsAdapterOptions {
     /**
-     * Reads the current snapshot. For `SyncFlags` pass `() => flags.snapshot()`;
-     * for `AsyncFlags` pass `() => flags.loadSnapshot()` so every `list()` call
-     * observes a fresh read rather than a stale cache.
+     * Reads a FRESH snapshot — never a cached one. For `SyncFlags` pass
+     * `() => flags.snapshot()` (every call already re-evaluates); for
+     * `AsyncFlags` pass `() => flags.loadSnapshot()`, NOT `() =>
+     * flags.snapshot()` — the latter serves `AsyncFlags`'s cached
+     * last-known-good snapshot, so both `list()` and the post-write re-read in
+     * `setEnabled` would silently observe a stale value instead of the write
+     * that was just made.
      */
     flags: {
-        snapshot(): ForeignFlagSnapshot | Promise<ForeignFlagSnapshot>;
+        loadSnapshot(): ForeignFlagSnapshot | Promise<ForeignFlagSnapshot>;
     };
     registry: readonly ForeignFlagDefinition[];
     /**

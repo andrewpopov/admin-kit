@@ -12,8 +12,14 @@ exports.validateAdminApiKeyCreated = validateAdminApiKeyCreated;
 function resolveAdminApiKeyState(key, now = new Date()) {
     if (key.revokedAt || key.state === "revoked")
         return "revoked";
-    if (key.expiresAt && new Date(key.expiresAt).getTime() <= now.getTime()) {
-        return "expired";
+    if (key.expiresAt) {
+        const expiresAtMs = new Date(key.expiresAt).getTime();
+        // An unparseable expiresAt must never present as active: invalid must
+        // never present as valid, matching the fold in apiKeysBridge.ts.
+        if (Number.isNaN(expiresAtMs))
+            return "revoked";
+        if (expiresAtMs <= now.getTime())
+            return "expired";
     }
     return key.state === "expired" ? "expired" : "active";
 }
@@ -31,6 +37,18 @@ function validateAdminApiKeys(keys) {
             throw new Error(`API key ${key.id} needs masked display material.`);
         if (!["active", "revoked", "expired"].includes(key.state)) {
             throw new Error(`API key ${key.id} has an invalid lifecycle state.`);
+        }
+        if (key.revokedAt && key.state !== "revoked") {
+            throw new Error(`API key ${key.id} has a revokedAt but its state is not "revoked".`);
+        }
+        // A host may legitimately lag on marking a key "expired" once its
+        // expiresAt has simply passed — the panel derives that presentation via
+        // resolveAdminApiKeyState. But a resolved "revoked" (an unparseable
+        // expiresAt, or an explicit revokedAt caught above) must never be
+        // declared as anything other than "revoked": invalid must never present
+        // as valid.
+        if (resolveAdminApiKeyState(key) === "revoked" && key.state !== "revoked") {
+            throw new Error(`API key ${key.id} has a state inconsistent with its lifecycle timestamps.`);
         }
         if (ids.has(key.id))
             throw new Error(`Duplicate API key ID: ${key.id}.`);

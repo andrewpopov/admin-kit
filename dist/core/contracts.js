@@ -108,10 +108,22 @@ function defineAdminApp(definition) {
         }))),
     });
 }
-/** Normalizes arbitrary transport failures without coupling the package to fetch or an API envelope. */
+/**
+ * Normalizes arbitrary transport failures without coupling the package to
+ * fetch or an API envelope. `retryable` and `code` are only honored when the
+ * thrown value carries them (a boolean `retryable`, a string `code`);
+ * otherwise `retryable` defaults to `false` and `code` is left unset, since
+ * an unrecognized failure shape carries no evidence that retrying will help.
+ */
 function normalizeAdminFailure(error) {
-    if (error instanceof Error) {
-        return { message: error.message || 'The administration request failed.', retryable: true };
-    }
-    return { message: 'The administration request failed.', retryable: true };
+    const message = error instanceof Error && error.message
+        ? error.message
+        : 'The administration request failed.';
+    const retryable = typeof error?.retryable === 'boolean'
+        ? error.retryable
+        : false;
+    const code = typeof error?.code === 'string'
+        ? error.code
+        : undefined;
+    return { message, retryable, code };
 }

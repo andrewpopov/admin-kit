@@ -107,6 +107,7 @@ function BackupsPanel({ adapter, title = "Backups", runLabel = "Run backup", pag
         }
         catch (reason) {
             setError(reason instanceof Error ? reason.message : "Unable to restore backup.");
+            setRestoreTarget(undefined);
         }
         finally {
             setBusy(false);
@@ -143,7 +144,31 @@ function SettingsPanel({ adapter, title = "Settings", className }) {
     const [saving, setSaving] = (0, react_1.useState)(false);
     const [saved, setSaved] = (0, react_1.useState)(false);
     const [error, setError] = (0, react_1.useState)();
-    (0, react_1.useEffect)(() => { void adapter.load().then(next => { const loaded = Object.fromEntries(next.map(field => [field.id, field.value])); setFields(next); setValues(loaded); setInitialValues(loaded); }).catch(reason => setError(reason instanceof Error ? reason.message : "Unable to load settings.")); }, [adapter]);
+    const latestLoadId = (0, react_1.useRef)(0);
+    (0, react_1.useEffect)(() => {
+        const loadId = ++latestLoadId.current;
+        // A failed load under the new adapter must not fall through to
+        // displaying the previous adapter's fields.
+        setFields(undefined);
+        void adapter.load()
+            .then(next => {
+            if (loadId !== latestLoadId.current)
+                return;
+            const loaded = Object.fromEntries(next.map(field => [field.id, field.value]));
+            setFields(next);
+            setValues(loaded);
+            setInitialValues(loaded);
+        })
+            .catch(reason => {
+            if (loadId === latestLoadId.current)
+                setError(reason instanceof Error ? reason.message : "Unable to load settings.");
+        });
+        // Invalidate synchronously with the transition: without this, a request
+        // in flight for the previous adapter can still resolve and pass the
+        // `loadId === latestLoadId.current` check because the effect that would
+        // have bumped it for the new adapter hasn't started yet.
+        return () => { latestLoadId.current += 1; };
+    }, [adapter]);
     if (error && !fields)
         return (0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: error }, className: className });
     if (!fields)
