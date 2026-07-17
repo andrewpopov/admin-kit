@@ -12,7 +12,10 @@ const page = {
 };
 
 describe("EventsPanel", () => {
-  it("declares host-supported filtering, details, refresh, and paging", async () => {
+  // Five sequential interaction/waitFor cycles (search debounce, category,
+  // details, paging, refresh) legitimately run close to vitest's 5s default
+  // in jsdom; give the full journey explicit headroom.
+  it("declares host-supported filtering, details, refresh, and paging", { timeout: 15_000 }, async () => {
     const list = vi.fn().mockResolvedValue(page);
     render(<EventsPanel adapter={{ list, categories: [{ value: "security", label: "Security" }], outcomes: [{ value: "success", label: "Succeeded" }] }} search={{ placeholder: "Search events" }} pageSize={1} />);
     await screen.findByText("Sign-in succeeded");
