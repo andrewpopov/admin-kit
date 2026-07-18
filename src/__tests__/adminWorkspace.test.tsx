@@ -18,4 +18,11 @@ describe("AdminWorkspace", () => {
     expect(screen.getAllByRole("main")).toHaveLength(1);
     expect(screen.getByRole("region", { name: "Backups" })).toBeTruthy();
   });
+
+  it("omits the visible workspace title band when a nested panel owns the heading", () => {
+    const { container } = render(<AdminWorkspace showHeader={false} title="Users"><h2>Users</h2></AdminWorkspace>);
+    expect(screen.getByRole("heading", { name: "Users", level: 2 })).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Users" })).toBeTruthy();
+    expect(container.querySelector(".admin-kit__workspace-header")).toBeNull();
+  });
 });

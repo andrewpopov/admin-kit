@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.28.2
+
+### Added
+
+- `AdminWorkspace.showHeader` lets consumers omit the visible workspace title
+  band when a nested shared panel already provides the route heading. The
+  workspace keeps its shared spacing, card layout, landmarks, and accessible
+  content label.
+
 ## 0.28.1
 
 ### Changed
