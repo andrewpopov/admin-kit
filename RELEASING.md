@@ -9,6 +9,7 @@ npm run typecheck
 npm run test
 npm run test:browser
 npm run build
+npm run verify:dist-fresh
 npm run verify:pack
 npm audit --audit-level=high
 ```
