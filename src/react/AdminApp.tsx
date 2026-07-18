@@ -30,8 +30,8 @@ export interface AdminAppFrame {
 }
 
 export type AdminAppProps = WithAdminAppGroups<AdminPortalProps> & {
-  /** Required application-level framing for a complete Admin Kit screen. */
-  frame: AdminAppFrame;
+  /** Optional application-level framing; omit it when host chrome already supplies page identity. */
+  frame?: AdminAppFrame;
   theme?: AdminThemeName;
 };
 
@@ -43,13 +43,13 @@ export type AdminAppProps = WithAdminAppGroups<AdminPortalProps> & {
 export function AdminApp({ frame, theme, className, ...portalProps }: AdminAppProps) {
   defineAdminApp({ groups: portalProps.groups });
   return <AdminTheme as="section" className="admin-kit__app" theme={theme}>
-    <header className="admin-kit__app-header">
-      <div>
-        <h1>{frame.title}</h1>
-        {frame.description ? <p>{frame.description}</p> : null}
-      </div>
-      {frame.actions ? <div className="admin-kit__app-actions">{frame.actions}</div> : null}
-    </header>
+    {frame ? <header className="admin-kit__app-header">
+        <div>
+          <h1>{frame.title}</h1>
+          {frame.description ? <p>{frame.description}</p> : null}
+        </div>
+        {frame.actions ? <div className="admin-kit__app-actions">{frame.actions}</div> : null}
+      </header> : null}
     <AdminPortal {...portalProps} className={["admin-kit__app-portal", className].filter(Boolean).join(" ")} groups={portalProps.groups} />
   </AdminTheme>;
 }

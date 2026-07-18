@@ -61,7 +61,7 @@ describe('admin-kit-conformance', () => {
     expect(result.stderr).toContain('src/app.css: do not override Admin Kit core tokens');
   });
 
-  it('rejects a frameless non-self-closing AdminApp even when a child element has frame=', () => {
+  it('accepts a frameless AdminApp when host chrome supplies page identity', () => {
     const root = createConsumerFixture();
     writeFileSync(
       join(root, 'src', 'app', 'main.tsx'),
@@ -79,8 +79,8 @@ describe('admin-kit-conformance', () => {
 
     const result = runConformance(root);
 
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain('AdminApp requires frame={{ title, description? }}');
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('[admin-kit-conformance] PASS');
   });
 
   it('accepts a framed AdminApp', () => {

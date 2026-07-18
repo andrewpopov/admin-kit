@@ -134,7 +134,7 @@ describe('AdminPortal', () => {
 });
 
 describe('AdminApp', () => {
-  it('uses the portal interaction contract while requiring a capability registry', () => {
+  it('uses the portal interaction contract while preserving an explicit application frame', () => {
     render(
       <AdminApp
         frame={{ title: 'Administration', description: 'Manage access and operations.' }}
@@ -151,5 +151,22 @@ describe('AdminApp', () => {
     expect(screen.getByText('User content')).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Administration' })).toBeTruthy();
     expect(screen.getByText('Manage access and operations.')).toBeTruthy();
+  });
+
+  it('omits the application masthead when host chrome already supplies page identity', () => {
+    const { container } = render(
+      <AdminApp
+        activeSection="users"
+        groups={[{
+          id: 'core',
+          label: 'Core administration',
+          sections: [{ id: 'users', label: 'Users', capability: 'users', render: () => <p>User content</p> }],
+        }]}
+        onSectionChange={() => undefined}
+      />,
+    );
+
+    expect(screen.getByText('User content')).toBeTruthy();
+    expect(container.querySelector('.admin-kit__app-header')).toBeNull();
   });
 });
