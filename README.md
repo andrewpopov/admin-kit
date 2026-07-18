@@ -536,6 +536,11 @@ default. If the host page already owns the sole `main`, use `as="section"` so
 landmarks remain valid. Put dense records in tables and put health facts in
 `AdminStatusSummary` rather than creating one-off metric cards.
 
+Set `showHeader={false}` when the nested shared panel already supplies the
+visible route heading and repeating the workspace title would waste vertical
+space. `title` remains required as the workspace content's accessible label;
+the route must still provide its single `h1`, which may be visually hidden.
+
 Use `AdminActionButton` for actions supplied through a host-owned workspace,
 toolbar, or render callback. `tone="primary"` is for the one dominant action
 on a view, `tone="danger"` is for destructive actions, and the default neutral
