@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SettingsPanel = exports.OperationalJobsPanel = exports.BackupsPanel = exports.AdminStatusSummary = exports.SessionsPanel = exports.LogsPanel = exports.MembershipsPanel = exports.EventsPanel = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminSwitch = exports.AdminStack = exports.AdminField = exports.AdminCard = exports.AdminTheme = exports.AdminWorkspace = exports.AdminPanelStateView = exports.AdminPortal = exports.AdminConsole = exports.AdminAppShell = exports.AdminApp = exports.AdminConfirmationDialog = exports.AdminActionButton = void 0;
+exports.SettingsPanel = exports.OperationalJobsPanel = exports.BackupsPanel = exports.AdminStatusSummary = exports.SessionsPanel = exports.LogsPanel = exports.MembershipsPanel = exports.EventsPanel = exports.AdminApiKeyForm = exports.AdminScopePicker = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminSwitch = exports.AdminStack = exports.AdminField = exports.AdminCard = exports.AdminTheme = exports.AdminWorkspace = exports.AdminPanelStateView = exports.AdminPortal = exports.AdminConsole = exports.AdminAppShell = exports.AdminApp = exports.AdminConfirmationDialog = exports.AdminActionButton = void 0;
 var AdminActionButton_1 = require("./AdminActionButton");
 Object.defineProperty(exports, "AdminActionButton", { enumerable: true, get: function () { return AdminActionButton_1.AdminActionButton; } });
 var AdminConfirmationDialog_1 = require("./AdminConfirmationDialog");
@@ -30,6 +30,10 @@ var FeatureFlagsPanel_1 = require("./FeatureFlagsPanel");
 Object.defineProperty(exports, "FeatureFlagsPanel", { enumerable: true, get: function () { return FeatureFlagsPanel_1.FeatureFlagsPanel; } });
 var ApiKeysPanel_1 = require("./ApiKeysPanel");
 Object.defineProperty(exports, "ApiKeysPanel", { enumerable: true, get: function () { return ApiKeysPanel_1.ApiKeysPanel; } });
+var AdminScopePicker_1 = require("./AdminScopePicker");
+Object.defineProperty(exports, "AdminScopePicker", { enumerable: true, get: function () { return AdminScopePicker_1.AdminScopePicker; } });
+var AdminApiKeyForm_1 = require("./AdminApiKeyForm");
+Object.defineProperty(exports, "AdminApiKeyForm", { enumerable: true, get: function () { return AdminApiKeyForm_1.AdminApiKeyForm; } });
 var EventsPanel_1 = require("./EventsPanel");
 Object.defineProperty(exports, "EventsPanel", { enumerable: true, get: function () { return EventsPanel_1.EventsPanel; } });
 var MembershipsPanel_1 = require("./MembershipsPanel");

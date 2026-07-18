@@ -24,6 +24,38 @@ export interface AdminApiKeyDetail {
     label: string;
     value: string;
 }
+/** One selectable scope in a host-supplied credential vocabulary. */
+export interface AdminScopeOption {
+    value: string;
+    label: string;
+    description?: string;
+}
+/**
+ * A host-defined group of related scopes, presented together by
+ * `AdminScopePicker`. The kit never interprets scope strings; hosts own the
+ * vocabulary and its enforcement.
+ */
+export interface AdminScopeGroup {
+    id: string;
+    label: string;
+    description?: string;
+    scopes: readonly AdminScopeOption[];
+}
+/**
+ * The request the built-in create flow emits. Hosts that opt into the kit's
+ * scope-aware create form receive this shape at `adapter.create`; hosts using
+ * the generic render-prop escape hatch keep their own `CreateInput`.
+ */
+export interface AdminApiKeyCreateRequest {
+    name: string;
+    /** Positive day count, or `null`/omitted for a non-expiring credential. */
+    expiresInDays?: number | null;
+    scopes: readonly string[];
+}
+/** The request the built-in edit flow emits — scopes only, never a re-issue. */
+export interface AdminApiKeyScopeUpdate {
+    scopes: readonly string[];
+}
 /** The only boundary where a raw secret may enter the package. */
 export interface AdminApiKeyCreated {
     key: AdminApiKey;
@@ -47,3 +79,7 @@ export declare function defineAdminApiKeysAdapter<CreateInput = never, UpdateInp
 export declare function validateAdminApiKeys(keys: readonly AdminApiKey[]): readonly AdminApiKey[];
 /** Validates the only response shape that may carry a raw one-time secret. */
 export declare function validateAdminApiKeyCreated(created: AdminApiKeyCreated): AdminApiKeyCreated;
+/** Validates the built-in create flow's request (non-empty name, clean scopes). */
+export declare function validateAdminApiKeyCreateRequest(request: AdminApiKeyCreateRequest): AdminApiKeyCreateRequest;
+/** Validates the built-in edit flow's scope-only update. */
+export declare function validateAdminApiKeyScopeUpdate(update: AdminApiKeyScopeUpdate): AdminApiKeyScopeUpdate;

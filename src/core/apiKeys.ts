@@ -41,6 +41,42 @@ export interface AdminApiKeyDetail {
   value: string;
 }
 
+/** One selectable scope in a host-supplied credential vocabulary. */
+export interface AdminScopeOption {
+  value: string;
+  label: string;
+  description?: string;
+}
+
+/**
+ * A host-defined group of related scopes, presented together by
+ * `AdminScopePicker`. The kit never interprets scope strings; hosts own the
+ * vocabulary and its enforcement.
+ */
+export interface AdminScopeGroup {
+  id: string;
+  label: string;
+  description?: string;
+  scopes: readonly AdminScopeOption[];
+}
+
+/**
+ * The request the built-in create flow emits. Hosts that opt into the kit's
+ * scope-aware create form receive this shape at `adapter.create`; hosts using
+ * the generic render-prop escape hatch keep their own `CreateInput`.
+ */
+export interface AdminApiKeyCreateRequest {
+  name: string;
+  /** Positive day count, or `null`/omitted for a non-expiring credential. */
+  expiresInDays?: number | null;
+  scopes: readonly string[];
+}
+
+/** The request the built-in edit flow emits — scopes only, never a re-issue. */
+export interface AdminApiKeyScopeUpdate {
+  scopes: readonly string[];
+}
+
 /** The only boundary where a raw secret may enter the package. */
 export interface AdminApiKeyCreated {
   key: AdminApiKey;
@@ -112,5 +148,75 @@ export function validateAdminApiKeyCreated(
   return Object.freeze({
     key: validateAdminApiKeys([created.key])[0]!,
     secret: created.secret,
+  });
+}
+
+/**
+ * Normalizes a scope selection for the built-in flows: every entry must be a
+ * non-empty string, duplicates are dropped (order preserved), and the result
+ * is frozen. Shared by the create and edit request validators.
+ */
+function validateAdminApiKeyScopes(
+  scopes: readonly string[],
+  context: string,
+): readonly string[] {
+  if (!Array.isArray(scopes)) {
+    throw new Error(`${context} must be an array of scope strings.`);
+  }
+  const seen = new Set<string>();
+  const deduped: string[] = [];
+  for (const scope of scopes) {
+    if (typeof scope !== "string" || !scope.trim()) {
+      throw new Error(`${context} must contain only non-empty scope strings.`);
+    }
+    if (!seen.has(scope)) {
+      seen.add(scope);
+      deduped.push(scope);
+    }
+  }
+  return Object.freeze(deduped);
+}
+
+/** Validates the built-in create flow's request (non-empty name, clean scopes). */
+export function validateAdminApiKeyCreateRequest(
+  request: AdminApiKeyCreateRequest,
+): AdminApiKeyCreateRequest {
+  if (!request.name.trim()) {
+    throw new Error("A new API key needs a name.");
+  }
+  const { expiresInDays } = request;
+  // Documented contract: undefined/null (non-expiring) or a positive whole
+  // number of days. Reject 0, negatives, fractions, NaN, and non-numbers so an
+  // invalid expiry never reaches the host adapter.
+  if (
+    expiresInDays !== undefined &&
+    expiresInDays !== null &&
+    (typeof expiresInDays !== "number" ||
+      !Number.isInteger(expiresInDays) ||
+      expiresInDays <= 0)
+  ) {
+    throw new Error(
+      "API key expiry must be a positive whole number of days, or null.",
+    );
+  }
+  return Object.freeze({
+    name: request.name,
+    expiresInDays: request.expiresInDays,
+    scopes: validateAdminApiKeyScopes(
+      request.scopes,
+      "API key create request scopes",
+    ),
+  });
+}
+
+/** Validates the built-in edit flow's scope-only update. */
+export function validateAdminApiKeyScopeUpdate(
+  update: AdminApiKeyScopeUpdate,
+): AdminApiKeyScopeUpdate {
+  return Object.freeze({
+    scopes: validateAdminApiKeyScopes(
+      update.scopes,
+      "API key scope update scopes",
+    ),
   });
 }

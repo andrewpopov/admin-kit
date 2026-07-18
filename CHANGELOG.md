@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.28.0
+
+### Added
+
+- `AdminScopePicker` — a controlled, grouped scope selector for host-owned
+  credential forms. Hosts supply the vocabulary (`AdminScopeGroup[]`) and own
+  the selection state; the picker reports the next selection and never
+  interprets scope strings.
+- `AdminApiKeyForm` — a single form behind both the create and edit flows
+  (name/expiry/scopes for create, scopes-only for edit), so consumers do not
+  reimplement credential forms.
+- `ApiKeysPanel` accepts an optional `scopeGroups` prop. When provided, the
+  panel renders its own collapsible "create key" card and an inline per-key
+  scope editor (wired to `adapter.create`/`adapter.update`), using
+  `AdminApiKeyForm`. `renderCreate`/`renderEdit`/`renderKeys` remain as escape
+  hatches and still win when passed. The built-in edit affordance appears only
+  when the adapter exposes `update`.
+- `AdminApiKeyCreateRequest`, `AdminApiKeyScopeUpdate` request types and their
+  `validateAdminApiKeyCreateRequest` / `validateAdminApiKeyScopeUpdate`
+  validators. In `scopeGroups` (built-in) mode the panel's props are a
+  discriminated union that requires an adapter typed to these request shapes,
+  so a mismatched adapter is a compile error rather than a runtime break.
+
+### Changed
+
+- The default `ApiKeysPanel` key list (the `renderKeys`-absent branch) now
+  renders as a table (identity, scope chips, state pill, timestamps, actions)
+  consistent with the other panels, replacing the previous plain list. Hosts
+  using `renderKeys` are unaffected.
+
 ## 0.27.1
 
 ### Fixed

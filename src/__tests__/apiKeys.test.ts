@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { resolveAdminApiKeyState, validateAdminApiKeys } from "../core";
+import {
+  resolveAdminApiKeyState,
+  validateAdminApiKeyCreateRequest,
+  validateAdminApiKeyScopeUpdate,
+  validateAdminApiKeys,
+} from "../core";
 
 describe("resolveAdminApiKeyState", () => {
   it("resolves an unparseable expiresAt to revoked, never active", () => {
@@ -61,5 +66,41 @@ describe("validateAdminApiKeys", () => {
       { ...base, state: "active", expiresAt: "2000-01-01T00:00:00.000Z" },
     ]);
     expect(validated[0]?.state).toBe("active");
+  });
+});
+
+describe("validateAdminApiKeyCreateRequest", () => {
+  it("requires a non-empty name", () => {
+    expect(() => validateAdminApiKeyCreateRequest({ name: "  ", scopes: [] })).toThrow(/needs a name/);
+  });
+
+  it("normalizes scopes: rejects blanks, dedupes, and preserves order", () => {
+    expect(
+      validateAdminApiKeyCreateRequest({ name: "CLI", scopes: ["b", "a", "b"] }).scopes,
+    ).toEqual(["b", "a"]);
+    expect(() =>
+      validateAdminApiKeyCreateRequest({ name: "CLI", scopes: ["a", ""] }),
+    ).toThrow(/non-empty scope strings/);
+  });
+
+  it("accepts undefined, null, and a positive integer expiry", () => {
+    expect(validateAdminApiKeyCreateRequest({ name: "CLI", scopes: [] }).expiresInDays).toBeUndefined();
+    expect(validateAdminApiKeyCreateRequest({ name: "CLI", scopes: [], expiresInDays: null }).expiresInDays).toBeNull();
+    expect(validateAdminApiKeyCreateRequest({ name: "CLI", scopes: [], expiresInDays: 90 }).expiresInDays).toBe(90);
+  });
+
+  it("rejects 0, negatives, fractions, and NaN expiry", () => {
+    for (const bad of [0, -1, 1.5, Number.NaN]) {
+      expect(() =>
+        validateAdminApiKeyCreateRequest({ name: "CLI", scopes: [], expiresInDays: bad }),
+      ).toThrow(/positive whole number of days/);
+    }
+  });
+});
+
+describe("validateAdminApiKeyScopeUpdate", () => {
+  it("normalizes scopes and rejects blank entries", () => {
+    expect(validateAdminApiKeyScopeUpdate({ scopes: ["a", "a", "b"] }).scopes).toEqual(["a", "b"]);
+    expect(() => validateAdminApiKeyScopeUpdate({ scopes: [" "] })).toThrow(/non-empty scope strings/);
   });
 });

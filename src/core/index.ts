@@ -45,12 +45,18 @@ export {
   defineAdminApiKeysAdapter,
   resolveAdminApiKeyState,
   validateAdminApiKeyCreated,
+  validateAdminApiKeyCreateRequest,
+  validateAdminApiKeyScopeUpdate,
   validateAdminApiKeys,
   type AdminApiKey,
   type AdminApiKeyDetail,
   type AdminApiKeyCreated,
+  type AdminApiKeyCreateRequest,
+  type AdminApiKeyScopeUpdate,
   type AdminApiKeysAdapter,
   type AdminApiKeyState,
+  type AdminScopeGroup,
+  type AdminScopeOption,
 } from "./apiKeys";
 export {
   deriveAdminApiKeysPosture,
