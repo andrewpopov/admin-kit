@@ -11,6 +11,8 @@ export { AdminCard, type AdminCardProps, AdminField, type AdminFieldProps, Admin
 export { UsersPanel, type AdminUserTableCellContext, type AdminUserTableColumn, type AdminUserTableSort, type UsersPanelProps, } from "./UsersPanel";
 export { FeatureFlagsPanel, type FeatureFlagsPanelProps, } from "./FeatureFlagsPanel";
 export { ApiKeysPanel, type ApiKeysPanelProps } from "./ApiKeysPanel";
+export { AdminScopePicker, type AdminScopePickerProps } from "./AdminScopePicker";
+export { AdminApiKeyForm, type AdminApiKeyFormProps } from "./AdminApiKeyForm";
 export { EventsPanel, type EventsPanelProps } from "./EventsPanel";
 export { MembershipsPanel, type MembershipsPanelProps } from "./MembershipsPanel";
 export { LogsPanel, type LogsPanelProps } from "./LogsPanel";

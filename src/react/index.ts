@@ -56,6 +56,8 @@ export {
   type FeatureFlagsPanelProps,
 } from "./FeatureFlagsPanel";
 export { ApiKeysPanel, type ApiKeysPanelProps } from "./ApiKeysPanel";
+export { AdminScopePicker, type AdminScopePickerProps } from "./AdminScopePicker";
+export { AdminApiKeyForm, type AdminApiKeyFormProps } from "./AdminApiKeyForm";
 export { EventsPanel, type EventsPanelProps } from "./EventsPanel";
 export { MembershipsPanel, type MembershipsPanelProps } from "./MembershipsPanel";
 export { LogsPanel, type LogsPanelProps } from "./LogsPanel";

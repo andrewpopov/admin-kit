@@ -1,32 +1,9 @@
-import { type ReactNode } from "react";
-import { type AdminApiKey, type AdminApiKeyQueueItem, type AdminApiKeysAdapter, type AdminApiKeysPosture, type AdminApiKeysSummary } from "../core";
-export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
-    adapter: AdminApiKeysAdapter<CreateInput, UpdateInput>;
+import { type ReactElement, type ReactNode } from "react";
+import { type AdminApiKey, type AdminApiKeyCreateRequest, type AdminApiKeyQueueItem, type AdminApiKeysAdapter, type AdminApiKeyScopeUpdate, type AdminApiKeysPosture, type AdminApiKeysSummary, type AdminScopeGroup } from "../core";
+/** Props whose types never depend on the adapter's create/update shapes. */
+interface ApiKeysPanelSharedProps {
     /** Product vocabulary for credentials, such as "Personal access tokens". */
     title?: string;
-    createInput?: CreateInput;
-    renderCreate?: (controls: {
-        /** Resolves true only when the panel accepted and revealed the new secret. */
-        create: (input: CreateInput) => Promise<boolean>;
-        pending: boolean;
-    }) => ReactNode;
-    renderEdit?: (controls: {
-        key: AdminApiKey;
-        update: (input: UpdateInput) => Promise<boolean>;
-        pending: boolean;
-    }) => ReactNode;
-    /**
-     * Replaces the default list without moving lifecycle state or confirmation
-     * behavior into the host application. Use this when the product has
-     * domain-specific credential policy to present alongside each key.
-     */
-    renderKeys?: (controls: {
-        keys: readonly AdminApiKey[];
-        requestRevoke: (key: AdminApiKey) => void;
-        requestRotate?: (key: AdminApiKey) => void;
-        update?: (key: AdminApiKey, input: UpdateInput) => Promise<boolean>;
-        pendingKeyId?: string;
-    }) => ReactNode;
     /**
      * Renders a host-vocabulary posture/health summary above the create/list
      * regions; the kit derives the facts, the host owns copy and links.
@@ -52,5 +29,63 @@ export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
     /** Overrides the default timestamp presentation for lastUsedAt / expiresAt. */
     formatTimestamp?: (iso: string) => string;
 }
-/** Lists safe metadata and reveals a raw secret only from a create/rotate response. */
-export declare function ApiKeysPanel<CreateInput, UpdateInput = never>({ adapter, title, createInput, renderCreate, renderEdit, renderKeys, renderPosture, renderShortcuts, className, dialogClassName, formatTimestamp, }: ApiKeysPanelProps<CreateInput, UpdateInput>): import("react").JSX.Element;
+/** The adapter-shaped props and render-prop escape hatches, keyed to CreateInput/UpdateInput. */
+interface ApiKeysPanelDataProps<CreateInput, UpdateInput> {
+    adapter: AdminApiKeysAdapter<CreateInput, UpdateInput>;
+    createInput?: CreateInput;
+    renderCreate?: (controls: {
+        /** Resolves true only when the panel accepted and revealed the new secret. */
+        create: (input: CreateInput) => Promise<boolean>;
+        pending: boolean;
+    }) => ReactNode;
+    renderEdit?: (controls: {
+        key: AdminApiKey;
+        update: (input: UpdateInput) => Promise<boolean>;
+        pending: boolean;
+    }) => ReactNode;
+    /**
+     * Replaces the default list without moving lifecycle state or confirmation
+     * behavior into the host application. Use this when the product has
+     * domain-specific credential policy to present alongside each key.
+     */
+    renderKeys?: (controls: {
+        keys: readonly AdminApiKey[];
+        requestRevoke: (key: AdminApiKey) => void;
+        requestRotate?: (key: AdminApiKey) => void;
+        update?: (key: AdminApiKey, input: UpdateInput) => Promise<boolean>;
+        pendingKeyId?: string;
+    }) => ReactNode;
+}
+/**
+ * Generic/legacy mode: arbitrary `CreateInput`/`UpdateInput`, all the
+ * render-prop escape hatches, and no `scopeGroups`. Behaves exactly as the
+ * panel always has.
+ */
+type ApiKeysPanelGenericProps<CreateInput, UpdateInput = never> = ApiKeysPanelSharedProps & ApiKeysPanelDataProps<CreateInput, UpdateInput> & {
+    scopeGroups?: undefined;
+};
+/**
+ * Built-in mode: opting into the kit's scope-aware create + edit flows pins the
+ * adapter to the standard request shapes, so `create`/`update` are type-correct
+ * with no casts and a mismatched adapter is a compile error.
+ */
+type ApiKeysPanelBuiltinProps = ApiKeysPanelSharedProps & ApiKeysPanelDataProps<AdminApiKeyCreateRequest, AdminApiKeyScopeUpdate> & {
+    /**
+     * Provides the scope vocabulary for the collapsible create card and the
+     * inline per-key scope editor. `renderCreate`/`renderEdit`/`renderKeys`
+     * still win where provided.
+     */
+    scopeGroups: readonly AdminScopeGroup[];
+};
+export type ApiKeysPanelProps<CreateInput, UpdateInput = never> = ApiKeysPanelGenericProps<CreateInput, UpdateInput> | ApiKeysPanelBuiltinProps;
+/**
+ * Lists safe metadata and reveals a raw secret only from a create/rotate
+ * response. The public API is generic over the adapter's create/update input in
+ * legacy mode; passing `scopeGroups` switches to the built-in flows and pins the
+ * adapter to the standard request shapes (a mismatched adapter is a compile
+ * error). The generic props are specialized to those shapes for the concretely
+ * typed implementation — the two arms are otherwise identical, so this carries
+ * no runtime effect and no `unknown`/`any`.
+ */
+export declare function ApiKeysPanel<CreateInput, UpdateInput = never>(props: ApiKeysPanelProps<CreateInput, UpdateInput>): ReactElement;
+export {};

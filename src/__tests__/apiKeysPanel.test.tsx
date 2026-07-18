@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiKeysPanel } from "../react";
 
@@ -395,5 +395,140 @@ describe("ApiKeysPanel", () => {
     await screen.findByText("Automation");
     await expect(save?.(activeKey, { expiresAt: null })).resolves.toBe(true);
     expect(update).toHaveBeenCalledWith({ keyId: "key-1", update: { expiresAt: null } });
+  });
+});
+
+const scopeGroups = [
+  {
+    id: "library",
+    label: "Library",
+    scopes: [
+      { value: "library.read", label: "Read catalog" },
+      { value: "library.write", label: "Manage catalog" },
+    ],
+  },
+] as const;
+
+const scopedKey = {
+  id: "key-1",
+  name: "Automation",
+  maskedKey: "ak_…1234",
+  state: "active" as const,
+  scopes: ["library.read"],
+  createdAt: "2026-07-13T00:00:00.000Z",
+};
+
+describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
+  it("create card calls adapter.create with {name, expiresInDays, scopes}", async () => {
+    const create = vi.fn().mockResolvedValue({ key: scopedKey, secret: "made-once" });
+    render(
+      <ApiKeysPanel
+        scopeGroups={scopeGroups}
+        adapter={{ list: vi.fn().mockResolvedValue([scopedKey]), create, revoke: vi.fn() }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    const createCard = screen.getByText("Create a new key").closest("details") as HTMLElement;
+    const createForm = within(createCard);
+    fireEvent.change(createForm.getByLabelText("Name"), { target: { value: "CLI" } });
+    fireEvent.click(createForm.getByRole("checkbox", { name: /Manage catalog/ }));
+    fireEvent.click(createForm.getByRole("button", { name: "Create API key" }));
+
+    await waitFor(() =>
+      expect(create).toHaveBeenCalledWith({ name: "CLI", expiresInDays: 90, scopes: ["library.write"] }),
+    );
+    await screen.findByText("made-once");
+  });
+
+  it("opens the inline editor for one key at a time and closes it on Cancel", async () => {
+    render(
+      <ApiKeysPanel
+        scopeGroups={scopeGroups}
+        adapter={{ list: vi.fn().mockResolvedValue([scopedKey]), create: vi.fn(), revoke: vi.fn(), update: vi.fn() }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    expect(screen.queryByRole("region", { name: "Edit scopes for Automation" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    expect(screen.getByRole("region", { name: "Edit scopes for Automation" })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByRole("region", { name: "Edit scopes for Automation" })).toBeNull();
+  });
+
+  it("edit save calls adapter.update with {keyId, update:{scopes}} and reveals no secret", async () => {
+    const update = vi.fn().mockResolvedValue(scopedKey);
+    render(
+      <ApiKeysPanel
+        scopeGroups={scopeGroups}
+        adapter={{ list: vi.fn().mockResolvedValue([scopedKey]), create: vi.fn(), revoke: vi.fn(), update }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    const editor = within(screen.getByRole("region", { name: "Edit scopes for Automation" }));
+    // Seeded from the key's scopes: library.read checked. Add library.write.
+    expect((editor.getByRole("checkbox", { name: /Read catalog/ }) as HTMLInputElement).checked).toBe(true);
+    fireEvent.click(editor.getByRole("checkbox", { name: /Manage catalog/ }));
+    fireEvent.click(editor.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() =>
+      expect(update).toHaveBeenCalledWith({
+        keyId: "key-1",
+        update: { scopes: ["library.read", "library.write"] },
+      }),
+    );
+    // Editing scopes must never surface a one-time secret.
+    expect(screen.queryByText(/Copy this secret now/)).toBeNull();
+    // A successful save closes the editor.
+    await waitFor(() =>
+      expect(screen.queryByRole("region", { name: "Edit scopes for Automation" })).toBeNull(),
+    );
+  });
+
+  it("does not render the built-in Edit action when the adapter has no update", async () => {
+    render(
+      <ApiKeysPanel
+        scopeGroups={scopeGroups}
+        adapter={{ list: vi.fn().mockResolvedValue([scopedKey]), create: vi.fn(), revoke: vi.fn() }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    expect(screen.queryByRole("button", { name: "Edit" })).toBeNull();
+    // The rest of the active-row actions remain.
+    expect(screen.getByRole("button", { name: "Revoke" })).toBeTruthy();
+  });
+
+  it("renderEdit still overrides the built-in Edit action when both are provided", async () => {
+    const update = vi.fn().mockResolvedValue(scopedKey);
+    render(
+      <ApiKeysPanel
+        scopeGroups={scopeGroups}
+        adapter={{ list: vi.fn().mockResolvedValue([scopedKey]), create: vi.fn(), revoke: vi.fn(), update }}
+        renderEdit={({ key }) => <button type="button">Edit {key.name}</button>}
+      />,
+    );
+
+    await screen.findByRole("button", { name: "Edit Automation" });
+    expect(screen.queryByRole("button", { name: "Edit" })).toBeNull();
+  });
+
+  it("without scopeGroups the create control stays the plain button and no Edit action appears", async () => {
+    render(
+      <ApiKeysPanel
+        createInput={{ name: "Automation" }}
+        adapter={{ list: vi.fn().mockResolvedValue([scopedKey]), create: vi.fn(), revoke: vi.fn(), update: vi.fn() }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    expect(screen.getByRole("button", { name: "Create API key" })).toBeTruthy();
+    expect(screen.queryByText("Create a new key")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Edit" })).toBeNull();
   });
 });

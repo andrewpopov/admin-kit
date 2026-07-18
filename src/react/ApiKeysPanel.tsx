@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import {
   type AdminApiKey,
+  type AdminApiKeyCreateRequest,
   type AdminApiKeyQueueItem,
   type AdminApiKeysAdapter,
+  type AdminApiKeyScopeUpdate,
   type AdminApiKeysPosture,
   type AdminApiKeysSummary,
+  type AdminScopeGroup,
   deriveAdminApiKeysPosture,
   deriveAdminApiKeysQueue,
   formatAdminTimestamp,
@@ -13,36 +16,14 @@ import {
   validateAdminApiKeyCreated,
   validateAdminApiKeys,
 } from "../core";
+import { AdminApiKeyForm } from "./AdminApiKeyForm";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
 import { AdminPanelStateView } from "./AdminPanelState";
 
-export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
-  adapter: AdminApiKeysAdapter<CreateInput, UpdateInput>;
+/** Props whose types never depend on the adapter's create/update shapes. */
+interface ApiKeysPanelSharedProps {
   /** Product vocabulary for credentials, such as "Personal access tokens". */
   title?: string;
-  createInput?: CreateInput;
-  renderCreate?: (controls: {
-    /** Resolves true only when the panel accepted and revealed the new secret. */
-    create: (input: CreateInput) => Promise<boolean>;
-    pending: boolean;
-  }) => ReactNode;
-  renderEdit?: (controls: {
-    key: AdminApiKey;
-    update: (input: UpdateInput) => Promise<boolean>;
-    pending: boolean;
-  }) => ReactNode;
-  /**
-   * Replaces the default list without moving lifecycle state or confirmation
-   * behavior into the host application. Use this when the product has
-   * domain-specific credential policy to present alongside each key.
-   */
-  renderKeys?: (controls: {
-    keys: readonly AdminApiKey[];
-    requestRevoke: (key: AdminApiKey) => void;
-    requestRotate?: (key: AdminApiKey) => void;
-    update?: (key: AdminApiKey, input: UpdateInput) => Promise<boolean>;
-    pendingKeyId?: string;
-  }) => ReactNode;
   /**
    * Renders a host-vocabulary posture/health summary above the create/list
    * regions; the kit derives the facts, the host owns copy and links.
@@ -69,8 +50,71 @@ export interface ApiKeysPanelProps<CreateInput, UpdateInput = never> {
   formatTimestamp?: (iso: string) => string;
 }
 
-/** Lists safe metadata and reveals a raw secret only from a create/rotate response. */
-export function ApiKeysPanel<CreateInput, UpdateInput = never>({
+/** The adapter-shaped props and render-prop escape hatches, keyed to CreateInput/UpdateInput. */
+interface ApiKeysPanelDataProps<CreateInput, UpdateInput> {
+  adapter: AdminApiKeysAdapter<CreateInput, UpdateInput>;
+  createInput?: CreateInput;
+  renderCreate?: (controls: {
+    /** Resolves true only when the panel accepted and revealed the new secret. */
+    create: (input: CreateInput) => Promise<boolean>;
+    pending: boolean;
+  }) => ReactNode;
+  renderEdit?: (controls: {
+    key: AdminApiKey;
+    update: (input: UpdateInput) => Promise<boolean>;
+    pending: boolean;
+  }) => ReactNode;
+  /**
+   * Replaces the default list without moving lifecycle state or confirmation
+   * behavior into the host application. Use this when the product has
+   * domain-specific credential policy to present alongside each key.
+   */
+  renderKeys?: (controls: {
+    keys: readonly AdminApiKey[];
+    requestRevoke: (key: AdminApiKey) => void;
+    requestRotate?: (key: AdminApiKey) => void;
+    update?: (key: AdminApiKey, input: UpdateInput) => Promise<boolean>;
+    pendingKeyId?: string;
+  }) => ReactNode;
+}
+
+/**
+ * Generic/legacy mode: arbitrary `CreateInput`/`UpdateInput`, all the
+ * render-prop escape hatches, and no `scopeGroups`. Behaves exactly as the
+ * panel always has.
+ */
+type ApiKeysPanelGenericProps<CreateInput, UpdateInput = never> =
+  ApiKeysPanelSharedProps &
+    ApiKeysPanelDataProps<CreateInput, UpdateInput> & {
+      scopeGroups?: undefined;
+    };
+
+/**
+ * Built-in mode: opting into the kit's scope-aware create + edit flows pins the
+ * adapter to the standard request shapes, so `create`/`update` are type-correct
+ * with no casts and a mismatched adapter is a compile error.
+ */
+type ApiKeysPanelBuiltinProps = ApiKeysPanelSharedProps &
+  ApiKeysPanelDataProps<AdminApiKeyCreateRequest, AdminApiKeyScopeUpdate> & {
+    /**
+     * Provides the scope vocabulary for the collapsible create card and the
+     * inline per-key scope editor. `renderCreate`/`renderEdit`/`renderKeys`
+     * still win where provided.
+     */
+    scopeGroups: readonly AdminScopeGroup[];
+  };
+
+export type ApiKeysPanelProps<CreateInput, UpdateInput = never> =
+  | ApiKeysPanelGenericProps<CreateInput, UpdateInput>
+  | ApiKeysPanelBuiltinProps;
+
+/**
+ * The implementation is typed to the built-in request shapes. Both union arms
+ * share those shapes here (the generic arm is specialized to them at the public
+ * boundary), so `adapter`, `create`, and `update` are concrete inside the body
+ * and the built-in create/edit wiring needs no casts.
+ */
+function ApiKeysPanelImpl({
   adapter,
   title = "API keys",
   createInput,
@@ -79,10 +123,11 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
   renderKeys,
   renderPosture,
   renderShortcuts,
+  scopeGroups,
   className,
   dialogClassName,
   formatTimestamp,
-}: ApiKeysPanelProps<CreateInput, UpdateInput>) {
+}: ApiKeysPanelProps<AdminApiKeyCreateRequest, AdminApiKeyScopeUpdate>) {
   const [keys, setKeys] = useState<readonly AdminApiKey[]>();
   const [secret, setSecret] = useState<string>();
   const [loadError, setLoadError] = useState<string>();
@@ -92,6 +137,10 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
   const [confirmation, setConfirmation] = useState<
     { action: "revoke" | "rotate"; key: AdminApiKey } | undefined
   >();
+  // Presentation-only UI state for the built-in flows; these do not touch the
+  // load/mutation lifecycle below.
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editingKeyId, setEditingKeyId] = useState<string>();
   const latestLoadId = useRef(0);
   // Bumped only when the `adapter` prop itself changes (unlike `latestLoadId`,
   // which also advances on every ordinary reload). Mutations capture this at
@@ -158,7 +207,7 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
       queue: deriveAdminApiKeysQueue(summary),
     };
   }
-  const create = async (input: CreateInput): Promise<boolean> => {
+  const create = async (input: AdminApiKeyCreateRequest): Promise<boolean> => {
     const epoch = adapterEpoch.current;
     setPending("create");
     setActionError(undefined);
@@ -178,7 +227,7 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
       setPending(undefined);
     }
   };
-  const update = async (key: AdminApiKey, input: UpdateInput): Promise<boolean> => {
+  const update = async (key: AdminApiKey, input: AdminApiKeyScopeUpdate): Promise<boolean> => {
     if (!adapter.update) return false;
     const epoch = adapterEpoch.current;
     setPending(key.id);
@@ -239,9 +288,27 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
   const requestRotate = adapter.rotate
     ? (key: AdminApiKey) => setConfirmation({ action: "rotate", key })
     : undefined;
+  const activeCount = lifecycleKeys.filter((key) => key.state === "active").length;
+  const hasDetails = lifecycleKeys.some((key) => key.details?.length);
+  const hasActions = activeCount > 0;
+  // Key, Scopes, State, Last used, Expires are always present; Details and
+  // Actions are conditional. Used as the inline editor row's colSpan.
+  const columnCount = 5 + (hasDetails ? 1 : 0) + (hasActions ? 1 : 0);
+  // The built-in inline scope editor is active only when the host opted in via
+  // `scopeGroups`, did not override edit rendering, and the adapter can persist
+  // an update (`adapter.update` is optional — without it Save would no-op).
+  const builtInEditEnabled = Boolean(scopeGroups) && !renderEdit && Boolean(adapter.update);
   return (
     <section className={["admin-kit__keys", className].filter(Boolean).join(" ")} aria-label={title}>
-      <h2>{title}</h2>
+      <header className="admin-kit__keys-header">
+        <div>
+          <h2>{title}</h2>
+          <p>
+            {lifecycleKeys.length} {lifecycleKeys.length === 1 ? "credential" : "credentials"}
+            {lifecycleKeys.length > 0 ? ` · ${activeCount} active` : ""}
+          </p>
+        </div>
+      </header>
       {loadError ? (
         <AdminPanelStateView
           state={{ kind: "error", detail: loadError, onRetry: () => void load() }}
@@ -252,11 +319,13 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
         <div className="admin-kit__secret" role="alert">
           <strong>Copy this secret now. It will not be shown again.</strong>
           <code>{secret}</code>
-          <button type="button" onClick={() => void copySecret()}>Copy secret</button>
-          {copyStatus ? <span aria-live="polite">{copyStatus}</span> : null}
-          <button type="button" onClick={() => setSecret(undefined)}>
-            I copied it
-          </button>
+          <div className="admin-kit__secret-actions">
+            <button className="admin-kit__button admin-kit__button--primary" type="button" onClick={() => void copySecret()}>Copy secret</button>
+            <button className="admin-kit__button" type="button" onClick={() => setSecret(undefined)}>
+              I copied it
+            </button>
+            {copyStatus ? <span aria-live="polite" className="admin-kit__secret-status">{copyStatus}</span> : null}
+          </div>
         </div>
       ) : null}
       {renderPosture && postureControls ? renderPosture(postureControls) : null}
@@ -266,6 +335,24 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
           create,
           pending: pending === "create",
         })
+      ) : scopeGroups ? (
+        <details
+          className="admin-kit__key-create"
+          open={createOpen}
+          onToggle={(event) => setCreateOpen(event.currentTarget.open)}
+        >
+          <summary>
+            <span className="admin-kit__key-create-icon" aria-hidden="true">＋</span> Create a new key
+          </summary>
+          <div className="admin-kit__key-create-body">
+            <AdminApiKeyForm
+              mode="create"
+              scopeGroups={scopeGroups}
+              pending={pending === "create"}
+              onSubmit={(request) => void create(request as AdminApiKeyCreateRequest)}
+            />
+          </div>
+        </details>
       ) : createInput !== undefined ? (
         <button
           type="button"
@@ -281,47 +368,139 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
         requestRotate,
         update: adapter.update ? update : undefined,
         pendingKeyId: pending === "create" ? undefined : pending,
-      }) : <ul className="admin-kit__keys-list">
-        {lifecycleKeys.map((key) => (
-          <li key={key.id}>
-            <div>
-              <strong>{key.name}</strong>
-              <code>{key.maskedKey}</code>
-              <p>
-                {key.state} · scopes: {key.scopes.join(", ") || "none"} · last
-                used: {key.lastUsedAt ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp) : "never"} · expires:{" "}
-                {key.expiresAt ? formatAdminTimestamp(key.expiresAt, formatTimestamp) : "never"}
-              </p>
-              {key.details?.length ? (
-                <dl className="admin-kit__key-details">
-                  {key.details.map((detail) => <div key={detail.label}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}
-                </dl>
-              ) : null}
-            </div>
-            {key.state === "active" ? (
-              <div className="admin-kit__key-actions">
-                {adapter.rotate ? (
-                  <button
-                    type="button"
-                    disabled={pending === key.id}
-                    onClick={() => requestRotate?.(key)}
-                  >
-                    Rotate
-                  </button>
+      }) : lifecycleKeys.length === 0 ? (
+        <AdminPanelStateView state={{ kind: "empty", title: "No API keys yet." }} />
+      ) : (
+        <div className="admin-kit__table-wrap admin-kit__keys-table-wrap">
+          <table className={`admin-kit__table admin-kit__keys-table${hasDetails ? " admin-kit__keys-table--with-details" : ""}`}>
+            <thead>
+              <tr>
+                <th scope="col">Key</th>
+                <th scope="col">Scopes</th>
+                {hasDetails ? <th scope="col">Details</th> : null}
+                <th scope="col">State</th>
+                <th scope="col">Last used</th>
+                <th scope="col">Expires</th>
+                {hasActions ? <th scope="col">Actions</th> : null}
+              </tr>
+            </thead>
+            <tbody>
+              {lifecycleKeys.map((key) => {
+                const isEditing = builtInEditEnabled && editingKeyId === key.id;
+                return (
+                <Fragment key={key.id}>
+                <tr aria-busy={pending === key.id} className={isEditing ? "admin-kit__key-row--editing" : undefined}>
+                  <td>
+                    <div className="admin-kit__key-identity">
+                      <strong>{key.name}</strong>
+                      <code>{key.maskedKey}</code>
+                    </div>
+                  </td>
+                  <td>
+                    {key.scopes.length ? (
+                      <ul className="admin-kit__scope-chips">
+                        {key.scopes.map((scope) => (
+                          <li className="admin-kit__scope-chip" key={scope}>{scope}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="admin-kit__key-empty">—</span>
+                    )}
+                  </td>
+                  {hasDetails ? (
+                    <td>
+                      {key.details?.length ? (
+                        <dl className="admin-kit__key-details">
+                          {key.details.map((detail) => <div key={detail.label}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}
+                        </dl>
+                      ) : (
+                        <span className="admin-kit__key-empty">—</span>
+                      )}
+                    </td>
+                  ) : null}
+                  <td>
+                    <span className={`admin-kit__state-pill admin-kit__state-pill--key-${key.state}`}>{key.state}</span>
+                  </td>
+                  <td className="admin-kit__key-timestamp">{key.lastUsedAt ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp) : "never"}</td>
+                  <td className="admin-kit__key-timestamp">{key.expiresAt ? formatAdminTimestamp(key.expiresAt, formatTimestamp) : "never"}</td>
+                  {hasActions ? (
+                    <td>
+                      {key.state === "active" ? (
+                        <div className="admin-kit__key-actions">
+                          {builtInEditEnabled ? (
+                            <button
+                              className="admin-kit__key-edit-btn"
+                              type="button"
+                              aria-expanded={isEditing}
+                              aria-controls={`admin-kit-key-edit-${key.id}`}
+                              disabled={pending === key.id}
+                              onClick={() => setEditingKeyId(isEditing ? undefined : key.id)}
+                            >
+                              Edit
+                            </button>
+                          ) : null}
+                          {adapter.rotate ? (
+                            <button
+                              type="button"
+                              disabled={pending === key.id}
+                              onClick={() => requestRotate?.(key)}
+                            >
+                              Rotate
+                            </button>
+                          ) : null}
+                          {adapter.update && renderEdit ? renderEdit({ key, update: (input) => update(key, input), pending: pending === key.id }) : null}
+                          <button
+                            type="button"
+                            disabled={pending === key.id}
+                            onClick={() => requestRevoke(key)}
+                          >
+                            Revoke
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="admin-kit__key-empty">—</span>
+                      )}
+                    </td>
+                  ) : null}
+                </tr>
+                {isEditing && scopeGroups ? (
+                  <tr className="admin-kit__key-edit-row">
+                    <td colSpan={columnCount}>
+                      <div
+                        className="admin-kit__key-edit"
+                        id={`admin-kit-key-edit-${key.id}`}
+                        role="region"
+                        aria-label={`Edit scopes for ${key.name}`}
+                      >
+                        <div className="admin-kit__key-edit-header">
+                          <h3>Edit scopes</h3>
+                          <p>{key.name} · {key.maskedKey}</p>
+                        </div>
+                        <AdminApiKeyForm
+                          mode="edit"
+                          scopeGroups={scopeGroups}
+                          pending={pending === key.id}
+                          initialScopes={key.scopes}
+                          // The edit form emits a scope update (narrowed from the
+                          // form's create|update union); route it through the
+                          // existing update handler and close on success.
+                          onSubmit={async (request) => {
+                            const ok = await update(key, request as AdminApiKeyScopeUpdate);
+                            if (ok) setEditingKeyId(undefined);
+                          }}
+                          onCancel={() => setEditingKeyId(undefined)}
+                        />
+                      </div>
+                    </td>
+                  </tr>
                 ) : null}
-                {adapter.update && renderEdit ? renderEdit({ key, update: (input) => update(key, input), pending: pending === key.id }) : null}
-                <button
-                  type="button"
-                  disabled={pending === key.id}
-                  onClick={() => requestRevoke(key)}
-                >
-                  Revoke
-                </button>
-              </div>
-            ) : null}
-          </li>
-        ))}
-      </ul>}
+                </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
       <AdminConfirmationDialog
         open={Boolean(confirmation)}
         className={dialogClassName}
@@ -338,5 +517,24 @@ export function ApiKeysPanel<CreateInput, UpdateInput = never>({
         onConfirm={() => void confirmAction()}
       />
     </section>
+  );
+}
+
+/**
+ * Lists safe metadata and reveals a raw secret only from a create/rotate
+ * response. The public API is generic over the adapter's create/update input in
+ * legacy mode; passing `scopeGroups` switches to the built-in flows and pins the
+ * adapter to the standard request shapes (a mismatched adapter is a compile
+ * error). The generic props are specialized to those shapes for the concretely
+ * typed implementation — the two arms are otherwise identical, so this carries
+ * no runtime effect and no `unknown`/`any`.
+ */
+export function ApiKeysPanel<CreateInput, UpdateInput = never>(
+  props: ApiKeysPanelProps<CreateInput, UpdateInput>,
+): ReactElement {
+  return (
+    <ApiKeysPanelImpl
+      {...(props as ApiKeysPanelProps<AdminApiKeyCreateRequest, AdminApiKeyScopeUpdate>)}
+    />
   );
 }
