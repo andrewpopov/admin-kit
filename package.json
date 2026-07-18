@@ -56,7 +56,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:browser": "npm run build && node scripts/render-browser-fixture.mjs && playwright test",
-    "verify:pack": "node scripts/verify-pack.mjs"
+    "verify:pack": "node scripts/verify-pack.mjs",
+    "verify:dist-fresh": "node scripts/verify-dist-fresh.mjs"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
