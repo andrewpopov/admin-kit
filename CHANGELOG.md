@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.28.1
+
+### Changed
+
+- `AdminApp.frame` is optional. Consumers whose product chrome and grouped
+  administration navigation already provide page identity can omit the outer
+  masthead while retaining the canonical shared shell, layout, and capability
+  registry.
+- `admin-kit-conformance` accepts both framed and frameless `AdminApp`
+  consumers.
+
 ## 0.28.0
 
 ### Added

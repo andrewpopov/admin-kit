@@ -98,6 +98,12 @@ import { AdminApp, UsersPanel } from "@andrewpopov/admin-kit/react";
 />;
 ```
 
+`frame` is optional. Include it when the admin surface needs its own visible
+application title, description, or actions. Omit it when the host product
+chrome and grouped admin navigation already establish that context; the shared
+portal, navigation, spacing, and responsive behavior remain unchanged without
+adding a duplicate masthead.
+
 The supported capability names are `users`, `sessions`, `logs`, `events`,
 `feature-flags`, `api-keys`, `memberships`, `backups`, `operational-jobs`, and
 `settings`. Product-specific sections use a descriptive `custom:<name>` value,
@@ -123,8 +129,8 @@ styles by overriding the `--admin-kit-*` variables on an app or admin wrapper.
 
 Add `"verify:admin-kit": "admin-kit-conformance"` to every consumer and run
 it in the local verification lane. The command rejects consumers that omit the
-stylesheet, use `AdminApp` without its required frame, or override core
-`--admin-kit-*` tokens from host CSS.
+stylesheet or override core `--admin-kit-*` tokens from host CSS. Both framed
+and frameless `AdminApp` layouts are supported.
 
 Admin Kit is intentionally opinionated about shared administrative UI. Every
 admin route must import `@andrewpopov/admin-kit/styles.css` and render through

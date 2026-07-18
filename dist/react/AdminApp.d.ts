@@ -17,8 +17,8 @@ export interface AdminAppFrame {
     actions?: ReactNode;
 }
 export type AdminAppProps = WithAdminAppGroups<AdminPortalProps> & {
-    /** Required application-level framing for a complete Admin Kit screen. */
-    frame: AdminAppFrame;
+    /** Optional application-level framing; omit it when host chrome already supplies page identity. */
+    frame?: AdminAppFrame;
     theme?: AdminThemeName;
 };
 /**

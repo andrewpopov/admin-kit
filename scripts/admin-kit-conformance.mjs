@@ -48,17 +48,6 @@ if (!entryFiles.some(({ text }) => /['"]@andrewpopov\/admin-kit\/styles\.css['"]
   errors.push('Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.');
 }
 for (const { path, text } of files) {
-  if (!/\.(?:tsx|jsx)$/.test(path)) continue;
-  // Capture only the AdminApp opening tag's own attributes: consume
-  // quoted attribute values (which may contain `>`) as opaque units so the
-  // match stops at the tag's real closing `>`/`/>` instead of lazily
-  // matching through to a later child element's `/>`.
-  for (const match of text.matchAll(/<AdminApp\b((?:"[^"]*"|'[^']*'|[^>"'])*)\/?>/g)) {
-    const attributes = match[1] ?? '';
-    if (!/\bframe\s*=/.test(attributes)) errors.push(`${relative(root, path)}: AdminApp requires frame={{ title, description? }}.`);
-  }
-}
-for (const { path, text } of files) {
   if (/\.css$/.test(path) && /--admin-kit-/.test(text)) {
     errors.push(`${relative(root, path)}: do not override Admin Kit core tokens; compose AdminCard, AdminField, or AdminStack instead.`);
   }
