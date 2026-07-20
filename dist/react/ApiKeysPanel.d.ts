@@ -1,9 +1,14 @@
 import { type ReactElement, type ReactNode } from "react";
 import { type AdminApiKey, type AdminApiKeyCreateRequest, type AdminApiKeyQueueItem, type AdminApiKeysAdapter, type AdminApiKeyScopeUpdate, type AdminApiKeysPosture, type AdminApiKeysSummary, type AdminScopeGroup } from "../core";
+import { type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
 /** Props whose types never depend on the adapter's create/update shapes. */
 interface ApiKeysPanelSharedProps {
     /** Product vocabulary for credentials, such as "Personal access tokens". */
     title?: string;
+    /** Promote the panel heading and host actions into the route-level header band. */
+    headerPresentation?: AdminPanelHeaderPresentation;
+    /** Host-owned primary actions displayed beside the panel title. */
+    headerActions?: ReactNode;
     /**
      * Renders a host-vocabulary posture/health summary above the create/list
      * regions; the kit derives the facts, the host owns copy and links.

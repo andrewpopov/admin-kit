@@ -12,6 +12,20 @@ const page = {
 };
 
 describe("EventsPanel", () => {
+  it("composes route title, search, and refresh in one page header", async () => {
+    const list = vi.fn().mockResolvedValue(page);
+    const { container } = render(<EventsPanel adapter={{ list }} headerPresentation="page" search={{ placeholder: "Search events" }} />);
+
+    await screen.findByText("Sign-in succeeded");
+    const header = container.querySelector(".admin-kit__panel-header--page");
+    expect(header).toBeTruthy();
+    expect(header?.querySelector("h1")?.textContent).toBe("Administrative events");
+    expect(header?.querySelector("input[type='search']")).toBeTruthy();
+    expect(header?.querySelector("button")?.textContent).toBe("Refresh");
+    expect(container.querySelector(".admin-kit__events-filters input[type='search']")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Administrative events", level: 2 })).toBeNull();
+  });
+
   // Five sequential interaction/waitFor cycles (search debounce, category,
   // details, paging, refresh) legitimately run close to vitest's 5s default
   // in jsdom; give the full journey explicit headroom.

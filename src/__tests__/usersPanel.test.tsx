@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { UsersPanel } from '../react';
 
@@ -20,6 +20,25 @@ const users = [
 ];
 
 describe('UsersPanel', () => {
+  it('composes route title, search, and host actions in one page header', async () => {
+    const { container } = render(
+      <UsersPanel
+        adapter={{ list: vi.fn().mockResolvedValue({ items: users, page: 1, pageSize: 25, total: 1 }) }}
+        headerPresentation="page"
+        renderHeaderActions={() => <button type="button">Show deactivated</button>}
+        search={{ placeholder: 'Find an account' }}
+      />,
+    );
+
+    await screen.findByText('Ada Lovelace');
+    const header = container.querySelector('.admin-kit__panel-header--page');
+    expect(header).toBeTruthy();
+    expect(within(header as HTMLElement).getByRole('heading', { name: 'Users', level: 1 })).toBeTruthy();
+    expect(within(header as HTMLElement).getByRole('searchbox')).toBeTruthy();
+    expect(within(header as HTMLElement).getByRole('button', { name: 'Show deactivated' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Users', level: 2 })).toBeNull();
+  });
+
   it('maps opt-in search to the adapter, resets pagination, and retains account facts', async () => {
     const list = vi.fn().mockImplementation(async ({ page, pageSize, search }) => ({
       items: users,

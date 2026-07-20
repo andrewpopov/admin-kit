@@ -8,6 +8,11 @@ export interface AdminWorkspaceProps {
     title: string;
     /** Hide the visible title band when a nested panel already supplies the route heading. */
     showHeader?: boolean;
+    /**
+     * Let a data panel own the route header while the workspace keeps spacing
+     * and landmarks without wrapping that header in another card.
+     */
+    presentation?: "framed" | "panel-led";
     description?: ReactNode;
     actions?: ReactNode;
     summary?: ReactNode;
@@ -16,4 +21,4 @@ export interface AdminWorkspaceProps {
     className?: string;
 }
 /** Standard semantic framing for dense administrative and operational views. */
-export declare function AdminWorkspace({ as, title, showHeader, description, actions, summary, toolbar, children, className }: AdminWorkspaceProps): import("react").JSX.Element;
+export declare function AdminWorkspace({ as, title, showHeader, presentation, description, actions, summary, toolbar, children, className }: AdminWorkspaceProps): import("react").JSX.Element;
