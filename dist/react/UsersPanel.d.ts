@@ -1,8 +1,11 @@
 import { type ReactNode } from "react";
 import { type AdminPageQuery, type AdminSortDirection, type AdminUserSummary, type AdminUsersAdapter } from "../core";
+import { type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
 export interface UsersPanelProps<User extends AdminUserSummary> {
     adapter: AdminUsersAdapter<User>;
     title?: string;
+    /** Promote the panel heading and controls into the route-level header band. */
+    headerPresentation?: AdminPanelHeaderPresentation;
     pageSize?: number;
     query?: Omit<AdminPageQuery, "page" | "pageSize">;
     /** Opt in when the host adapter maps search text into its list query. */
@@ -49,4 +52,4 @@ export interface AdminUserTableCellContext {
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
  */
-export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderUserActions, className, }: UsersPanelProps<User>): import("react").JSX.Element;
+export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, headerPresentation, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderUserActions, className, }: UsersPanelProps<User>): import("react").JSX.Element;

@@ -316,6 +316,13 @@ receives a `reload` function after a successful host mutation. The generic
 panel never assumes destructive-action semantics or collects password,
 confirmation, or purge inputs.
 
+For a route where the directory is the page, set
+`headerPresentation="page"` inside an `AdminWorkspace
+presentation="panel-led"`. The panel renders the route `h1`, moves its search
+control beside `renderHeaderActions`, and leaves the table as the only nested
+surface. The default `section` presentation keeps the reusable `h2` panel
+contract.
+
 ```tsx
 <UsersPanel
   adapter={users}
@@ -438,6 +445,9 @@ package-owned create operation and pending state; its promise resolves to
 `true` only when creation succeeded, so the host can safely clear its form.
 Use `title` to keep product vocabulary accurate (for example, "Personal access
 tokens"). The host retains its form schema and validation.
+Use `headerActions` for host-owned actions such as opening that create form.
+With `headerPresentation="page"`, those actions share the single route header
+instead of creating a second title/action row above the credential table.
 
 Set `expiresAt` and `revokedAt` to the durable timestamps returned by the host.
 The package resolves lifecycle state at render time, so an active key becomes
@@ -475,6 +485,10 @@ filters the host can execute.
 The default `feed` presentation favors narrative inspection. Use `table` for
 high-volume audit trails where operators compare timestamps, actors, resources,
 outcomes, and details across rows.
+
+With `headerPresentation="page"`, the title becomes the route `h1`; search and
+refresh share that header band, while severity/outcome/category filters remain
+in the toolbar before the table.
 
 ### Runtime logs
 
@@ -536,10 +550,12 @@ default. If the host page already owns the sole `main`, use `as="section"` so
 landmarks remain valid. Put dense records in tables and put health facts in
 `AdminStatusSummary` rather than creating one-off metric cards.
 
-Set `showHeader={false}` when the nested shared panel already supplies the
-visible route heading and repeating the workspace title would waste vertical
-space. `title` remains required as the workspace content's accessible label;
-the route must still provide its single `h1`, which may be visually hidden.
+Use `presentation="panel-led"` when `UsersPanel`, `EventsPanel`, or
+`ApiKeysPanel` is the route. Pair it with the panel's
+`headerPresentation="page"` so the panel renders the sole `h1` and owns its
+search/actions in that header band. The workspace keeps its spacing and
+accessible content label but removes the duplicate title and content card.
+`showHeader={false}` remains available for older section-led compositions.
 
 Use `AdminActionButton` for actions supplied through a host-owned workspace,
 toolbar, or render callback. `tone="primary"` is for the one dominant action

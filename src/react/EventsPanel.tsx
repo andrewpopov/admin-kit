@@ -6,6 +6,10 @@ import {
   formatAdminTimestamp,
   validateAdminEventsPage,
 } from "../core";
+import {
+  AdminPanelHeader,
+  type AdminPanelHeaderPresentation,
+} from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
 
 const SEARCH_DEBOUNCE_MS = 250;
@@ -13,6 +17,8 @@ const SEARCH_DEBOUNCE_MS = 250;
 export interface EventsPanelProps {
   adapter: AdminEventsAdapter;
   title?: string;
+  /** Promote the panel heading and primary controls into the route-level header band. */
+  headerPresentation?: AdminPanelHeaderPresentation;
   refreshLabel?: string;
   search?: { placeholder?: string };
   pageSize?: number;
@@ -23,7 +29,7 @@ export interface EventsPanelProps {
   formatTimestamp?: (iso: string) => string;
 }
 
-export function EventsPanel({ adapter, title = "Administrative events", refreshLabel = "Refresh", search, pageSize = 25, presentation = "feed", className, formatTimestamp }: EventsPanelProps) {
+export function EventsPanel({ adapter, title = "Administrative events", headerPresentation = "section", refreshLabel = "Refresh", search, pageSize = 25, presentation = "feed", className, formatTimestamp }: EventsPanelProps) {
   const [query, setQuery] = useState<AdminEventsQuery>({ page: 1, pageSize });
   const [searchInput, setSearchInput] = useState(query.search ?? "");
   const [result, setResult] = useState<AdminEventsPage>();
@@ -68,15 +74,20 @@ export function EventsPanel({ adapter, title = "Administrative events", refreshL
   if (error && !result) return <AdminPanelStateView className={className} state={{ kind: "error", detail: error, onRetry: () => void load() }} />;
   if (!result) return <AdminPanelStateView className={className} state={{ kind: "loading", label: "Loading administrative events…" }} />;
   const pages = Math.max(1, Math.ceil(result.total / result.pageSize));
+  const searchControl = search ? <label className="admin-kit__events-search"><span>Search</span><input type="search" placeholder={search.placeholder} value={searchInput} onChange={(event) => updateSearch(event.target.value)} /></label> : null;
+  const refresh = <button className="admin-kit__button admin-kit__button--primary" type="button" disabled={loading} onClick={() => void load()}>{refreshLabel}</button>;
 
   return (
     <section className={["admin-kit__events", className].filter(Boolean).join(" ")} aria-label={title}>
-      <header className="admin-kit__events-header">
-        <div><h2>{title}</h2>{result.source ? <p>Source: {result.source.label}{result.source.updatedAt ? ` · updated ${formatAdminTimestamp(result.source.updatedAt, formatTimestamp)}` : ""}</p> : null}</div>
-        <button type="button" disabled={loading} onClick={() => void load()}>{refreshLabel}</button>
-      </header>
+      <AdminPanelHeader
+        actions={headerPresentation === "page" ? <>{searchControl}{refresh}</> : refresh}
+        className="admin-kit__events-header"
+        detail={result.source ? <p>Source: {result.source.label}{result.source.updatedAt ? ` · updated ${formatAdminTimestamp(result.source.updatedAt, formatTimestamp)}` : ""}</p> : null}
+        presentation={headerPresentation}
+        title={title}
+      />
       <div className="admin-kit__events-filters">
-        {search ? <label><span>Search</span><input type="search" placeholder={search.placeholder} value={searchInput} onChange={(event) => updateSearch(event.target.value)} /></label> : null}
+        {headerPresentation === "section" ? searchControl : null}
         {adapter.categories ? <label><span>Category</span><select value={query.category ?? ""} onChange={(event) => updateQuery({ category: event.target.value || undefined })}><option value="">All</option>{adapter.categories.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label> : null}
         {adapter.severities ? <label><span>Severity</span><select value={query.severity ?? ""} onChange={(event) => updateQuery({ severity: event.target.value as AdminEventsQuery["severity"] || undefined })}><option value="">All</option>{adapter.severities.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label> : null}
         {adapter.outcomes ? <label><span>Outcome</span><select value={query.outcome ?? ""} onChange={(event) => updateQuery({ outcome: event.target.value as AdminEventsQuery["outcome"] || undefined })}><option value="">All</option>{adapter.outcomes.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label> : null}

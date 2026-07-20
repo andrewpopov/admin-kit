@@ -32,6 +32,11 @@ export {
   type AdminPortalReactSection,
 } from "./AdminPortal";
 export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";
+export {
+  AdminPanelHeader,
+  type AdminPanelHeaderPresentation,
+  type AdminPanelHeaderProps,
+} from "./AdminPanelHeader";
 export { AdminWorkspace, type AdminWorkspaceProps } from "./AdminWorkspace";
 export { AdminTheme, type AdminThemeName, type AdminThemeProps } from "./AdminTheme";
 export {

@@ -18,12 +18,20 @@ import {
 } from "../core";
 import { AdminApiKeyForm } from "./AdminApiKeyForm";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
+import {
+  AdminPanelHeader,
+  type AdminPanelHeaderPresentation,
+} from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
 
 /** Props whose types never depend on the adapter's create/update shapes. */
 interface ApiKeysPanelSharedProps {
   /** Product vocabulary for credentials, such as "Personal access tokens". */
   title?: string;
+  /** Promote the panel heading and host actions into the route-level header band. */
+  headerPresentation?: AdminPanelHeaderPresentation;
+  /** Host-owned primary actions displayed beside the panel title. */
+  headerActions?: ReactNode;
   /**
    * Renders a host-vocabulary posture/health summary above the create/list
    * regions; the kit derives the facts, the host owns copy and links.
@@ -117,6 +125,8 @@ export type ApiKeysPanelProps<CreateInput, UpdateInput = never> =
 function ApiKeysPanelImpl({
   adapter,
   title = "API keys",
+  headerPresentation = "section",
+  headerActions,
   createInput,
   renderCreate,
   renderEdit,
@@ -300,15 +310,16 @@ function ApiKeysPanelImpl({
   const builtInEditEnabled = Boolean(scopeGroups) && !renderEdit && Boolean(adapter.update);
   return (
     <section className={["admin-kit__keys", className].filter(Boolean).join(" ")} aria-label={title}>
-      <header className="admin-kit__keys-header">
-        <div>
-          <h2>{title}</h2>
-          <p>
+      <AdminPanelHeader
+        actions={headerActions}
+        className="admin-kit__keys-header"
+        detail={<p>
             {lifecycleKeys.length} {lifecycleKeys.length === 1 ? "credential" : "credentials"}
             {lifecycleKeys.length > 0 ? ` · ${activeCount} active` : ""}
-          </p>
-        </div>
-      </header>
+          </p>}
+        presentation={headerPresentation}
+        title={title}
+      />
       {loadError ? (
         <AdminPanelStateView
           state={{ kind: "error", detail: loadError, onRetry: () => void load() }}

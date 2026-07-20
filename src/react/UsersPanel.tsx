@@ -6,11 +6,17 @@ import {
   type AdminUserSummary,
   type AdminUsersAdapter,
 } from "../core";
+import {
+  AdminPanelHeader,
+  type AdminPanelHeaderPresentation,
+} from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
 
 export interface UsersPanelProps<User extends AdminUserSummary> {
   adapter: AdminUsersAdapter<User>;
   title?: string;
+  /** Promote the panel heading and controls into the route-level header band. */
+  headerPresentation?: AdminPanelHeaderPresentation;
   pageSize?: number;
   query?: Omit<AdminPageQuery, "page" | "pageSize">;
   /** Opt in when the host adapter maps search text into its list query. */
@@ -61,6 +67,7 @@ export interface AdminUserTableCellContext {
 export function UsersPanel<User extends AdminUserSummary>({
   adapter,
   title = "Users",
+  headerPresentation = "section",
   pageSize = 25,
   query,
   search: searchOptions = false,
@@ -168,26 +175,35 @@ export function UsersPanel<User extends AdminUserSummary>({
     }
   };
 
+  const searchControl = searchOptions !== false ? (
+    <label className="admin-kit__users-search">
+      <span>{searchOptions.label ?? "Search users"}</span>
+      <input
+        onChange={(event) => setSearchAndResetPage(event.target.value)}
+        placeholder={searchOptions.placeholder ?? "Search by name or email"}
+        type="search"
+        value={search}
+      />
+    </label>
+  ) : null;
+  const hostHeaderActions = renderHeaderActions?.({ reload: load, isLoading });
+  const headerActions = (headerPresentation === "page" && searchControl) || hostHeaderActions ? (
+    <>
+      {headerPresentation === "page" ? searchControl : null}
+      {hostHeaderActions}
+    </>
+  ) : null;
+
   return (
     <section className={["admin-kit__users", className].filter(Boolean).join(" ")} aria-label={title}>
-      <header className="admin-kit__users-header">
-        <div>
-          <h2>{title}</h2>
-          {result ? <p>{result.total} {result.total === 1 ? "user" : "users"}</p> : null}
-        </div>
-        {renderHeaderActions ? renderHeaderActions({ reload: load, isLoading }) : null}
-      </header>
-      {searchOptions !== false ? (
-        <label className="admin-kit__users-search">
-          <span>{searchOptions.label ?? "Search users"}</span>
-          <input
-            onChange={(event) => setSearchAndResetPage(event.target.value)}
-            placeholder={searchOptions.placeholder ?? "Search by name or email"}
-            type="search"
-            value={search}
-          />
-        </label>
-      ) : null}
+      <AdminPanelHeader
+        actions={headerActions}
+        className="admin-kit__users-header"
+        detail={result ? <p>{result.total} {result.total === 1 ? "user" : "users"}</p> : null}
+        presentation={headerPresentation}
+        title={title}
+      />
+      {headerPresentation === "section" ? searchControl : null}
       {loadError && !result ? (
         <AdminPanelStateView state={{ kind: "error", detail: loadError, onRetry: () => void load() }} />
       ) : !result ? (

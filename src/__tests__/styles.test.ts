@@ -78,6 +78,9 @@ describe("Admin Kit styles", () => {
   it("protects the shared responsive table and workspace contracts", () => {
     expect(styles).toContain(".admin-kit__workspace { box-sizing: border-box;");
     expect(styles).toContain(".admin-kit__workspace-header { align-items: stretch; flex-direction: column; }");
+    expect(styles).toContain(".admin-kit__workspace-content--bare");
+    expect(styles).toContain(".admin-kit__panel-header--page h1");
+    expect(styles).toContain(".admin-kit__panel-header-actions");
     expect(styles).toContain(".admin-kit__button--primary");
     expect(styles).toContain(".admin-kit__table-wrap");
     expect(styles).toContain(".admin-kit__table th");

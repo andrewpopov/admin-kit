@@ -25,4 +25,11 @@ describe("AdminWorkspace", () => {
     expect(screen.getByRole("region", { name: "Users" })).toBeTruthy();
     expect(container.querySelector(".admin-kit__workspace-header")).toBeNull();
   });
+
+  it("leaves a bare content boundary for a panel-led page header", () => {
+    const { container } = render(<AdminWorkspace presentation="panel-led" title="Users"><h1>Users</h1></AdminWorkspace>);
+    expect(screen.getByRole("heading", { name: "Users", level: 1 })).toBeTruthy();
+    expect(container.querySelector(".admin-kit__workspace-header")).toBeNull();
+    expect(container.querySelector(".admin-kit__workspace-content--bare")).toBeTruthy();
+  });
 });

@@ -15,6 +15,22 @@ const activeKey = {
 afterEach(cleanup);
 
 describe("ApiKeysPanel", () => {
+  it("composes the route title and host action in one page header", async () => {
+    const { container } = render(
+      <ApiKeysPanel
+        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn(), revoke: vi.fn() }}
+        headerActions={<button type="button">New key</button>}
+        headerPresentation="page"
+      />,
+    );
+
+    await screen.findByText("Automation");
+    const header = container.querySelector(".admin-kit__panel-header--page");
+    expect(header?.querySelector("h1")?.textContent).toBe("API keys");
+    expect(header?.querySelector("button")?.textContent).toBe("New key");
+    expect(screen.queryByRole("heading", { name: "API keys", level: 2 })).toBeNull();
+  });
+
   it("reveals secrets only from create or confirmed rotation responses", async () => {
     const create = vi.fn().mockResolvedValue({ key: activeKey, secret: "create-once" });
     const rotate = vi.fn().mockResolvedValue({ key: activeKey, secret: "rotate-once" });

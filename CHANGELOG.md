@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.29.0
+
+### Added
+
+- `AdminPanelHeader` and the shared `headerPresentation="page"` contract for
+  `UsersPanel`, `EventsPanel`, and `ApiKeysPanel`.
+- `AdminWorkspace presentation="panel-led"` keeps workspace spacing and
+  landmarks while removing the duplicate workspace title and content card.
+- `ApiKeysPanel.headerActions` places host-owned actions beside the shared
+  title and credential count.
+
+### Changed
+
+- Page-presented user search and event search/refresh controls now share the
+  single route header band; table filters and records remain below it.
+
 ## 0.28.2
 
 ### Added
