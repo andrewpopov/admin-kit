@@ -188,19 +188,31 @@ function ApiKeysPanelImpl({
     setSecret(undefined);
     setCopyStatus(undefined);
   }, [adapter]);
+  const panelHeader = (counts?: { total: number; active: number }) => (
+    <AdminPanelHeader
+      actions={headerActions}
+      className="admin-kit__keys-header"
+      detail={counts ? <p>
+        {counts.total} {counts.total === 1 ? "credential" : "credentials"}
+        {counts.total > 0 ? ` · ${counts.active} active` : ""}
+      </p> : null}
+      presentation={headerPresentation}
+      title={title}
+    />
+  );
   if (loadError && !keys)
     return (
-      <AdminPanelStateView
-        state={{ kind: "error", detail: loadError, onRetry: () => void load() }}
-        className={className}
-      />
+      <section className={["admin-kit__keys", className].filter(Boolean).join(" ")} aria-label={title}>
+        {panelHeader()}
+        <AdminPanelStateView state={{ kind: "error", detail: loadError, onRetry: () => void load() }} />
+      </section>
     );
   if (!keys)
     return (
-      <AdminPanelStateView
-        state={{ kind: "loading", label: "Loading API keys…" }}
-        className={className}
-      />
+      <section className={["admin-kit__keys", className].filter(Boolean).join(" ")} aria-label={title}>
+        {panelHeader()}
+        <AdminPanelStateView state={{ kind: "loading", label: "Loading API keys…" }} />
+      </section>
     );
   const lifecycleKeys = keys.map((key) => ({
     ...key,
@@ -310,16 +322,7 @@ function ApiKeysPanelImpl({
   const builtInEditEnabled = Boolean(scopeGroups) && !renderEdit && Boolean(adapter.update);
   return (
     <section className={["admin-kit__keys", className].filter(Boolean).join(" ")} aria-label={title}>
-      <AdminPanelHeader
-        actions={headerActions}
-        className="admin-kit__keys-header"
-        detail={<p>
-            {lifecycleKeys.length} {lifecycleKeys.length === 1 ? "credential" : "credentials"}
-            {lifecycleKeys.length > 0 ? ` · ${activeCount} active` : ""}
-          </p>}
-        presentation={headerPresentation}
-        title={title}
-      />
+      {panelHeader({ total: lifecycleKeys.length, active: activeCount })}
       {loadError ? (
         <AdminPanelStateView
           state={{ kind: "error", detail: loadError, onRetry: () => void load() }}

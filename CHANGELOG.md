@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.29.1
+
+### Fixed
+
+- `EventsPanel` and `ApiKeysPanel` keep their panel-led page header, search,
+  refresh, and host actions mounted during initial loading and first-load
+  errors, so routes retain one stable `h1` throughout the request lifecycle.
+
 ## 0.29.0
 
 ### Added

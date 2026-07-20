@@ -15,6 +15,32 @@ const activeKey = {
 afterEach(cleanup);
 
 describe("ApiKeysPanel", () => {
+  it("keeps the page header and host action mounted while loading", () => {
+    render(
+      <ApiKeysPanel
+        adapter={{ list: () => new Promise(() => undefined), create: vi.fn(), revoke: vi.fn() }}
+        headerActions={<button type="button">New key</button>}
+        headerPresentation="page"
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "API keys", level: 1 })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "New key" })).toBeTruthy();
+    expect(screen.getByText("Loading API keys…")).toBeTruthy();
+  });
+
+  it("keeps the page header mounted on the first load error", async () => {
+    render(
+      <ApiKeysPanel
+        adapter={{ list: vi.fn().mockRejectedValue(new Error("Keys unavailable")), create: vi.fn(), revoke: vi.fn() }}
+        headerPresentation="page"
+      />,
+    );
+
+    await screen.findByText("Keys unavailable");
+    expect(screen.getByRole("heading", { name: "API keys", level: 1 })).toBeTruthy();
+  });
+
   it("composes the route title and host action in one page header", async () => {
     const { container } = render(
       <ApiKeysPanel
