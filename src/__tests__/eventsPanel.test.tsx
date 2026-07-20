@@ -12,6 +12,15 @@ const page = {
 };
 
 describe("EventsPanel", () => {
+  it("keeps the page header and controls mounted while loading", () => {
+    render(<EventsPanel adapter={{ list: () => new Promise(() => undefined) }} headerPresentation="page" search={{ placeholder: "Search events" }} />);
+
+    expect(screen.getByRole("heading", { name: "Administrative events", level: 1 })).toBeTruthy();
+    expect(screen.getByRole("searchbox")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Refresh" })).toBeTruthy();
+    expect(screen.getByText("Loading administrative events…")).toBeTruthy();
+  });
+
   it("composes route title, search, and refresh in one page header", async () => {
     const list = vi.fn().mockResolvedValue(page);
     const { container } = render(<EventsPanel adapter={{ list }} headerPresentation="page" search={{ placeholder: "Search events" }} />);
@@ -69,8 +78,9 @@ describe("EventsPanel", () => {
 
   it("renders retryable errors without stale event content", async () => {
     const list = vi.fn().mockRejectedValue(new Error("Audit source unavailable"));
-    render(<EventsPanel adapter={{ list }} />);
+    render(<EventsPanel adapter={{ list }} headerPresentation="page" />);
     await screen.findByText("Audit source unavailable");
+    expect(screen.getByRole("heading", { name: "Administrative events", level: 1 })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     await waitFor(() => expect(list).toHaveBeenCalledTimes(2));
   });

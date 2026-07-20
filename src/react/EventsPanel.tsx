@@ -71,21 +71,25 @@ export function EventsPanel({ adapter, title = "Administrative events", headerPr
       updateQuery({ search: value || undefined });
     }, SEARCH_DEBOUNCE_MS);
   };
-  if (error && !result) return <AdminPanelStateView className={className} state={{ kind: "error", detail: error, onRetry: () => void load() }} />;
-  if (!result) return <AdminPanelStateView className={className} state={{ kind: "loading", label: "Loading administrative events…" }} />;
-  const pages = Math.max(1, Math.ceil(result.total / result.pageSize));
   const searchControl = search ? <label className="admin-kit__events-search"><span>Search</span><input type="search" placeholder={search.placeholder} value={searchInput} onChange={(event) => updateSearch(event.target.value)} /></label> : null;
   const refresh = <button className="admin-kit__button admin-kit__button--primary" type="button" disabled={loading} onClick={() => void load()}>{refreshLabel}</button>;
+  const panelHeader = (source?: AdminEventsPage["source"]) => (
+    <AdminPanelHeader
+      actions={headerPresentation === "page" ? <>{searchControl}{refresh}</> : refresh}
+      className="admin-kit__events-header"
+      detail={source ? <p>Source: {source.label}{source.updatedAt ? ` · updated ${formatAdminTimestamp(source.updatedAt, formatTimestamp)}` : ""}</p> : null}
+      presentation={headerPresentation}
+      title={title}
+    />
+  );
+
+  if (error && !result) return <section className={["admin-kit__events", className].filter(Boolean).join(" ")} aria-label={title}>{panelHeader()}<AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} /></section>;
+  if (!result) return <section className={["admin-kit__events", className].filter(Boolean).join(" ")} aria-label={title}>{panelHeader()}<AdminPanelStateView state={{ kind: "loading", label: "Loading administrative events…" }} /></section>;
+  const pages = Math.max(1, Math.ceil(result.total / result.pageSize));
 
   return (
     <section className={["admin-kit__events", className].filter(Boolean).join(" ")} aria-label={title}>
-      <AdminPanelHeader
-        actions={headerPresentation === "page" ? <>{searchControl}{refresh}</> : refresh}
-        className="admin-kit__events-header"
-        detail={result.source ? <p>Source: {result.source.label}{result.source.updatedAt ? ` · updated ${formatAdminTimestamp(result.source.updatedAt, formatTimestamp)}` : ""}</p> : null}
-        presentation={headerPresentation}
-        title={title}
-      />
+      {panelHeader(result.source)}
       <div className="admin-kit__events-filters">
         {headerPresentation === "section" ? searchControl : null}
         {adapter.categories ? <label><span>Category</span><select value={query.category ?? ""} onChange={(event) => updateQuery({ category: event.target.value || undefined })}><option value="">All</option>{adapter.categories.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label> : null}
