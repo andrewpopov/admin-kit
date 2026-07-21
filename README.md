@@ -172,6 +172,22 @@ wrapper, so apply dialog token overrides to an app-level wrapper or target the
 supplied `dialogClassName`. (During server rendering the dialog falls back to
 inline markup, so the kit remains server-renderable.)
 
+For a host-owned create or edit flow, use `AdminDialog` with `AdminStack`,
+`AdminField`, and `AdminActionButton`; keep only the API call and business rules
+in the host:
+
+```tsx
+<AdminDialog
+  open={open}
+  title="Invite user"
+  description="Send a one-time setup link."
+  onClose={close}
+  actions={<><AdminActionButton onClick={close}>Cancel</AdminActionButton><AdminActionButton tone="primary" type="submit" form="invite-user">Send invite</AdminActionButton></>}
+>
+  <form id="invite-user"><AdminStack><AdminField label="Email"><input type="email" /></AdminField></AdminStack></form>
+</AdminDialog>
+```
+
 ### Dark mode
 
 `.dark` on any ancestor is the authoritative signal and is unchanged:

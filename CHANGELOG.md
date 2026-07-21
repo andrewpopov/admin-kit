@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.29.4
+
+### Added
+
+- `AdminDialog` provides the portaled, focus-managed form-dialog shell for
+  host-owned create and edit flows. Pair it with `AdminField`, `AdminStack`,
+  and `AdminActionButton` instead of recreating modal geometry in each app.
+
 ## 0.29.3
 
 ### Fixed
