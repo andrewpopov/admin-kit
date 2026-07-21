@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.29.2
+
+### Changed
+
+- `ApiKeysPanel` now renders its default credential list as compact cards:
+  identity, lifecycle state, last-used time, and expiry remain immediately
+  visible; scopes and secondary provenance are expanded on demand. Broad-scope
+  credentials no longer force a horizontal table scroller. Host-supplied
+  `renderKeys` views remain unchanged.
+
 ## 0.29.1
 
 ### Fixed
