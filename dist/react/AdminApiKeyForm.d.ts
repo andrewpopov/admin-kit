@@ -8,6 +8,8 @@ export interface AdminApiKeyFormProps {
     initialName?: string;
     initialExpiresInDays?: number | null;
     initialScopes?: readonly string[];
+    /** Minimum scopes required before this form can be submitted. Defaults to zero. */
+    minimumScopeCount?: number;
     onSubmit: (request: AdminApiKeyCreateRequest | AdminApiKeyScopeUpdate) => void | Promise<void>;
     onCancel?: () => void;
     submitLabel?: string;
@@ -18,4 +20,4 @@ export interface AdminApiKeyFormProps {
  * in `edit` mode it changes scopes only and emits an `AdminApiKeyScopeUpdate` —
  * saving never re-issues a secret, which the copy makes explicit.
  */
-export declare function AdminApiKeyForm({ mode, scopeGroups, pending, initialName, initialExpiresInDays, initialScopes, onSubmit, onCancel, submitLabel, }: AdminApiKeyFormProps): import("react").JSX.Element;
+export declare function AdminApiKeyForm({ mode, scopeGroups, pending, initialName, initialExpiresInDays, initialScopes, minimumScopeCount, onSubmit, onCancel, submitLabel, }: AdminApiKeyFormProps): import("react").JSX.Element;

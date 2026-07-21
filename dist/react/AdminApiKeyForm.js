@@ -19,13 +19,15 @@ const expiryKey = (value) => value === null ? "never" : String(value);
  * in `edit` mode it changes scopes only and emits an `AdminApiKeyScopeUpdate` —
  * saving never re-issues a secret, which the copy makes explicit.
  */
-function AdminApiKeyForm({ mode, scopeGroups, pending, initialName, initialExpiresInDays, initialScopes, onSubmit, onCancel, submitLabel, }) {
+function AdminApiKeyForm({ mode, scopeGroups, pending, initialName, initialExpiresInDays, initialScopes, minimumScopeCount = 0, onSubmit, onCancel, submitLabel, }) {
     const [name, setName] = (0, react_1.useState)(initialName ?? "");
     const [expiresInDays, setExpiresInDays] = (0, react_1.useState)(initialExpiresInDays === undefined ? 90 : initialExpiresInDays);
     const [scopes, setScopes] = (0, react_1.useState)([...(initialScopes ?? [])]);
     const scopeSummary = `${scopes.length} ${scopes.length === 1 ? "scope" : "scopes"} selected`;
     const resolvedSubmitLabel = submitLabel ?? (mode === "create" ? "Create API key" : "Save changes");
-    const submitDisabled = pending || (mode === "create" && !name.trim());
+    const requiredScopeCount = Math.max(0, minimumScopeCount);
+    const scopeRequirementUnmet = scopes.length < requiredScopeCount;
+    const submitDisabled = pending || (mode === "create" && !name.trim()) || scopeRequirementUnmet;
     const submit = () => {
         if (mode === "create") {
             void onSubmit((0, core_1.validateAdminApiKeyCreateRequest)({ name, expiresInDays, scopes }));
@@ -38,7 +40,9 @@ function AdminApiKeyForm({ mode, scopeGroups, pending, initialName, initialExpir
                                             const next = EXPIRY_OPTIONS.find((option) => expiryKey(option.value) === event.target.value);
                                             if (next)
                                                 setExpiresInDays(next.value);
-                                        }, value: expiryKey(expiresInDays), children: EXPIRY_OPTIONS.map((option) => ((0, jsx_runtime_1.jsx)("option", { value: expiryKey(option.value), children: option.label }, expiryKey(option.value)))) })] })] })] })) : ((0, jsx_runtime_1.jsxs)("p", { className: "admin-kit__key-form-note", children: [(0, jsx_runtime_1.jsx)("strong", { children: "Scopes only." }), " Saving updates what this key can do and takes effect immediately \u2014 it does ", (0, jsx_runtime_1.jsx)("strong", { children: "not" }), " issue a new secret, and the key keeps working. To replace the secret, rotate the key instead."] })), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsxs)("p", { className: "admin-kit__key-form-legend", children: ["Scopes ", (0, jsx_runtime_1.jsx)("span", { children: "\u2014 what this key is allowed to do" })] }), (0, jsx_runtime_1.jsx)(AdminScopePicker_1.AdminScopePicker, { disabled: pending, groups: scopeGroups, onChange: setScopes, value: scopes })] }), (0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-form-footer", children: [(0, jsx_runtime_1.jsxs)("p", { children: [scopeSummary, mode === "create"
+                                        }, value: expiryKey(expiresInDays), children: EXPIRY_OPTIONS.map((option) => ((0, jsx_runtime_1.jsx)("option", { value: expiryKey(option.value), children: option.label }, expiryKey(option.value)))) })] })] })] })) : ((0, jsx_runtime_1.jsxs)("p", { className: "admin-kit__key-form-note", children: [(0, jsx_runtime_1.jsx)("strong", { children: "Scopes only." }), " Saving updates what this key can do and takes effect immediately \u2014 it does ", (0, jsx_runtime_1.jsx)("strong", { children: "not" }), " issue a new secret, and the key keeps working. To replace the secret, rotate the key instead."] })), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsxs)("p", { className: "admin-kit__key-form-legend", children: ["Scopes ", (0, jsx_runtime_1.jsx)("span", { children: "\u2014 what this key is allowed to do" })] }), (0, jsx_runtime_1.jsx)(AdminScopePicker_1.AdminScopePicker, { disabled: pending, groups: scopeGroups, onChange: setScopes, value: scopes })] }), (0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-form-footer", children: [(0, jsx_runtime_1.jsxs)("p", { "aria-live": "polite", children: [scopeSummary, mode === "create"
                                 ? " · the secret is shown once, right after you create the key."
-                                : " · saving changes permissions only — the secret is unchanged."] }), (0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-form-actions", children: [onCancel ? ((0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button", disabled: pending, onClick: onCancel, type: "button", children: "Cancel" })) : null, (0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button admin-kit__button--primary", disabled: submitDisabled, onClick: submit, type: "button", children: resolvedSubmitLabel })] })] })] }));
+                                : " · saving changes permissions only — the secret is unchanged.", scopeRequirementUnmet
+                                ? ` Select at least ${requiredScopeCount} ${requiredScopeCount === 1 ? "scope" : "scopes"} to continue.`
+                                : null] }), (0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-form-actions", children: [onCancel ? ((0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button", disabled: pending, onClick: onCancel, type: "button", children: "Cancel" })) : null, (0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button admin-kit__button--primary", disabled: submitDisabled, onClick: submit, type: "button", children: resolvedSubmitLabel })] })] })] }));
 }
