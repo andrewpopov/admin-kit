@@ -401,7 +401,11 @@
 .admin-kit__dialog-backdrop { align-items: center; background: rgb(8 15 30 / 58%); display: flex; inset: 0; justify-content: center; padding: 1rem; position: fixed; z-index: 1000; }
 .admin-kit__dialog { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: calc(var(--admin-kit-radius) + 0.125rem); box-shadow: 0 24px 60px rgb(0 0 0 / 30%); color: var(--admin-kit-text); max-width: 34rem; padding: 1.5rem; width: 100%; }
 .admin-kit__dialog h2 { font-size: 1.25rem; letter-spacing: -0.015em; margin: 0; }
-.admin-kit__dialog p { color: var(--admin-kit-muted); margin: 0.75rem 0 0; }
+.admin-kit__dialog-header { align-items: start; display: flex; gap: 1rem; justify-content: space-between; }
+.admin-kit__dialog-close { align-items: center; background: transparent; border: 0; border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-muted); cursor: pointer; display: inline-flex; flex: 0 0 auto; font-size: 1.5rem; justify-content: center; line-height: 1; min-block-size: 2.25rem; min-inline-size: 2.25rem; padding: 0; }
+.admin-kit__dialog-close:hover:not(:disabled) { background: var(--admin-kit-surface-subtle); color: var(--admin-kit-text); }
+.admin-kit__dialog-description { color: var(--admin-kit-muted); margin: 0.75rem 0 0; }
+.admin-kit__dialog-body { margin-top: 1.25rem; }
 .admin-kit__dialog-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: flex-end; margin-top: 1.75rem; }
 .admin-kit__button { appearance: none; background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); cursor: pointer; font: inherit; min-block-size: 2.5rem; padding: 0.5rem 0.75rem; }
 .admin-kit__button:hover:not(:disabled) { background: var(--admin-kit-surface-subtle); }

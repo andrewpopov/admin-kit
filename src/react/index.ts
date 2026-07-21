@@ -7,6 +7,7 @@ export {
   AdminConfirmationDialog,
   type AdminConfirmationDialogProps,
 } from "./AdminConfirmationDialog";
+export { AdminDialog, type AdminDialogProps } from "./AdminDialog";
 export {
   AdminApp,
   type AdminAppFrame,
