@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.29.4
+
+### Added
+
+- `ApiKeysPanel.minimumScopeCount` lets hosts require selected scopes in the
+  built-in create and edit forms. Submission stays disabled with clear live
+  feedback until the minimum is met.
+
 ## 0.29.3
 
 ### Fixed
