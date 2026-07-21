@@ -494,7 +494,7 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     await screen.findByText("Automation");
     expect(screen.queryByRole("region", { name: "Edit scopes for Automation" })).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit scopes" }));
     expect(screen.getByRole("region", { name: "Edit scopes for Automation" })).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -511,7 +511,7 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     );
 
     await screen.findByText("Automation");
-    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit scopes" }));
     const editor = within(screen.getByRole("region", { name: "Edit scopes for Automation" }));
     // Seeded from the key's scopes: library.read checked. Add library.write.
     expect((editor.getByRole("checkbox", { name: /Read catalog/ }) as HTMLInputElement).checked).toBe(true);
@@ -541,7 +541,7 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     );
 
     await screen.findByText("Automation");
-    expect(screen.queryByRole("button", { name: "Edit" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Edit scopes" })).toBeNull();
     // The rest of the active-row actions remain.
     expect(screen.getByRole("button", { name: "Revoke" })).toBeTruthy();
   });
@@ -557,7 +557,7 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     );
 
     await screen.findByRole("button", { name: "Edit Automation" });
-    expect(screen.queryByRole("button", { name: "Edit" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Edit scopes" })).toBeNull();
   });
 
   it("without scopeGroups the create control stays the plain button and no Edit action appears", async () => {
@@ -571,6 +571,6 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     await screen.findByText("Automation");
     expect(screen.getByRole("button", { name: "Create API key" })).toBeTruthy();
     expect(screen.queryByText("Create a new key")).toBeNull();
-    expect(screen.queryByRole("button", { name: "Edit" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Edit scopes" })).toBeNull();
   });
 });
