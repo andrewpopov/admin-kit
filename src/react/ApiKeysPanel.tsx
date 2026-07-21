@@ -410,7 +410,7 @@ function ApiKeysPanelImpl({
                   ) : null}
                 </dl>
                 <details className="admin-kit__key-details-disclosure">
-                  <summary>{key.scopes.length} {key.scopes.length === 1 ? "scope" : "scopes"}</summary>
+                  <summary aria-label={`Scopes and details for ${key.name}`}>{key.scopes.length} {key.scopes.length === 1 ? "scope" : "scopes"}</summary>
                   {key.scopes.length ? (
                     <ul className="admin-kit__scope-chips">
                       {key.scopes.map((scope) => (
@@ -430,6 +430,7 @@ function ApiKeysPanelImpl({
                       <button
                         className="admin-kit__key-edit-btn"
                         type="button"
+                        aria-label={`Edit scopes for ${key.name}`}
                         aria-expanded={isEditing}
                         aria-controls={`admin-kit-key-edit-${key.id}`}
                         disabled={isPending}
@@ -438,9 +439,9 @@ function ApiKeysPanelImpl({
                         Edit scopes
                       </button>
                     ) : null}
-                    {adapter.rotate ? <button type="button" disabled={isPending} onClick={() => requestRotate?.(key)}>Rotate</button> : null}
+                    {adapter.rotate ? <button type="button" aria-label={`Rotate ${key.name}`} disabled={isPending} onClick={() => requestRotate?.(key)}>Rotate</button> : null}
                     {adapter.update && renderEdit ? renderEdit({ key, update: (input) => update(key, input), pending: isPending }) : null}
-                    <button type="button" disabled={isPending} onClick={() => requestRevoke(key)}>Revoke</button>
+                    <button type="button" aria-label={`Revoke ${key.name}`} disabled={isPending} onClick={() => requestRevoke(key)}>Revoke</button>
                   </div>
                 ) : null}
                 {isEditing && scopeGroups ? (

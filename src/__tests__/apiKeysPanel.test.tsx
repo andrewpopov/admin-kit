@@ -75,7 +75,7 @@ describe("ApiKeysPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "I copied it" }));
     expect(screen.queryByText("create-once")).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: "Rotate" }));
+    fireEvent.click(screen.getByRole("button", { name: "Rotate Automation" }));
     expect(screen.getByRole("dialog").textContent).toContain("Rotate API key");
     expect(rotate).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Rotate key" }));
@@ -94,7 +94,7 @@ describe("ApiKeysPanel", () => {
     );
 
     await screen.findByText("Automation");
-    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+    fireEvent.click(screen.getByRole("button", { name: "Revoke Automation" }));
     expect(revoke).not.toHaveBeenCalled();
     expect(screen.getByRole("dialog").textContent).toContain("Revoke API key");
     fireEvent.click(screen.getByRole("button", { name: "Revoke key" }));
@@ -115,7 +115,7 @@ describe("ApiKeysPanel", () => {
     );
 
     await screen.findByText("Automation");
-    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+    fireEvent.click(screen.getByRole("button", { name: "Revoke Automation" }));
     const confirmButton = screen.getByRole("button", { name: "Revoke key" });
     fireEvent.click(confirmButton);
     fireEvent.click(confirmButton);
@@ -138,8 +138,8 @@ describe("ApiKeysPanel", () => {
     );
 
     await screen.findByText(/expired/);
-    expect(screen.queryByRole("button", { name: "Rotate" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Revoke" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Rotate Automation" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Revoke Automation" })).toBeNull();
   });
 
   it("formats lastUsedAt and expiresAt for display, and keeps the never fallback when absent", async () => {
@@ -494,7 +494,7 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     await screen.findByText("Automation");
     expect(screen.queryByRole("region", { name: "Edit scopes for Automation" })).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: "Edit scopes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit scopes for Automation" }));
     expect(screen.getByRole("region", { name: "Edit scopes for Automation" })).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -511,7 +511,7 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     );
 
     await screen.findByText("Automation");
-    fireEvent.click(screen.getByRole("button", { name: "Edit scopes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit scopes for Automation" }));
     const editor = within(screen.getByRole("region", { name: "Edit scopes for Automation" }));
     // Seeded from the key's scopes: library.read checked. Add library.write.
     expect((editor.getByRole("checkbox", { name: /Read catalog/ }) as HTMLInputElement).checked).toBe(true);
@@ -541,9 +541,9 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     );
 
     await screen.findByText("Automation");
-    expect(screen.queryByRole("button", { name: "Edit scopes" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Edit scopes for Automation" })).toBeNull();
     // The rest of the active-row actions remain.
-    expect(screen.getByRole("button", { name: "Revoke" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Revoke Automation" })).toBeTruthy();
   });
 
   it("renderEdit still overrides the built-in Edit action when both are provided", async () => {
@@ -557,7 +557,7 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     );
 
     await screen.findByRole("button", { name: "Edit Automation" });
-    expect(screen.queryByRole("button", { name: "Edit scopes" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Edit scopes for Automation" })).toBeNull();
   });
 
   it("without scopeGroups the create control stays the plain button and no Edit action appears", async () => {
@@ -571,6 +571,30 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     await screen.findByText("Automation");
     expect(screen.getByRole("button", { name: "Create API key" })).toBeTruthy();
     expect(screen.queryByText("Create a new key")).toBeNull();
-    expect(screen.queryByRole("button", { name: "Edit scopes" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Edit scopes for Automation" })).toBeNull();
+  });
+
+  it("lets an operator remove a persisted scope outside the current vocabulary", async () => {
+    const legacyKey = { ...scopedKey, scopes: ["/api"] };
+    const update = vi.fn().mockResolvedValue({ ...legacyKey, scopes: [] });
+    render(
+      <ApiKeysPanel
+        scopeGroups={scopeGroups}
+        adapter={{ list: vi.fn().mockResolvedValue([legacyKey]), create: vi.fn(), revoke: vi.fn(), update }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    fireEvent.click(screen.getByRole("button", { name: "Edit scopes for Automation" }));
+    const editor = within(screen.getByRole("region", { name: "Edit scopes for Automation" }));
+    const legacyScope = editor.getByRole("checkbox", { name: /Existing scope.*\/api/ }) as HTMLInputElement;
+    expect(legacyScope.checked).toBe(true);
+
+    fireEvent.click(legacyScope);
+    fireEvent.click(editor.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() =>
+      expect(update).toHaveBeenCalledWith({ keyId: "key-1", update: { scopes: [] } }),
+    );
   });
 });

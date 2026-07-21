@@ -32,6 +32,7 @@ const { createRoot } = await import("react-dom/client");
 const {
   AdminWorkspace,
   AdminActionButton,
+  ApiKeysPanel,
   UsersPanel,
   LogsPanel,
 } = await import(resolve(packageRoot, "dist/index.js"));
@@ -83,6 +84,27 @@ const logsAdapter = {
   },
 };
 
+const apiKeysAdapter = {
+  async list() {
+    return [
+      {
+        id: "key_1",
+        name: "automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production",
+        maskedKey: "ak_1234567890abcdef",
+        scopes: ["/api/catalog/reconciliation/long-running-imports-and-automations"],
+        state: "active",
+        createdAt: "2026-07-13T00:00:00.000Z",
+      },
+    ];
+  },
+  async create() {
+    throw new Error("Not exercised by the browser fixture");
+  },
+  async revoke() {
+    throw new Error("Not exercised by the browser fixture");
+  },
+};
+
 const tree = React.createElement(
   React.Fragment,
   null,
@@ -104,6 +126,11 @@ const tree = React.createElement(
     AdminWorkspace,
     { as: "section", title: "Runtime logs", description: "Inspect bounded output from the selected process." },
     React.createElement(LogsPanel, { adapter: logsAdapter, title: "Server logs" }),
+  ),
+  React.createElement(
+    AdminWorkspace,
+    { as: "section", title: "API keys", description: "Long credential metadata stays inside the viewport." },
+    React.createElement(ApiKeysPanel, { adapter: apiKeysAdapter, headerPresentation: "section" }),
   ),
 );
 
