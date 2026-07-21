@@ -95,6 +95,7 @@ type ApiKeysPanelGenericProps<CreateInput, UpdateInput = never> =
   ApiKeysPanelSharedProps &
     ApiKeysPanelDataProps<CreateInput, UpdateInput> & {
       scopeGroups?: undefined;
+      minimumScopeCount?: undefined;
     };
 
 /**
@@ -110,6 +111,8 @@ type ApiKeysPanelBuiltinProps = ApiKeysPanelSharedProps &
      * still win where provided.
      */
     scopeGroups: readonly AdminScopeGroup[];
+    /** Minimum scopes required by the host before create or edit can submit. */
+    minimumScopeCount?: number;
   };
 
 export type ApiKeysPanelProps<CreateInput, UpdateInput = never> =
@@ -134,6 +137,7 @@ function ApiKeysPanelImpl({
   renderPosture,
   renderShortcuts,
   scopeGroups,
+  minimumScopeCount,
   className,
   dialogClassName,
   formatTimestamp,
@@ -357,6 +361,7 @@ function ApiKeysPanelImpl({
             <AdminApiKeyForm
               mode="create"
               scopeGroups={scopeGroups}
+              minimumScopeCount={minimumScopeCount}
               pending={pending === "create"}
               onSubmit={(request) => void create(request as AdminApiKeyCreateRequest)}
             />
@@ -453,6 +458,7 @@ function ApiKeysPanelImpl({
                     <AdminApiKeyForm
                       mode="edit"
                       scopeGroups={scopeGroups}
+                      minimumScopeCount={minimumScopeCount}
                       pending={isPending}
                       initialScopes={key.scopes}
                       onSubmit={async (request) => {

@@ -68,6 +68,7 @@ interface ApiKeysPanelDataProps<CreateInput, UpdateInput> {
  */
 type ApiKeysPanelGenericProps<CreateInput, UpdateInput = never> = ApiKeysPanelSharedProps & ApiKeysPanelDataProps<CreateInput, UpdateInput> & {
     scopeGroups?: undefined;
+    minimumScopeCount?: undefined;
 };
 /**
  * Built-in mode: opting into the kit's scope-aware create + edit flows pins the
@@ -81,6 +82,8 @@ type ApiKeysPanelBuiltinProps = ApiKeysPanelSharedProps & ApiKeysPanelDataProps<
      * still win where provided.
      */
     scopeGroups: readonly AdminScopeGroup[];
+    /** Minimum scopes required by the host before create or edit can submit. */
+    minimumScopeCount?: number;
 };
 export type ApiKeysPanelProps<CreateInput, UpdateInput = never> = ApiKeysPanelGenericProps<CreateInput, UpdateInput> | ApiKeysPanelBuiltinProps;
 /**

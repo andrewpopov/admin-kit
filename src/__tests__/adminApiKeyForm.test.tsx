@@ -57,6 +57,31 @@ describe("AdminApiKeyForm", () => {
     expect(submit.disabled).toBe(false);
   });
 
+  it("can require a selected scope before submission with clear feedback", () => {
+    const onSubmit = vi.fn();
+    render(
+      <AdminApiKeyForm
+        minimumScopeCount={1}
+        mode="edit"
+        scopeGroups={groups}
+        pending={false}
+        initialScopes={["legacy.full-access"]}
+        onSubmit={onSubmit}
+        onCancel={vi.fn()}
+      />,
+    );
+
+    const legacyScope = screen.getByRole("checkbox", { name: /Existing scope.*legacy\.full-access/ });
+    fireEvent.click(legacyScope);
+    expect(screen.getByText(/Select at least 1 scope to continue\./)).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Save changes" }) as HTMLButtonElement).disabled).toBe(true);
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /Read catalog/ }));
+    expect((screen.getByRole("button", { name: "Save changes" }) as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(onSubmit).toHaveBeenCalledExactlyOnceWith({ scopes: ["library.read"] });
+  });
+
   it("edit mode has no name/expiry fields and seeds the picker from initialScopes", () => {
     render(
       <AdminApiKeyForm

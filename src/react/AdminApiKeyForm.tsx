@@ -17,6 +17,8 @@ export interface AdminApiKeyFormProps {
   initialName?: string;
   initialExpiresInDays?: number | null;
   initialScopes?: readonly string[];
+  /** Minimum scopes required before this form can be submitted. Defaults to zero. */
+  minimumScopeCount?: number;
   onSubmit: (
     request: AdminApiKeyCreateRequest | AdminApiKeyScopeUpdate,
   ) => void | Promise<void>;
@@ -53,6 +55,7 @@ export function AdminApiKeyForm({
   initialName,
   initialExpiresInDays,
   initialScopes,
+  minimumScopeCount = 0,
   onSubmit,
   onCancel,
   submitLabel,
@@ -66,7 +69,9 @@ export function AdminApiKeyForm({
   const scopeSummary = `${scopes.length} ${scopes.length === 1 ? "scope" : "scopes"} selected`;
   const resolvedSubmitLabel =
     submitLabel ?? (mode === "create" ? "Create API key" : "Save changes");
-  const submitDisabled = pending || (mode === "create" && !name.trim());
+  const requiredScopeCount = Math.max(0, minimumScopeCount);
+  const scopeRequirementUnmet = scopes.length < requiredScopeCount;
+  const submitDisabled = pending || (mode === "create" && !name.trim()) || scopeRequirementUnmet;
 
   const submit = () => {
     if (mode === "create") {
@@ -141,11 +146,14 @@ export function AdminApiKeyForm({
       </div>
 
       <div className="admin-kit__key-form-footer">
-        <p>
+        <p aria-live="polite">
           {scopeSummary}
           {mode === "create"
             ? " · the secret is shown once, right after you create the key."
             : " · saving changes permissions only — the secret is unchanged."}
+          {scopeRequirementUnmet
+            ? ` Select at least ${requiredScopeCount} ${requiredScopeCount === 1 ? "scope" : "scopes"} to continue.`
+            : null}
         </p>
         <div className="admin-kit__key-form-actions">
           {onCancel ? (

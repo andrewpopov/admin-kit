@@ -7,6 +7,9 @@
 - `AdminDialog` provides the portaled, focus-managed form-dialog shell for
   host-owned create and edit flows. Pair it with `AdminField`, `AdminStack`,
   and `AdminActionButton` instead of recreating modal geometry in each app.
+- `ApiKeysPanel.minimumScopeCount` lets hosts require selected scopes in the
+  built-in create and edit forms. Submission stays disabled with clear live
+  feedback until the minimum is met.
 
 ## 0.29.3
 
