@@ -102,7 +102,7 @@ describe("ApiKeysPanel posture and shortcuts slots", () => {
     );
 
     await screen.findByText("Posture: unused-active");
-    fireEvent.click(screen.getAllByRole("button", { name: "Revoke" })[1]!);
+    fireEvent.click(screen.getByRole("button", { name: "Revoke Unused key" }));
     fireEvent.click(screen.getByRole("button", { name: "Revoke key" }));
 
     await waitFor(() => expect(revoke).toHaveBeenCalledWith({ keyId: "key-2" }));

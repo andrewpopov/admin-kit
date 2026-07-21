@@ -517,9 +517,10 @@
 /* API keys — compact cards keep broad credentials readable without a table scroller. */
 .admin-kit__keys > button { justify-self: start; }
 .admin-kit__key-cards { display: grid; gap: 0.75rem; list-style: none; margin: 0; padding: 0; }
-.admin-kit__key-card { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); box-shadow: var(--admin-kit-shadow); padding: 1rem; }
+.admin-kit__key-card { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); box-shadow: var(--admin-kit-shadow); min-width: 0; padding: 1rem; }
 .admin-kit__key-card-header { align-items: start; display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: space-between; }
-.admin-kit__key-identity { display: grid; gap: 0.3125rem; justify-items: start; }
+.admin-kit__key-identity { display: grid; gap: 0.3125rem; justify-items: start; min-width: 0; }
+.admin-kit__key-identity strong, .admin-kit__key-identity code { max-inline-size: 100%; overflow-wrap: anywhere; }
 .admin-kit__key-identity code { background: var(--admin-kit-surface-subtle); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; padding: 0.125rem 0.4375rem; }
 .admin-kit__key-empty { color: var(--admin-kit-muted); }
 .admin-kit__key-summary { display: grid; gap: 0.75rem 1.5rem; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); margin: 1rem 0 0; }
@@ -531,7 +532,7 @@
 .admin-kit__key-details-disclosure .admin-kit__scope-chips { margin-block-start: 0.75rem; }
 .admin-kit__key-details-disclosure .admin-kit__key-details { display: grid; gap: 0.5rem 1rem; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); margin: 0.75rem 0 0; }
 .admin-kit__scope-chips { display: flex; flex-wrap: wrap; gap: 0.375rem; list-style: none; margin: 0; padding: 0; }
-.admin-kit__scope-chip { background: var(--admin-kit-surface-subtle); border: 1px solid var(--admin-kit-border); border-radius: 999px; color: var(--admin-kit-muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; font-weight: 600; padding: 0.1875rem 0.5625rem; white-space: nowrap; }
+.admin-kit__scope-chip { background: var(--admin-kit-surface-subtle); border: 1px solid var(--admin-kit-border); border-radius: 999px; color: var(--admin-kit-muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; font-weight: 600; max-inline-size: 100%; overflow-wrap: anywhere; padding: 0.1875rem 0.5625rem; }
 .admin-kit__state-pill--key-active, .admin-kit__state-pill--key-expired, .admin-kit__state-pill--key-revoked { display: inline-block; font-weight: 700; text-transform: capitalize; white-space: nowrap; }
 .admin-kit__state-pill--key-active { background: var(--admin-kit-success-soft); color: var(--admin-kit-success); }
 .admin-kit__state-pill--key-expired { background: var(--admin-kit-warning-soft); color: var(--admin-kit-warning); }

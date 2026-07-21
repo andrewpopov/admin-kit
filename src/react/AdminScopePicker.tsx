@@ -24,6 +24,8 @@ export function AdminScopePicker({
   className,
 }: AdminScopePickerProps) {
   const selected = new Set(value);
+  const knownScopes = new Set(groups.flatMap((group) => group.scopes.map((scope) => scope.value)));
+  const unmatchedScopes = value.filter((scope) => !knownScopes.has(scope));
   const toggle = (scope: string) => {
     if (disabled) return;
     onChange(
@@ -101,6 +103,27 @@ export function AdminScopePicker({
           </fieldset>
         );
       })}
+      {unmatchedScopes.length ? (
+        <fieldset className="admin-kit__scope-group" disabled={disabled}>
+          <legend className="admin-kit__scope-group-legend">Existing scopes</legend>
+          <p className="admin-kit__scope-group-description">
+            These scopes are not part of the current vocabulary. Keep or remove them explicitly.
+          </p>
+          <ul className="admin-kit__scope-options">
+            {unmatchedScopes.map((scope) => (
+              <li key={scope}>
+                <label className="admin-kit__scope-option" data-selected="true">
+                  <input checked disabled={disabled} type="checkbox" value={scope} onChange={() => toggle(scope)} />
+                  <span className="admin-kit__scope-option-copy">
+                    <span className="admin-kit__scope-option-label">Existing scope</span>
+                    <code className="admin-kit__scope-option-value">{scope}</code>
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+      ) : null}
     </div>
   );
 }

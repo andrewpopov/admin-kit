@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.29.3
+
+### Fixed
+
+- API-key cards now wrap long credential names and scope identifiers within a
+  narrow viewport. The browser fixture guards the 320px layout against a
+  document-level horizontal scrollbar.
+- `AdminScopePicker` shows persisted scopes outside the current host vocabulary
+  as removable existing scopes, so legacy access can be narrowed instead of
+  being silently retained.
+- API-key disclosure, rotate, revoke, and scope-edit controls now identify the
+  credential they operate on for assistive technologies.
+
 ## 0.29.2
 
 ### Changed
