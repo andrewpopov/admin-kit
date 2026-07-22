@@ -548,6 +548,12 @@ const logs = defineAdminLogsAdapter({
 />;
 ```
 
+The output opens in **Follow latest** mode, so the newest bounded line is in
+view. Turn that switch off to inspect earlier output; refreshing then preserves
+the scroll position. The output is a named, keyboard-focusable scroll region,
+so standard arrow, Page Up/Down, Home, and End keys work without moving focus
+to the document.
+
 The host adapter owns source discovery, parsing raw lines, server-side search,
 file-path safety, retention, redaction, and authorization. The panel validates
 the list-safe snapshot, ignores stale responses, filters the loaded window for
