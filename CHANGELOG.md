@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.31.1
+
+### Fixed
+
+- admin-kit now honors `prefers-reduced-motion`, disabling its transitions
+  for users who request reduced motion.
+
 ## 0.31.0
 
 ### Added

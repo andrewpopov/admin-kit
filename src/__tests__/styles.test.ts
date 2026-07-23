@@ -121,8 +121,21 @@ describe("Admin Kit styles", () => {
     expect(styles).toContain("--admin-kit-danger-strong:");
   });
 
-  it("never falls back to !important anywhere in the stylesheet", () => {
-    expect(styles).not.toContain("!important");
+  it("never falls back to !important anywhere in the stylesheet, outside the scoped reduced-motion override", () => {
+    // The prefers-reduced-motion block below is a deliberate, narrowly
+    // scoped exception: it must win over admin-kit's own transitions
+    // regardless of their selector specificity (e.g. the higher-specificity
+    // `[aria-busy="true"]` busy-dim rule), so it earns !important. No other
+    // rule in the sheet gets that pass.
+    const withoutReducedMotionBlock = styles.replace(
+      /@media \(prefers-reduced-motion: reduce\)\s*{[\s\S]*?\n}/,
+      "",
+    );
+    expect(withoutReducedMotionBlock).not.toContain("!important");
+  });
+
+  it("honors prefers-reduced-motion by neutralizing admin-kit's own transitions and animations", () => {
+    expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
   });
 
   it("styles a running state pill (the contract allows completed | running | failed)", () => {
