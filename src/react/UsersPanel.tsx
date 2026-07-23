@@ -46,6 +46,10 @@ export interface AdminUserTableColumn<User extends AdminUserSummary> {
   className?: string;
   headerClassName?: string;
   sortable?: boolean;
+  /** Keeps concise values such as timestamps on a single line. */
+  nowrap?: boolean;
+  /** Responsive priority; lower-priority columns are hidden before the table scrolls. */
+  priority?: "primary" | "secondary" | "tertiary";
 }
 
 export interface AdminUserTableSort {
@@ -187,9 +191,9 @@ export function UsersPanel<User extends AdminUserSummary>({
     </label>
   ) : null;
   const hostHeaderActions = renderHeaderActions?.({ reload: load, isLoading });
-  const headerActions = (headerPresentation === "page" && searchControl) || hostHeaderActions ? (
+  const toolbar = headerPresentation === "page" && (searchControl || hostHeaderActions) ? (
     <>
-      {headerPresentation === "page" ? searchControl : null}
+      {searchControl}
       {hostHeaderActions}
     </>
   ) : null;
@@ -197,11 +201,12 @@ export function UsersPanel<User extends AdminUserSummary>({
   return (
     <section className={["admin-kit__users", className].filter(Boolean).join(" ")} aria-label={title}>
       <AdminPanelHeader
-        actions={headerActions}
+        actions={headerPresentation === "section" ? hostHeaderActions : null}
         className="admin-kit__users-header"
         detail={result ? <p>{result.total} {result.total === 1 ? "user" : "users"}</p> : null}
         presentation={headerPresentation}
         title={title}
+        toolbar={toolbar}
       />
       {headerPresentation === "section" ? searchControl : null}
       {loadError && !result ? (
@@ -219,8 +224,13 @@ export function UsersPanel<User extends AdminUserSummary>({
           {presentation === "table" ? (() => {
             if (columns?.length) return <div className="admin-kit__table-wrap admin-kit__users-table-wrap"><table className="admin-kit__table admin-kit__users-table admin-kit__users-table--custom"><thead><tr>{columns.map((column) => {
               const direction = sort?.columnId === column.id ? sort.direction : undefined;
-              return <th aria-sort={column.sortable ? direction === "asc" ? "ascending" : direction === "desc" ? "descending" : "none" : undefined} className={column.headerClassName} key={column.id} scope="col">{column.sortable ? <button className="admin-kit__sort-button" type="button" onClick={() => updateSort(column.id)}>{column.label}<span aria-hidden="true">{direction === "asc" ? "↑" : direction === "desc" ? "↓" : "↕"}</span></button> : column.label}</th>;
-            })}</tr></thead><tbody>{result.items.map((user) => <tr key={user.id} aria-busy={pendingUserId === user.id}>{columns.map((column) => <td className={column.className} key={column.id}>{column.render(user, { reload: load, isPending: pendingUserId === user.id, setRole: (role) => updateRole(user.id, role), setStatus: (status) => updateStatus(user.id, status) })}</td>)}</tr>)}</tbody></table></div>;
+              const layoutClassName = [
+                column.headerClassName,
+                column.nowrap ? "admin-kit__table-cell--nowrap" : undefined,
+                column.priority ? `admin-kit__table-cell--${column.priority}` : undefined,
+              ].filter(Boolean).join(" ");
+              return <th aria-sort={column.sortable ? direction === "asc" ? "ascending" : direction === "desc" ? "descending" : "none" : undefined} className={layoutClassName || undefined} key={column.id} scope="col">{column.sortable ? <button className="admin-kit__sort-button" type="button" onClick={() => updateSort(column.id)}>{column.label}<span aria-hidden="true">{direction === "asc" ? "↑" : direction === "desc" ? "↓" : "↕"}</span></button> : column.label}</th>;
+            })}</tr></thead><tbody>{result.items.map((user) => <tr key={user.id} aria-busy={pendingUserId === user.id}>{columns.map((column) => <td className={[column.className, column.nowrap ? "admin-kit__table-cell--nowrap" : undefined, column.priority ? `admin-kit__table-cell--${column.priority}` : undefined].filter(Boolean).join(" ") || undefined} key={column.id}>{column.render(user, { reload: load, isPending: pendingUserId === user.id, setRole: (role) => updateRole(user.id, role), setStatus: (status) => updateStatus(user.id, status) })}</td>)}</tr>)}</tbody></table></div>;
             const hasDetails = result.items.some((user) => user.details?.length);
             const hasActions = Boolean(renderUserActions);
             return <div className="admin-kit__table-wrap admin-kit__users-table-wrap"><table className={`admin-kit__table admin-kit__users-table${hasDetails ? " admin-kit__users-table--with-details" : ""}`}><thead><tr><th scope="col">User</th>{hasDetails ? <th scope="col">Details</th> : null}<th scope="col">Role</th><th scope="col">Status</th>{hasActions ? <th scope="col">Actions</th> : null}</tr></thead><tbody>

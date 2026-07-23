@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import {
   type AdminApiKey,
   type AdminApiKeyCreateRequest,
@@ -32,6 +32,8 @@ interface ApiKeysPanelSharedProps {
   headerPresentation?: AdminPanelHeaderPresentation;
   /** Host-owned primary actions displayed beside the panel title. */
   headerActions?: ReactNode;
+  /** Responsive uses table scan density on desktop and compact cards on narrow screens. */
+  presentation?: "cards" | "responsive" | "table";
   /**
    * Renders a host-vocabulary posture/health summary above the create/list
    * regions; the kit derives the facts, the host owns copy and links.
@@ -70,6 +72,12 @@ interface ApiKeysPanelDataProps<CreateInput, UpdateInput> {
   renderEdit?: (controls: {
     key: AdminApiKey;
     update: (input: UpdateInput) => Promise<boolean>;
+    pending: boolean;
+  }) => ReactNode;
+  /** Adds host-specific controls without replacing the shared credential collection. */
+  renderKeyActions?: (controls: {
+    key: AdminApiKey;
+    update?: (input: UpdateInput) => Promise<boolean>;
     pending: boolean;
   }) => ReactNode;
   /**
@@ -130,9 +138,11 @@ function ApiKeysPanelImpl({
   title = "API keys",
   headerPresentation = "section",
   headerActions,
+  presentation = "responsive",
   createInput,
   renderCreate,
   renderEdit,
+  renderKeyActions,
   renderKeys,
   renderPosture,
   renderShortcuts,
@@ -155,6 +165,7 @@ function ApiKeysPanelImpl({
   // load/mutation lifecycle below.
   const [createOpen, setCreateOpen] = useState(false);
   const [editingKeyId, setEditingKeyId] = useState<string>();
+  const [isCompact, setIsCompact] = useState(false);
   const latestLoadId = useRef(0);
   // Bumped only when the `adapter` prop itself changes (unlike `latestLoadId`,
   // which also advances on every ordinary reload). Mutations capture this at
@@ -188,6 +199,14 @@ function ApiKeysPanelImpl({
     // have bumped it for the new adapter hasn't started yet.
     return () => { latestLoadId.current += 1; };
   }, [adapter]);
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return undefined;
+    const query = window.matchMedia("(max-width: 48rem)");
+    const sync = () => setIsCompact(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
   useEffect(() => {
     setSecret(undefined);
     setCopyStatus(undefined);
@@ -315,10 +334,29 @@ function ApiKeysPanelImpl({
     ? (key: AdminApiKey) => setConfirmation({ action: "rotate", key })
     : undefined;
   const activeCount = lifecycleKeys.filter((key) => key.state === "active").length;
+  const hasDetails = lifecycleKeys.some((key) => key.details?.length);
+  const resolvedPresentation = presentation === "responsive"
+    ? (isCompact ? "cards" : "table")
+    : presentation;
   // The built-in inline scope editor is active only when the host opted in via
   // `scopeGroups`, did not override edit rendering, and the adapter can persist
   // an update (`adapter.update` is optional — without it Save would no-op).
   const builtInEditEnabled = Boolean(scopeGroups) && !renderEdit && Boolean(adapter.update);
+  const renderActions = (key: AdminApiKey, isEditing: boolean, isPending: boolean) => key.state === "active" ? (
+    <div className="admin-kit__key-actions">
+      {builtInEditEnabled ? <button className="admin-kit__key-edit-btn" type="button" aria-label={`Edit scopes for ${key.name}`} aria-expanded={isEditing} aria-controls={`admin-kit-key-edit-${key.id}`} disabled={isPending} onClick={() => setEditingKeyId(isEditing ? undefined : key.id)}>Edit scopes</button> : null}
+      {adapter.rotate ? <button type="button" aria-label={`Rotate ${key.name}`} disabled={isPending} onClick={() => requestRotate?.(key)}>Rotate</button> : null}
+      {adapter.update && renderEdit ? renderEdit({ key, update: (input) => update(key, input), pending: isPending }) : null}
+      {renderKeyActions ? renderKeyActions({ key, update: adapter.update ? (input) => update(key, input) : undefined, pending: isPending }) : null}
+      <button type="button" aria-label={`Revoke ${key.name}`} disabled={isPending} onClick={() => requestRevoke(key)}>Revoke</button>
+    </div>
+  ) : null;
+  const renderEditor = (key: AdminApiKey, isEditing: boolean, isPending: boolean) => isEditing && scopeGroups ? (
+    <div className="admin-kit__key-edit" id={`admin-kit-key-edit-${key.id}`} role="region" aria-label={`Edit scopes for ${key.name}`}>
+      <div className="admin-kit__key-edit-header"><h3>Edit scopes</h3><p>{key.name} · {key.maskedKey}</p></div>
+      <AdminApiKeyForm mode="edit" scopeGroups={scopeGroups} minimumScopeCount={minimumScopeCount} pending={isPending} initialScopes={key.scopes} onSubmit={async (request) => { const ok = await update(key, request as AdminApiKeyScopeUpdate); if (ok) setEditingKeyId(undefined); }} onCancel={() => setEditingKeyId(undefined)} />
+    </div>
+  ) : null;
   return (
     <section className={["admin-kit__keys", className].filter(Boolean).join(" ")} aria-label={title}>
       {panelHeader({ total: lifecycleKeys.length, active: activeCount })}
@@ -384,93 +422,38 @@ function ApiKeysPanelImpl({
         pendingKeyId: pending === "create" ? undefined : pending,
       }) : lifecycleKeys.length === 0 ? (
         <AdminPanelStateView state={{ kind: "empty", title: "No API keys yet." }} />
+      ) : resolvedPresentation === "table" ? (
+        <div className="admin-kit__table-wrap admin-kit__keys-table-wrap">
+          <table className="admin-kit__table admin-kit__keys-table">
+            <thead><tr><th scope="col">Key</th><th scope="col">Scope</th>{hasDetails ? <th scope="col">Details</th> : null}<th scope="col">State</th><th scope="col">Created</th><th scope="col">Last used</th><th scope="col">Expires</th><th scope="col">Actions</th></tr></thead>
+            <tbody>{lifecycleKeys.map((key) => {
+              const isEditing = builtInEditEnabled && editingKeyId === key.id;
+              const isPending = pending === key.id;
+              return <Fragment key={key.id}><tr aria-busy={isPending}>
+                <td><div className="admin-kit__key-identity"><strong>{key.name}</strong><code>{key.maskedKey}</code></div></td>
+                <td>{key.scopes.length ? <ul className="admin-kit__scope-chips">{key.scopes.map((scope) => <li className="admin-kit__scope-chip" key={scope}>{scope}</li>)}</ul> : <span className="admin-kit__key-empty">—</span>}</td>
+                {hasDetails ? <td>{key.details?.length ? <dl className="admin-kit__key-details">{key.details.map((detail) => <div key={detail.label}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl> : <span className="admin-kit__key-empty">—</span>}</td> : null}
+                <td><span className={`admin-kit__state-pill admin-kit__state-pill--key-${key.state}`}>{key.state}</span></td>
+                <td className="admin-kit__key-timestamp">{formatAdminTimestamp(key.createdAt, formatTimestamp)}</td>
+                <td className="admin-kit__key-timestamp">{key.lastUsedAt ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp) : "never"}</td>
+                <td className="admin-kit__key-timestamp">{key.expiresAt ? formatAdminTimestamp(key.expiresAt, formatTimestamp) : "never"}</td>
+                <td>{renderActions(key, isEditing, isPending) ?? <span className="admin-kit__key-empty">—</span>}</td>
+              </tr>{isEditing ? <tr><td colSpan={hasDetails ? 8 : 7}>{renderEditor(key, isEditing, isPending)}</td></tr> : null}</Fragment>;
+            })}</tbody>
+          </table>
+        </div>
       ) : (
         <ol className="admin-kit__key-cards">
           {lifecycleKeys.map((key) => {
             const isEditing = builtInEditEnabled && editingKeyId === key.id;
             const isPending = pending === key.id;
-            return (
-              <li aria-busy={isPending} className="admin-kit__key-card" key={key.id}>
-                <div className="admin-kit__key-card-header">
-                  <div className="admin-kit__key-identity">
-                    <strong>{key.name}</strong>
-                    <code>{key.maskedKey}</code>
-                  </div>
-                  <span className={`admin-kit__state-pill admin-kit__state-pill--key-${key.state}`}>{key.state}</span>
-                </div>
-                <dl className="admin-kit__key-summary">
-                  <div>
-                    <dt>Last used</dt>
-                    <dd>{key.lastUsedAt ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp) : "never"}</dd>
-                  </div>
-                  <div>
-                    <dt>Expires</dt>
-                    <dd>{key.expiresAt ? formatAdminTimestamp(key.expiresAt, formatTimestamp) : "never"}</dd>
-                  </div>
-                  {key.details?.[0] ? (
-                    <div>
-                      <dt>{key.details[0].label}</dt>
-                      <dd>{key.details[0].value}</dd>
-                    </div>
-                  ) : null}
-                </dl>
-                <details className="admin-kit__key-details-disclosure">
-                  <summary aria-label={`Scopes and details for ${key.name}`}>{key.scopes.length} {key.scopes.length === 1 ? "scope" : "scopes"}</summary>
-                  {key.scopes.length ? (
-                    <ul className="admin-kit__scope-chips">
-                      {key.scopes.map((scope) => (
-                        <li className="admin-kit__scope-chip" key={scope}>{scope}</li>
-                      ))}
-                    </ul>
-                  ) : <span className="admin-kit__key-empty">No scopes assigned.</span>}
-                  {key.details && key.details.length > 1 ? (
-                    <dl className="admin-kit__key-details">
-                      {key.details.slice(1).map((detail) => <div key={detail.label}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}
-                    </dl>
-                  ) : null}
-                </details>
-                {key.state === "active" ? (
-                  <div className="admin-kit__key-actions">
-                    {builtInEditEnabled ? (
-                      <button
-                        className="admin-kit__key-edit-btn"
-                        type="button"
-                        aria-label={`Edit scopes for ${key.name}`}
-                        aria-expanded={isEditing}
-                        aria-controls={`admin-kit-key-edit-${key.id}`}
-                        disabled={isPending}
-                        onClick={() => setEditingKeyId(isEditing ? undefined : key.id)}
-                      >
-                        Edit scopes
-                      </button>
-                    ) : null}
-                    {adapter.rotate ? <button type="button" aria-label={`Rotate ${key.name}`} disabled={isPending} onClick={() => requestRotate?.(key)}>Rotate</button> : null}
-                    {adapter.update && renderEdit ? renderEdit({ key, update: (input) => update(key, input), pending: isPending }) : null}
-                    <button type="button" aria-label={`Revoke ${key.name}`} disabled={isPending} onClick={() => requestRevoke(key)}>Revoke</button>
-                  </div>
-                ) : null}
-                {isEditing && scopeGroups ? (
-                  <div className="admin-kit__key-edit" id={`admin-kit-key-edit-${key.id}`} role="region" aria-label={`Edit scopes for ${key.name}`}>
-                    <div className="admin-kit__key-edit-header">
-                      <h3>Edit scopes</h3>
-                      <p>{key.name} · {key.maskedKey}</p>
-                    </div>
-                    <AdminApiKeyForm
-                      mode="edit"
-                      scopeGroups={scopeGroups}
-                      minimumScopeCount={minimumScopeCount}
-                      pending={isPending}
-                      initialScopes={key.scopes}
-                      onSubmit={async (request) => {
-                        const ok = await update(key, request as AdminApiKeyScopeUpdate);
-                        if (ok) setEditingKeyId(undefined);
-                      }}
-                      onCancel={() => setEditingKeyId(undefined)}
-                    />
-                  </div>
-                ) : null}
-              </li>
-            );
+            return <li aria-busy={isPending} className="admin-kit__key-card" key={key.id}>
+              <div className="admin-kit__key-card-header"><div className="admin-kit__key-identity"><strong>{key.name}</strong><code>{key.maskedKey}</code></div><span className={`admin-kit__state-pill admin-kit__state-pill--key-${key.state}`}>{key.state}</span></div>
+              <dl className="admin-kit__key-summary"><div><dt>Created</dt><dd>{formatAdminTimestamp(key.createdAt, formatTimestamp)}</dd></div><div><dt>Last used</dt><dd>{key.lastUsedAt ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp) : "never"}</dd></div><div><dt>Expires</dt><dd>{key.expiresAt ? formatAdminTimestamp(key.expiresAt, formatTimestamp) : "never"}</dd></div></dl>
+              <details className="admin-kit__key-details-disclosure"><summary aria-label={`Scopes and details for ${key.name}`}>{key.scopes.length} {key.scopes.length === 1 ? "scope" : "scopes"}</summary>{key.scopes.length ? <ul className="admin-kit__scope-chips">{key.scopes.map((scope) => <li className="admin-kit__scope-chip" key={scope}>{scope}</li>)}</ul> : <span className="admin-kit__key-empty">No scopes assigned.</span>}{key.details?.length ? <dl className="admin-kit__key-details">{key.details.map((detail) => <div key={detail.label}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl> : null}</details>
+              {renderActions(key, isEditing, isPending)}
+              {renderEditor(key, isEditing, isPending)}
+            </li>;
           })}
         </ol>
       )}

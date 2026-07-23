@@ -92,6 +92,15 @@ describe("Admin Kit styles", () => {
     expect(styles).toContain("overflow-x: auto");
   });
 
+  it("keeps routed portal navigation independently sized and sticky", () => {
+    expect(styles).toContain("--admin-kit-sticky-top: 1rem;");
+    expect(styles).toContain(".admin-kit__app-shell-navigation, .admin-kit__portal-navigation");
+    expect(styles).toContain("align-self: start;");
+    expect(styles).toContain("position: sticky;");
+    expect(styles).toContain("max-height: calc(100dvh - (var(--admin-kit-sticky-top) * 2));");
+    expect(styles).toContain(".admin-kit__portal-navigation { border-radius: var(--admin-kit-radius-sm); max-height: none; overflow-y: visible; position: static; }");
+  });
+
   it("defines the foreground-on-fill and semantic tokens introduced in Stage 2", () => {
     expect(styles).toContain("--admin-kit-on-accent:");
     expect(styles).toContain("--admin-kit-on-danger:");
