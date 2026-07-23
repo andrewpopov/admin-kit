@@ -32,6 +32,7 @@ const { createRoot } = await import("react-dom/client");
 const {
   AdminWorkspace,
   AdminActionButton,
+  AdminPortal,
   ApiKeysPanel,
   UsersPanel,
   LogsPanel,
@@ -108,20 +109,33 @@ const apiKeysAdapter = {
 const tree = React.createElement(
   React.Fragment,
   null,
-  React.createElement(
-    AdminWorkspace,
-    {
-      title: "Users",
-      description: "Manage account roles and lifecycle.",
-      actions: React.createElement(
-        React.Fragment,
-        null,
-        React.createElement(AdminActionButton, { tone: "primary" }, "Invite user"),
-        React.createElement(AdminActionButton, null, "Export"),
-      ),
-    },
-    React.createElement(UsersPanel, { adapter: usersAdapter, search: false }),
-  ),
+  React.createElement(AdminPortal, {
+    activeSection: "users",
+    onSectionChange: () => undefined,
+    groups: [{
+      id: "administration",
+      label: "Administration",
+      sections: [{
+        id: "users",
+        label: "Users",
+        description: "Account access and lifecycle",
+        render: () => React.createElement(
+          AdminWorkspace,
+          {
+            title: "Users",
+            description: "Manage account roles and lifecycle.",
+            actions: React.createElement(
+              React.Fragment,
+              null,
+              React.createElement(AdminActionButton, { tone: "primary" }, "Invite user"),
+              React.createElement(AdminActionButton, null, "Export"),
+            ),
+          },
+          React.createElement(UsersPanel, { adapter: usersAdapter, search: false }),
+        ),
+      }],
+    }],
+  }),
   React.createElement(
     AdminWorkspace,
     { as: "section", title: "Runtime logs", description: "Inspect bounded output from the selected process." },
@@ -130,7 +144,12 @@ const tree = React.createElement(
   React.createElement(
     AdminWorkspace,
     { as: "section", title: "API keys", description: "Long credential metadata stays inside the viewport." },
-    React.createElement(ApiKeysPanel, { adapter: apiKeysAdapter, headerPresentation: "section" }),
+    React.createElement(ApiKeysPanel, { adapter: apiKeysAdapter, headerPresentation: "section", presentation: "table" }),
+  ),
+  React.createElement(
+    AdminWorkspace,
+    { as: "section", title: "API key cards", description: "Compact credential review at narrow widths." },
+    React.createElement(ApiKeysPanel, { adapter: apiKeysAdapter, headerPresentation: "section", presentation: "cards" }),
   ),
 );
 

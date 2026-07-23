@@ -7,6 +7,8 @@ export interface AdminPanelHeaderProps {
   presentation?: AdminPanelHeaderPresentation;
   detail?: ReactNode;
   actions?: ReactNode;
+  /** Search, filters, and secondary controls grouped below the title band. */
+  toolbar?: ReactNode;
   className?: string;
 }
 
@@ -16,21 +18,30 @@ export function AdminPanelHeader({
   presentation = "section",
   detail,
   actions,
+  toolbar,
   className,
 }: AdminPanelHeaderProps) {
   const Heading = (presentation === "page" ? "h1" : "h2") as ElementType;
 
   return (
     <header
-      className={["admin-kit__panel-header", `admin-kit__panel-header--${presentation}`, className]
+      className={[
+        "admin-kit__panel-header",
+        `admin-kit__panel-header--${presentation}`,
+        toolbar ? "admin-kit__panel-header--with-toolbar" : undefined,
+        className,
+      ]
         .filter(Boolean)
         .join(" ")}
     >
-      <div>
-        <Heading>{title}</Heading>
-        {detail}
+      <div className="admin-kit__panel-header-main">
+        <div>
+          <Heading>{title}</Heading>
+          {detail}
+        </div>
+        {actions ? <div className="admin-kit__panel-header-actions">{actions}</div> : null}
       </div>
-      {actions ? <div className="admin-kit__panel-header-actions">{actions}</div> : null}
+      {toolbar ? <div className="admin-kit__panel-toolbar">{toolbar}</div> : null}
     </header>
   );
 }

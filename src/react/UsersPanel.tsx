@@ -40,6 +40,10 @@ export interface AdminUserTableColumn<User extends AdminUserSummary> {
   className?: string;
   headerClassName?: string;
   sortable?: boolean;
+  /** Keeps concise values such as timestamps on a single line. */
+  nowrap?: boolean;
+  /** Responsive priority; lower-priority columns are hidden before the table scrolls. */
+  priority?: "primary" | "secondary" | "tertiary";
 }
 
 export interface AdminUserTableSort {
@@ -186,10 +190,10 @@ export function UsersPanel<User extends AdminUserSummary>({
       </label>
     ) : null;
   const hostHeaderActions = renderHeaderActions?.({ reload: load, isLoading });
-  const headerActions =
-    (headerPresentation === "page" && searchControl) || hostHeaderActions ? (
+  const toolbar =
+    headerPresentation === "page" && (searchControl || hostHeaderActions) ? (
       <>
-        {headerPresentation === "page" ? searchControl : null}
+        {searchControl}
         {hostHeaderActions}
       </>
     ) : null;
@@ -200,7 +204,7 @@ export function UsersPanel<User extends AdminUserSummary>({
       aria-label={title}
     >
       <AdminPanelHeader
-        actions={headerActions}
+        actions={headerPresentation === "section" ? hostHeaderActions : null}
         className="admin-kit__users-header"
         detail={
           result ? (
@@ -211,6 +215,7 @@ export function UsersPanel<User extends AdminUserSummary>({
         }
         presentation={headerPresentation}
         title={title}
+        toolbar={toolbar}
       />
       {headerPresentation === "section" ? searchControl : null}
       {loadError && !result ? (
@@ -244,6 +249,15 @@ export function UsersPanel<User extends AdminUserSummary>({
                             {columns.map((column) => {
                               const direction =
                                 sort?.columnId === column.id ? sort.direction : undefined;
+                              const layoutClassName = [
+                                column.headerClassName,
+                                column.nowrap ? "admin-kit__table-cell--nowrap" : undefined,
+                                column.priority
+                                  ? `admin-kit__table-cell--${column.priority}`
+                                  : undefined,
+                              ]
+                                .filter(Boolean)
+                                .join(" ");
                               return (
                                 <th
                                   aria-sort={
@@ -255,7 +269,7 @@ export function UsersPanel<User extends AdminUserSummary>({
                                           : "none"
                                       : undefined
                                   }
-                                  className={column.headerClassName}
+                                  className={layoutClassName || undefined}
                                   key={column.id}
                                   scope="col"
                                 >
@@ -286,7 +300,20 @@ export function UsersPanel<User extends AdminUserSummary>({
                           {result.items.map((user) => (
                             <tr key={user.id} aria-busy={pendingUserId === user.id}>
                               {columns.map((column) => (
-                                <td className={column.className} key={column.id}>
+                                <td
+                                  className={
+                                    [
+                                      column.className,
+                                      column.nowrap ? "admin-kit__table-cell--nowrap" : undefined,
+                                      column.priority
+                                        ? `admin-kit__table-cell--${column.priority}`
+                                        : undefined,
+                                    ]
+                                      .filter(Boolean)
+                                      .join(" ") || undefined
+                                  }
+                                  key={column.id}
+                                >
                                   {column.render(user, {
                                     reload: load,
                                     isPending: pendingUserId === user.id,

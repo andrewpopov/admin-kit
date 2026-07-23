@@ -114,24 +114,41 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
     };
     const searchControl = searchOptions !== false ? ((0, jsx_runtime_1.jsxs)("label", { className: "admin-kit__users-search", children: [(0, jsx_runtime_1.jsx)("span", { children: searchOptions.label ?? "Search users" }), (0, jsx_runtime_1.jsx)("input", { onChange: (event) => setSearchAndResetPage(event.target.value), placeholder: searchOptions.placeholder ?? "Search by name or email", type: "search", value: search })] })) : null;
     const hostHeaderActions = renderHeaderActions?.({ reload: load, isLoading });
-    const headerActions = (headerPresentation === "page" && searchControl) || hostHeaderActions ? ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [headerPresentation === "page" ? searchControl : null, hostHeaderActions] })) : null;
-    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__users", className].filter(Boolean).join(" "), "aria-label": title, children: [(0, jsx_runtime_1.jsx)(AdminPanelHeader_1.AdminPanelHeader, { actions: headerActions, className: "admin-kit__users-header", detail: result ? ((0, jsx_runtime_1.jsxs)("p", { children: [result.total, " ", result.total === 1 ? "user" : "users"] })) : null, presentation: headerPresentation, title: title }), headerPresentation === "section" ? searchControl : null, loadError && !result ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : !result ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "loading", label: "Loading users…" } })) : result.items.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: "No users found." } })) : ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? ((0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError })) : null, presentation === "table"
+    const toolbar = headerPresentation === "page" && (searchControl || hostHeaderActions) ? ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [searchControl, hostHeaderActions] })) : null;
+    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__users", className].filter(Boolean).join(" "), "aria-label": title, children: [(0, jsx_runtime_1.jsx)(AdminPanelHeader_1.AdminPanelHeader, { actions: headerPresentation === "section" ? hostHeaderActions : null, className: "admin-kit__users-header", detail: result ? ((0, jsx_runtime_1.jsxs)("p", { children: [result.total, " ", result.total === 1 ? "user" : "users"] })) : null, presentation: headerPresentation, title: title, toolbar: toolbar }), headerPresentation === "section" ? searchControl : null, loadError && !result ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : !result ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "loading", label: "Loading users…" } })) : result.items.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: "No users found." } })) : ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? ((0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError })) : null, presentation === "table"
                         ? (() => {
                             if (columns?.length)
                                 return ((0, jsx_runtime_1.jsx)("div", { className: "admin-kit__table-wrap admin-kit__users-table-wrap", children: (0, jsx_runtime_1.jsxs)("table", { className: "admin-kit__table admin-kit__users-table admin-kit__users-table--custom", children: [(0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsx)("tr", { children: columns.map((column) => {
                                                         const direction = sort?.columnId === column.id ? sort.direction : undefined;
+                                                        const layoutClassName = [
+                                                            column.headerClassName,
+                                                            column.nowrap ? "admin-kit__table-cell--nowrap" : undefined,
+                                                            column.priority
+                                                                ? `admin-kit__table-cell--${column.priority}`
+                                                                : undefined,
+                                                        ]
+                                                            .filter(Boolean)
+                                                            .join(" ");
                                                         return ((0, jsx_runtime_1.jsx)("th", { "aria-sort": column.sortable
                                                                 ? direction === "asc"
                                                                     ? "ascending"
                                                                     : direction === "desc"
                                                                         ? "descending"
                                                                         : "none"
-                                                                : undefined, className: column.headerClassName, scope: "col", children: column.sortable ? ((0, jsx_runtime_1.jsxs)("button", { className: "admin-kit__sort-button", type: "button", onClick: () => updateSort(column.id), children: [column.label, (0, jsx_runtime_1.jsx)("span", { "aria-hidden": "true", children: direction === "asc"
+                                                                : undefined, className: layoutClassName || undefined, scope: "col", children: column.sortable ? ((0, jsx_runtime_1.jsxs)("button", { className: "admin-kit__sort-button", type: "button", onClick: () => updateSort(column.id), children: [column.label, (0, jsx_runtime_1.jsx)("span", { "aria-hidden": "true", children: direction === "asc"
                                                                             ? "↑"
                                                                             : direction === "desc"
                                                                                 ? "↓"
                                                                                 : "↕" })] })) : (column.label) }, column.id));
-                                                    }) }) }), (0, jsx_runtime_1.jsx)("tbody", { children: result.items.map((user) => ((0, jsx_runtime_1.jsx)("tr", { "aria-busy": pendingUserId === user.id, children: columns.map((column) => ((0, jsx_runtime_1.jsx)("td", { className: column.className, children: column.render(user, {
+                                                    }) }) }), (0, jsx_runtime_1.jsx)("tbody", { children: result.items.map((user) => ((0, jsx_runtime_1.jsx)("tr", { "aria-busy": pendingUserId === user.id, children: columns.map((column) => ((0, jsx_runtime_1.jsx)("td", { className: [
+                                                            column.className,
+                                                            column.nowrap ? "admin-kit__table-cell--nowrap" : undefined,
+                                                            column.priority
+                                                                ? `admin-kit__table-cell--${column.priority}`
+                                                                : undefined,
+                                                        ]
+                                                            .filter(Boolean)
+                                                            .join(" ") || undefined, children: column.render(user, {
                                                             reload: load,
                                                             isPending: pendingUserId === user.id,
                                                             setRole: (role) => updateRole(user.id, role),

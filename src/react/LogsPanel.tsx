@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   formatAdminTimestamp,
   validateAdminLogsSnapshot,
@@ -40,11 +40,16 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
   const [snapshot, setSnapshot] = useState<AdminLogsSnapshot<Entry>>();
   const [error, setError] = useState<string>();
   const [copyFeedback, setCopyFeedback] = useState<string>();
+  const [refreshFeedback, setRefreshFeedback] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(Boolean(pollingInterval && defaultAutoRefresh));
+  const [followLatest, setFollowLatest] = useState(true);
   const latestLoadId = useRef(0);
+  const outputRef = useRef<HTMLDivElement>(null);
+  const scrollPosition = useRef(0);
+  const previousEntryIds = useRef<Set<string>>();
 
-  const load = async () => {
+  const load = async (announce = false) => {
     const loadId = ++latestLoadId.current;
     setIsLoading(true);
     setError(undefined);
@@ -63,11 +68,24 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
         // below) without feeding it back into request state: echoing it
         // into `source` would re-trigger this effect, and an adapter that
         // canonicalizes non-idempotently could loop indefinitely.
+        const newLineCount = previousEntryIds.current
+          ? next.entries.filter((entry) => !previousEntryIds.current?.has(entry.id)).length
+          : 0;
+        previousEntryIds.current = new Set(next.entries.map((entry) => entry.id));
         setSnapshot(next);
+        if (announce) {
+          setRefreshFeedback(
+            newLineCount === 1
+              ? "Refreshed: 1 new log line."
+              : `Refreshed: ${newLineCount} new log lines.`,
+          );
+        }
       }
     } catch (reason) {
       if (loadId === latestLoadId.current) {
         setError(reason instanceof Error ? reason.message : "Unable to load runtime logs.");
+        if (announce)
+          setRefreshFeedback("Refresh failed. The previously loaded output remains available.");
       }
     } finally {
       if (loadId === latestLoadId.current) setIsLoading(false);
@@ -83,7 +101,7 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
 
   useEffect(() => {
     if (!autoRefresh || !pollingInterval) return;
-    const timer = window.setInterval(() => void load(), pollingInterval);
+    const timer = window.setInterval(() => void load(true), pollingInterval);
     return () => window.clearInterval(timer);
   }, [autoRefresh, pollingInterval, adapter, source, limit, level, category, appliedSearch]);
 
@@ -111,7 +129,21 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
     );
   }, [snapshot, search, level, category]);
 
+  useLayoutEffect(() => {
+    const output = outputRef.current;
+    if (!output) return;
+    if (followLatest) {
+      output.scrollTop = output.scrollHeight;
+    } else {
+      output.scrollTop = Math.max(
+        0,
+        Math.min(scrollPosition.current, output.scrollHeight - output.clientHeight),
+      );
+    }
+  }, [snapshot, followLatest, visibleEntries.length]);
+
   const copy = async () => {
+    setRefreshFeedback(undefined);
     try {
       await navigator.clipboard.writeText(
         visibleEntries.map((entry) => entry.raw ?? entry.message).join("\n"),
@@ -165,6 +197,15 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
           </p>
         </div>
         <div className="admin-kit__logs-actions">
+          <button
+            className="admin-kit__button"
+            type="button"
+            role="switch"
+            aria-checked={followLatest}
+            onClick={() => setFollowLatest((current) => !current)}
+          >
+            Follow latest {followLatest ? "on" : "off"}
+          </button>
           {pollingInterval ? (
             <button
               className="admin-kit__button"
@@ -180,7 +221,7 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
             className="admin-kit__button admin-kit__button--primary"
             disabled={isLoading}
             type="button"
-            onClick={() => void load()}
+            onClick={() => void load(true)}
           >
             Refresh
           </button>
@@ -201,6 +242,7 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
               onChange={(event) => {
                 setLevel("");
                 setCategory("");
+                setFollowLatest(true);
                 setSource(event.target.value);
               }}
             >
@@ -240,7 +282,13 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
         ) : null}
         <label>
           <span>Lines</span>
-          <select value={limit} onChange={(event) => setLimit(Number(event.target.value))}>
+          <select
+            value={limit}
+            onChange={(event) => {
+              setFollowLatest(true);
+              setLimit(Number(event.target.value));
+            }}
+          >
             {limits.map((option) => (
               <option key={option} value={option}>
                 {option}
@@ -278,30 +326,44 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
         </button>
       </div>
       <p className="admin-kit__logs-feedback" aria-live="polite">
-        {copyFeedback}
+        {refreshFeedback ?? copyFeedback}
       </p>
       {visibleEntries.length === 0 ? (
         <AdminPanelStateView state={{ kind: "empty", title: "No log lines matched." }} />
       ) : (
-        <ol className="admin-kit__logs-output">
-          {visibleEntries.map((entry) => (
-            <li
-              key={entry.id}
-              className={`admin-kit__log-line admin-kit__log-line--${entry.level?.tone ?? "neutral"}`}
-            >
-              <div className="admin-kit__log-context">
-                {entry.timestamp ? (
-                  <time dateTime={entry.timestamp}>
-                    {formatAdminTimestamp(entry.timestamp, formatTimestamp)}
-                  </time>
-                ) : null}
-                {entry.level ? <span>{entry.level.label}</span> : null}
-                {entry.category ? <span>{entry.category}</span> : null}
-              </div>
-              <pre>{entry.message}</pre>
-            </li>
-          ))}
-        </ol>
+        <div
+          ref={outputRef}
+          className="admin-kit__logs-output"
+          role="region"
+          aria-label={`${title} output`}
+          tabIndex={0}
+          onScroll={(event) => {
+            const output = event.currentTarget;
+            scrollPosition.current = output.scrollTop;
+            if (output.scrollTop + output.clientHeight < output.scrollHeight - 1)
+              setFollowLatest(false);
+          }}
+        >
+          <ol className="admin-kit__logs-list">
+            {visibleEntries.map((entry) => (
+              <li
+                key={entry.id}
+                className={`admin-kit__log-line admin-kit__log-line--${entry.level?.tone ?? "neutral"}`}
+              >
+                <div className="admin-kit__log-context">
+                  {entry.timestamp ? (
+                    <time dateTime={entry.timestamp}>
+                      {formatAdminTimestamp(entry.timestamp, formatTimestamp)}
+                    </time>
+                  ) : null}
+                  {entry.level ? <span>{entry.level.label}</span> : null}
+                  {entry.category ? <span>{entry.category}</span> : null}
+                </div>
+                <pre>{entry.message}</pre>
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
     </section>
   );

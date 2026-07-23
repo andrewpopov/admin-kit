@@ -17,6 +17,15 @@
   git-tag distribution model (`github:andrewpopov/admin-kit#vX.Y.Z`); consumers
   pin to a release tag and bump deliberately.
 
+## 0.29.6
+
+### Fixed
+
+- `LogsPanel` now opens in explicit tail-follow mode, keeps manual reading
+  position when follow is off, and announces refresh success or failure.
+- Runtime output is a named, visibly focused keyboard scroll region; stable
+  entry keys keep unchanged rows mounted across refreshes.
+
 ## 0.29.5
 
 ### Added

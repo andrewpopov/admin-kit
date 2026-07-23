@@ -350,10 +350,10 @@ confirmation, or purge inputs.
 
 For a route where the directory is the page, set
 `headerPresentation="page"` inside an `AdminWorkspace
-presentation="panel-led"`. The panel renders the route `h1`, moves its search
-control beside `renderHeaderActions`, and leaves the table as the only nested
-surface. The default `section` presentation keeps the reusable `h2` panel
-contract.
+presentation="panel-led"`. The panel renders the route `h1` and groups search
+plus host filters/actions into one toolbar below the identity band, leaving the
+table as the only nested surface. The default `section` presentation keeps the
+reusable `h2` panel contract.
 
 ```tsx
 <UsersPanel
@@ -380,7 +380,9 @@ Set `sortable: true` on columns backed by host API sorting, and declare
 the stable column `id` as `query.sort` with `query.order`; the host must validate
 and map that value rather than interpolating arbitrary database fields. Use
 custom columns instead of overloading the default identity cell with unrelated
-facts.
+facts. Custom columns may use `nowrap` for concise timestamps and `priority`
+(`primary`, `secondary`, or `tertiary`) to collapse low-value columns before
+the table becomes difficult to scan on narrow screens.
 
 ### Scoped memberships
 
@@ -499,6 +501,16 @@ empty state. It receives only safe key metadata plus package-owned revoke,
 optional rotate, and optional metadata-update callbacks, so the package still
 owns destructive confirmation and the secret-safe lifecycle.
 
+The default `presentation="responsive"` renders a scan-first framed table on
+desktop with separate Key, Scope, State, Created, Last used, Expires, and
+Actions fields, then changes to compact progressive-disclosure cards on narrow
+screens. Hosts may force `presentation="table"` or `presentation="cards"`
+for a specialized operational view. Use `renderKeyActions` for a narrow
+host control such as expiry selection; it receives the current key, pending
+state, and optional package-owned update callback. Prefer this over
+`renderKeys` so the host retains its policy control without replacing the
+shared collection surface or lifecycle/action semantics.
+
 ### Administrative events
 
 `EventsPanel` normalizes list-safe audit, access, and operational records while
@@ -560,6 +572,12 @@ const logs = defineAdminLogsAdapter({
 
 <LogsPanel adapter={logs} pollIntervalMs={5_000} defaultAutoRefresh />;
 ```
+
+The output opens in **Follow latest** mode, so the newest bounded line is in
+view. Turn that switch off to inspect earlier output; refreshing then preserves
+the scroll position. The output is a named, keyboard-focusable scroll region,
+so standard arrow, Page Up/Down, Home, and End keys work without moving focus
+to the document.
 
 The host adapter owns source discovery, parsing raw lines, server-side search,
 file-path safety, retention, redaction, and authorization. The panel validates

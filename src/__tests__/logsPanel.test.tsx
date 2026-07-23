@@ -136,7 +136,35 @@ describe("LogsPanel", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
     expect(await screen.findByText("Log host unavailable")).toBeTruthy();
+    expect(
+      screen.getByText("Refresh failed. The previously loaded output remains available."),
+    ).toBeTruthy();
     expect(screen.getByText("Request completed")).toBeTruthy();
+  });
+
+  it("starts in tail-follow mode and exposes a named keyboard scroll region", async () => {
+    render(<LogsPanel adapter={adapter()} />);
+    await screen.findByText("Request completed");
+
+    const output = screen.getByRole("region", { name: "Runtime logs output" });
+    expect(output).toHaveProperty("tabIndex", 0);
+    expect(
+      screen.getByRole("switch", { name: "Follow latest on" }).getAttribute("aria-checked"),
+    ).toBe("true");
+    fireEvent.click(screen.getByRole("switch", { name: "Follow latest on" }));
+    expect(
+      screen.getByRole("switch", { name: "Follow latest off" }).getAttribute("aria-checked"),
+    ).toBe("false");
+  });
+
+  it("announces a manual refresh without remounting unchanged log rows", async () => {
+    const read = vi.fn().mockResolvedValue(snapshot);
+    render(<LogsPanel adapter={adapter(read)} />);
+    const entry = await screen.findByText("Request completed");
+
+    fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
+    expect(await screen.findByText("Refreshed: 0 new log lines.")).toBeTruthy();
+    expect(screen.getByText("Request completed")).toBe(entry);
   });
 
   it("ignores a stale source response that resolves after the current source", async () => {
@@ -186,6 +214,22 @@ describe("LogsPanel", () => {
     expect(screen.getByText("Worker failed")).toBeTruthy();
   });
 
+  it("replaces refresh feedback with the later copy outcome", async () => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn().mockRejectedValue(new Error("Denied")) },
+    });
+    const read = vi.fn().mockResolvedValue(snapshot);
+    render(<LogsPanel adapter={adapter(read)} />);
+    await screen.findByText("Request completed");
+
+    fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
+    await screen.findByText("Refreshed: 0 new log lines.");
+    fireEvent.click(screen.getByRole("button", { name: "Copy visible" }));
+    expect(await screen.findByText("Unable to copy log output.")).toBeTruthy();
+    expect(screen.queryByText("Refreshed: 0 new log lines.")).toBeNull();
+  });
+
   it("exposes optional polling as an accessible user-controlled switch", async () => {
     render(<LogsPanel adapter={adapter()} pollIntervalMs={5_000} />);
     const toggle = await screen.findByRole("switch", { name: "Auto-refresh off" });
@@ -199,7 +243,7 @@ describe("LogsPanel", () => {
   it("does not enable polling for a non-positive interval", async () => {
     render(<LogsPanel adapter={adapter()} pollIntervalMs={-1} defaultAutoRefresh />);
     await screen.findByText("Request completed");
-    expect(screen.queryByRole("switch")).toBeNull();
+    expect(screen.queryByRole("switch", { name: /auto-refresh/i })).toBeNull();
   });
 
   it("does not loop forever when the adapter canonicalizes the requested source", async () => {
