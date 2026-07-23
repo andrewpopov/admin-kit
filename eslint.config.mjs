@@ -28,7 +28,9 @@ export default tseslint.config(
     },
   },
   {
-    files: ["src/**/*.tsx"],
+    // .ts as well as .tsx: a custom hook can live in a plain .ts module, and
+    // rules-of-hooks / exhaustive-deps must catch violations there too.
+    files: ["src/**/*.{ts,tsx}"],
     plugins: { "react-hooks": reactHooks },
     // eslint-plugin-react-hooks v7 folded the experimental React Compiler
     // rule set (set-state-in-effect, purity, immutability, refs-in-render,
