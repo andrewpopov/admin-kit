@@ -37,7 +37,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.32.0
+npm install github:andrewpopov/admin-kit#v0.33.0
 ```
 
 This package is distributed as a pinned git tag, not through a registry.
