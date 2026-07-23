@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.33.1
+
+### Fixed
+
+- Table column-priority thresholds now reflect what a full table actually needs.
+  0.33.0 moved priority hiding to container queries but triggered the tertiary
+  column at 64rem (1024px) — just below the ~1050px content area a typical
+  sidebar layout leaves — so the column never dropped and the actions column
+  still clipped. Tertiary now drops at 72rem and secondary at 56rem, measured
+  against a full 7-column users table (~1210px wide).
+
 ## 0.33.0
 
 ### Changed
