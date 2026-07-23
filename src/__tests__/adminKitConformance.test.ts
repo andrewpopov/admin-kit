@@ -57,14 +57,26 @@ describe("admin-kit-conformance", () => {
     expect(result.stdout).toContain("[admin-kit-conformance] PASS");
   });
 
-  it("still rejects a source-level core token override", () => {
+  it("still rejects a source-level internal token override", () => {
+    const root = createConsumerFixture();
+    writeFileSync(join(root, "src", "app.css"), ":root { --admin-kit-text: red; }");
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "src/app.css: --admin-kit-text is an internal Admin Kit token and cannot be overridden",
+    );
+  });
+
+  it("accepts a source-level public theme-token override", () => {
     const root = createConsumerFixture();
     writeFileSync(join(root, "src", "app.css"), ":root { --admin-kit-accent: red; }");
 
     const result = runConformance(root);
 
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain("src/app.css: do not override Admin Kit core tokens");
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("[admin-kit-conformance] PASS");
   });
 
   it("accepts a frameless AdminApp when host chrome supplies page identity", () => {

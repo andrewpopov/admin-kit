@@ -78,6 +78,19 @@ try {
   if (!run('node', ['node_modules/.bin/admin-kit-conformance'], { cwd: consumerDir }).includes('PASS')) {
     fail('Conformance binary did not accept a valid consumer.');
   }
+  writeFileSync(
+    join(consumerDir, 'src', 'theme.css'),
+    '.admin-kit { --admin-kit-accent: #4f46e5; }\n',
+  );
+  if (!run('node', ['node_modules/.bin/admin-kit-conformance'], { cwd: consumerDir }).includes('PASS')) {
+    fail('Conformance binary rejected a public theme-token override.');
+  }
+  writeFileSync(
+    join(consumerDir, 'src', 'theme.css'),
+    '.admin-kit { --admin-kit-text: #000000; }\n',
+  );
+  expectConformanceFailure(consumerDir, '--admin-kit-text is an internal Admin Kit token');
+  rmSync(join(consumerDir, 'src', 'theme.css'));
   writeFileSync(join(consumerDir, 'src', 'main.tsx'), 'export const App = () => <div />;');
   writeFileSync(join(consumerDir, 'src', 'unused.tsx'), `import '${pkg.name}/styles.css';`);
   expectConformanceFailure(consumerDir, 'application main or layout entry point');
