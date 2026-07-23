@@ -37,7 +37,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.31.1
+npm install github:andrewpopov/admin-kit#v0.32.0
 ```
 
 This package is distributed as a pinned git tag, not through a registry.
@@ -135,8 +135,51 @@ styles by overriding the `--admin-kit-*` variables on an app or admin wrapper.
 
 Add `"verify:admin-kit": "admin-kit-conformance"` to every consumer and run
 it in the local verification lane. The command rejects consumers that omit the
-stylesheet or override core `--admin-kit-*` tokens from host CSS. Both framed
-and frameless `AdminApp` layouts are supported.
+stylesheet or override an internal `--admin-kit-*` token from host CSS;
+overriding one of the public theme tokens (see [Theming](#theming) below) is
+allowed. Both framed and frameless `AdminApp` layouts are supported.
+
+### Theming
+
+Admin Kit is opinionated by default — it ships its own blue accent, corner
+radii, and a matched light/dark palette, and `admin-kit-conformance` locks
+that down. Hosts MAY override a small set of public brand tokens to rebrand
+the surface; every other token is internal and fails conformance if
+redeclared.
+
+Public theme tokens (safe to override): `--admin-kit-accent`,
+`--admin-kit-accent-strong`, `--admin-kit-accent-soft`,
+`--admin-kit-on-accent`, `--admin-kit-radius`, `--admin-kit-radius-sm`,
+`--admin-kit-dark-accent`, `--admin-kit-dark-accent-strong`,
+`--admin-kit-dark-accent-soft`.
+
+Admin Kit declares its tokens on `.admin-kit--theme-core`, and a host
+stylesheet often loads before admin-kit's, so a same-specificity host rule can
+lose. Use a compound selector — `.admin-kit.admin-kit--theme-core` — so the
+override wins on specificity regardless of load order, and
+`.dark .admin-kit.admin-kit--theme-core` for the dark variant:
+
+```css
+.admin-kit.admin-kit--theme-core {
+  --admin-kit-accent: #4f46e5;
+  --admin-kit-accent-strong: #4338ca;
+  --admin-kit-accent-soft: #eef2ff;
+  --admin-kit-radius: 0.5rem;
+}
+
+.dark .admin-kit.admin-kit--theme-core {
+  --admin-kit-dark-accent: #a5b4fc;
+  --admin-kit-dark-accent-strong: #c7d2fe;
+  --admin-kit-dark-accent-soft: #312e81;
+}
+```
+
+Locked (internal) tokens — surfaces (`surface`, `surface-subtle`), borders
+(`border`, `border-strong`), text (`text`, `muted`), and the semantic
+palettes (`danger*`, `success*`, `warning*`), plus their `dark-*`
+counterparts and `dark-text`/`dark-muted` — stay fixed. They carry the admin
+surface's legibility and contrast contract, so `admin-kit-conformance` fails
+any consumer CSS that redeclares them.
 
 Admin Kit is intentionally opinionated about shared administrative UI. Every
 admin route must import `@andrewpopov/admin-kit/styles.css` and render through
@@ -169,9 +212,10 @@ design system.
 `EventsPanel`, `LogsPanel`, `ApiKeysPanel`, `MembershipsPanel`, `SessionsPanel`), the operational panels
 (`OperationalJobsPanel`, `BackupsPanel`, `SettingsPanel`), and
 `AdminPanelStateView`. Their stable
-`admin-kit__*` classes are supported layout hooks. Do not override the core
-tokens, button treatments, or component geometry; use the extension primitives
-for product-specific content instead.
+`admin-kit__*` classes are supported layout hooks. Do not override internal
+tokens, button treatments, or component structure; use the extension
+primitives for product-specific content, or the public theme tokens (see
+[Theming](#theming)) to rebrand, instead.
 
 Package selectors keep their pseudo-classes inside `:where()`, so an equally
 targeted host rule wins without `!important` — and the package itself ships no

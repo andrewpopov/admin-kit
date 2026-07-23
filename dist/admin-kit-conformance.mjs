@@ -5,6 +5,17 @@ import { join, relative } from 'node:path';
 const root = process.cwd();
 const packageVersion = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 const ignored = new Set(['node_modules', 'dist', '.git', '.next', '.worktree', 'coverage', 'test-results']);
+const PUBLIC_THEME_TOKENS = new Set([
+  'accent',
+  'accent-strong',
+  'accent-soft',
+  'on-accent',
+  'radius',
+  'radius-sm',
+  'dark-accent',
+  'dark-accent-strong',
+  'dark-accent-soft',
+]);
 const sourceFiles = [];
 const packageManifests = [];
 
@@ -48,8 +59,15 @@ if (!entryFiles.some(({ text }) => /['"]@andrewpopov\/admin-kit\/styles\.css['"]
   errors.push('Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.');
 }
 for (const { path, text } of files) {
-  if (/\.css$/.test(path) && /--admin-kit-/.test(text)) {
-    errors.push(`${relative(root, path)}: do not override Admin Kit core tokens; compose AdminCard, AdminField, or AdminStack instead.`);
+  if (!/\.css$/.test(path)) continue;
+  const rel = relative(root, path);
+  for (const match of text.matchAll(/--admin-kit-([a-z0-9-]+)\s*:/g)) {
+    const name = match[1];
+    if (!PUBLIC_THEME_TOKENS.has(name)) {
+      errors.push(
+        `${rel}: --admin-kit-${name} is an internal Admin Kit token and cannot be overridden; only theme tokens (accent, accent-strong, accent-soft, on-accent, radius, radius-sm, dark-accent, dark-accent-strong, dark-accent-soft) may be set to rebrand.`,
+      );
+    }
   }
 }
 if (errors.length) fail(errors);

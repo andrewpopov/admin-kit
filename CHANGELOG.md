@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.32.0
+
+### Added
+
+- Host theming via 9 public brand tokens: the accent family
+  (`--admin-kit-accent`, `--admin-kit-accent-strong`,
+  `--admin-kit-accent-soft`, `--admin-kit-on-accent`), radius
+  (`--admin-kit-radius`, `--admin-kit-radius-sm`), and the dark-accent family
+  (`--admin-kit-dark-accent`, `--admin-kit-dark-accent-strong`,
+  `--admin-kit-dark-accent-soft`). See the README's Theming section.
+
+### Changed
+
+- `admin-kit-conformance` now permits public theme-token overrides in
+  consumer CSS and rejects only internal (structural/contrast-critical)
+  token overrides.
+
+### Fixed
+
+- The `admin-kit-conformance` bin is now executable after install; it was
+  previously copied into `dist/` without the executable bit, so
+  `node_modules/.bin/admin-kit-conformance` failed with "Permission denied".
+
 ## 0.31.1
 
 ### Fixed

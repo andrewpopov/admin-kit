@@ -1,6 +1,8 @@
 /* These defaults live at the document level because confirmation dialogs are
    portaled outside an optional `.admin-kit` host wrapper. Hosts can override
-   them on a local wrapper to match an application-owned visual system. */
+   the public theme tokens (accent, accent-strong, accent-soft, on-accent,
+   radius, radius-sm, dark-accent, dark-accent-strong, dark-accent-soft) on a
+   local wrapper to rebrand; the rest are internal and stay fixed. */
 :root {
   --admin-kit-surface: #ffffff;
   --admin-kit-surface-subtle: #f6f8fc;
@@ -26,9 +28,12 @@
   --admin-kit-sticky-top: 1rem;
 }
 
-/* The core preset deliberately re-declares the public tokens on the Admin Kit
-   boundary. Product styles can no longer accidentally recolor or reshape a
-   shared admin surface through inherited application variables. */
+/* The core preset is opinionated by default: it re-declares every token on
+   the Admin Kit boundary so inherited application variables can't
+   accidentally recolor or reshape a shared admin surface. Hosts may still
+   opt in to rebrand by overriding the public theme tokens (accent family,
+   radius, dark-accent family) on a compound `.admin-kit.admin-kit--theme-core`
+   selector; every other token stays internal and locked. */
 .admin-kit--theme-core {
   --admin-kit-surface: #ffffff;
   --admin-kit-surface-subtle: #f6f8fc;
