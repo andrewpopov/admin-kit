@@ -688,3 +688,25 @@
 @media (max-width: 36rem) {
   .admin-kit__users-table .admin-kit__table-cell--secondary { display: none; }
 }
+
+/* Respect prefers-reduced-motion. Scoped to admin-kit's own selectors —
+   `.admin-kit` and any `[class*="admin-kit__"]` element — plus their
+   descendants and pseudo-elements, so this never imposes a motion policy on
+   the host app's own elements outside admin-kit. The important flag is
+   required here (not just source order) because at least one admin-kit
+   transition (the `[aria-busy="true"]` busy-dim, L364) has higher selector
+   specificity than a bare `[class*="admin-kit__"]` match. */
+@media (prefers-reduced-motion: reduce) {
+  .admin-kit,
+  .admin-kit *,
+  .admin-kit *::before,
+  .admin-kit *::after,
+  [class*="admin-kit__"],
+  [class*="admin-kit__"] *,
+  [class*="admin-kit__"]::before,
+  [class*="admin-kit__"]::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
