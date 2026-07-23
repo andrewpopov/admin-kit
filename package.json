@@ -65,13 +65,20 @@
     "verify:dist-fresh": "node scripts/verify-dist-fresh.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "release:note": "release-kit note",
+    "release:notes": "release-kit notes",
+    "release:bump": "release-kit bump",
+    "release:cut": "release-kit cut",
+    "release:check": "release-kit check",
+    "release:hygiene": "release-kit hygiene"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
+    "@andrewpopov/release-kit": "github:andrewpopov/release-kit#v0.2.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.55.0",
     "@testing-library/react": "^16.3.2",
