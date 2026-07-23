@@ -40,6 +40,21 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
 
+  release-hygiene:
+    name: release-hygiene
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run release:hygiene -- --base origin/main
+
   release-guard:
     name: release-guard
     if: startsWith(github.ref, 'refs/tags/v')
