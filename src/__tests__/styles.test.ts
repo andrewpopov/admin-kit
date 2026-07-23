@@ -100,6 +100,30 @@ describe("Admin Kit styles", () => {
     expect(styles).toContain("overflow-x: auto");
   });
 
+  it("hides low-priority table columns by CONTAINER width, not viewport width (PKG-62)", () => {
+    // .admin-kit__table-wrap establishes the inline-size container so
+    // priority hiding tracks the table's available space (e.g. a narrowed
+    // sidebar layout), not the browser viewport.
+    expect(styles).toContain("container-name: admin-kit-table;");
+    expect(styles).toContain("container-type: inline-size;");
+    expect(styles).toContain("@container admin-kit-table (max-width: 64rem)");
+    expect(styles).toContain("@container admin-kit-table (max-width: 48rem)");
+    expect(styles).toContain(
+      ".admin-kit__users-table .admin-kit__table-cell--tertiary { display: none; }",
+    );
+    expect(styles).toContain(
+      ".admin-kit__users-table .admin-kit__table-cell--secondary { display: none; }",
+    );
+
+    // The old viewport-media-query versions of these two priority rules must
+    // be gone — only the @container versions above should hide these cells.
+    const viewport48rem = styles.match(/@media \(max-width: 48rem\)\s*{([\s\S]*?)\n}/);
+    expect(viewport48rem).not.toBeNull();
+    expect(viewport48rem![1]).not.toContain("admin-kit__table-cell--tertiary");
+    const viewport36rem = styles.match(/@media \(max-width: 36rem\)\s*{([\s\S]*?)\n}/);
+    expect(viewport36rem).toBeNull();
+  });
+
   it("keeps routed portal navigation independently sized and sticky", () => {
     expect(styles).toContain("--admin-kit-sticky-top: 1rem;");
     expect(styles).toContain(".admin-kit__app-shell-navigation, .admin-kit__portal-navigation");

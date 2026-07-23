@@ -361,7 +361,7 @@
 .admin-kit__status { border-left: 3px solid var(--admin-kit-border-strong); padding: 0.5rem 0.75rem; }.admin-kit__status--healthy { border-color: var(--admin-kit-success); }.admin-kit__status--warning { border-color: var(--admin-kit-warning); }.admin-kit__status--critical { border-color: var(--admin-kit-danger); }
 .admin-kit__status dt, .admin-kit__status small, .admin-kit__operations header p, .admin-kit__settings header p, .admin-kit__operations td small, .admin-kit__settings label small { color: var(--admin-kit-muted); }.admin-kit__status dd { font-weight: 700; margin: 0.125rem 0; }
 .admin-kit__operations, .admin-kit__settings { display: grid; gap: 1rem; }.admin-kit__operations header, .admin-kit__settings header { align-items: center; display: flex; justify-content: space-between; gap: 1rem; }.admin-kit__operations h2, .admin-kit__operations p, .admin-kit__settings h2, .admin-kit__settings p { margin: 0; }
-.admin-kit__table-wrap { border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); overflow-x: auto; }.admin-kit__table { border-collapse: collapse; min-width: 42rem; width: 100%; }.admin-kit__table th, .admin-kit__table td { border-bottom: 1px solid var(--admin-kit-border); padding: 0.75rem 1rem; text-align: left; vertical-align: middle; }.admin-kit__table th { background: var(--admin-kit-surface-subtle); color: var(--admin-kit-muted); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }.admin-kit__table tbody tr:last-child td { border-bottom: 0; }.admin-kit__table tbody tr:hover { background: var(--admin-kit-surface-subtle); }.admin-kit__operations td small { display: block; }.admin-kit__state-pill { border-radius: 999px; font-size: .8125rem; padding: .25rem .5rem; }.admin-kit__state-pill--completed { background: var(--admin-kit-success-soft); color: var(--admin-kit-success); }.admin-kit__state-pill--running { background: var(--admin-kit-warning-soft); color: var(--admin-kit-warning); }.admin-kit__state-pill--failed { background: var(--admin-kit-danger-soft); color: var(--admin-kit-danger); }
+.admin-kit__table-wrap { border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); overflow-x: auto; container-name: admin-kit-table; container-type: inline-size; }.admin-kit__table { border-collapse: collapse; min-width: 42rem; width: 100%; }.admin-kit__table th, .admin-kit__table td { border-bottom: 1px solid var(--admin-kit-border); padding: 0.75rem 1rem; text-align: left; vertical-align: middle; }.admin-kit__table th { background: var(--admin-kit-surface-subtle); color: var(--admin-kit-muted); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }.admin-kit__table tbody tr:last-child td { border-bottom: 0; }.admin-kit__table tbody tr:hover { background: var(--admin-kit-surface-subtle); }.admin-kit__operations td small { display: block; }.admin-kit__state-pill { border-radius: 999px; font-size: .8125rem; padding: .25rem .5rem; }.admin-kit__state-pill--completed { background: var(--admin-kit-success-soft); color: var(--admin-kit-success); }.admin-kit__state-pill--running { background: var(--admin-kit-warning-soft); color: var(--admin-kit-warning); }.admin-kit__state-pill--failed { background: var(--admin-kit-danger-soft); color: var(--admin-kit-danger); }
 .admin-kit__table-cell--nowrap { white-space: nowrap; }
 /* Background refetch (page change / search / manual refresh) with results
    already on screen: dim in place rather than dropping back to the
@@ -673,7 +673,6 @@
      lower min-width just means less of it is cut off before scrolling. */
   .admin-kit__users-table { min-width: 30rem; }
   .admin-kit__users-table--with-details { min-width: 36rem; }
-  .admin-kit__users-table .admin-kit__table-cell--tertiary { display: none; }
   .admin-kit__memberships-table { min-width: 34rem; }
   .admin-kit__logs-header { align-items: stretch; flex-direction: column; }
   .admin-kit__logs-actions > button { flex: 1 1 auto; }
@@ -690,7 +689,17 @@
   .admin-kit__key-form-actions > .admin-kit__button { flex: 1 1 auto; }
 }
 
-@media (max-width: 36rem) {
+/* Priority-column hiding is CONTAINER-based (the available width inside
+   .admin-kit__table-wrap, which establishes the `admin-kit-table` inline-size
+   container above), not viewport-based. A host app can embed the table next
+   to a sidebar or in a narrow panel on a wide viewport — e.g. a 1440px
+   viewport but only a ~1012px table container — and the table still needs to
+   drop lower-priority columns so primary actions (like Delete) stay on
+   screen instead of overflowing out of view. */
+@container admin-kit-table (max-width: 64rem) {
+  .admin-kit__users-table .admin-kit__table-cell--tertiary { display: none; }
+}
+@container admin-kit-table (max-width: 48rem) {
   .admin-kit__users-table .admin-kit__table-cell--secondary { display: none; }
 }
 

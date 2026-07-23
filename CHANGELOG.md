@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.33.0
+
+### Changed
+
+- Table column-priority hiding (the `--tertiary`/`--secondary` cell hints)
+  now responds to the CONTAINER width of `.admin-kit__table-wrap`, not the
+  browser viewport. Host apps that embed the table next to a sidebar or in
+  another narrow panel could previously have a wide viewport (e.g. 1440px)
+  but a much narrower table container (e.g. ~1012px), so the old
+  viewport-only media queries never fired: no columns hid, the table
+  overflowed its wrapper, and primary action columns (like Delete) were
+  clipped off-screen at rest. `.admin-kit__table-wrap` now establishes an
+  inline-size containment context (`container-name: admin-kit-table`), and
+  the two priority rules moved from `@media` to `@container
+  admin-kit-table` at the same 64rem/48rem breakpoints, so they track
+  available table space instead.
+
 ## 0.32.0
 
 ### Added
