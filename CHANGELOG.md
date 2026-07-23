@@ -42,6 +42,26 @@
   git-tag distribution model (`github:andrewpopov/admin-kit#vX.Y.Z`); consumers
   pin to a release tag and bump deliberately.
 
+## 0.29.7
+
+### Added
+
+- `ApiKeysPanel` gains a `presentation` contract (`"responsive"` default —
+  scan-density table on desktop, compact progressive-disclosure cards on narrow
+  screens — or a forced `"table"`/`"cards"`) plus a `renderKeyActions` slot for a
+  narrow host control (e.g. expiry selection) that keeps the shared collection
+  surface and lifecycle/action semantics.
+- `UsersPanel` custom columns support `nowrap` (keep concise values such as
+  timestamps on one line) and `priority` (`"primary"`/`"secondary"`/`"tertiary"`),
+  hiding lower-priority columns before the table scrolls on narrow screens.
+- `AdminPanelHeader` accepts a `toolbar` slot that groups search, filters, and
+  secondary controls below the title band.
+
+### Changed
+
+- Unified the collection and routed-shell contracts across `AdminPanelHeader`,
+  `ApiKeysPanel`, and `UsersPanel`.
+
 ## 0.29.6
 
 ### Fixed
