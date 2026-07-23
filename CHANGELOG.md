@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.31.0
+
+### Added
+
+- `AdminLabelsProvider`, `useAdminLabels`, `defaultAdminLabels`, and the
+  `AdminLabels` type localize the shared chrome strings (loading, error title,
+  retry, cancel, and pagination copy) that previously had no override. Defaults
+  are unchanged English, so existing consumers are unaffected.
+  `AdminConfirmationDialog` gains an optional `cancelLabel`, and `AdminApp`
+  gains an optional `labels` prop that wraps its subtree in the provider.
+
+### Changed
+
+- List panels (`UsersPanel`, `EventsPanel`, `LogsPanel`, and the operational
+  panels) now reflect a background refetch on the results surface with
+  `aria-busy` and a subtle dim, instead of exposing loading only to host
+  header actions.
+
+### Fixed
+
+- The `styles.css` focus-visible, hover, and disabled fallbacks now include the
+  `logs`, `sessions`, `memberships`, `operations`, and `settings` panel roots,
+  so those panels keep focus rings and disabled styling when rendered without
+  the `.admin-kit` wrapper.
+
 ## 0.30.0
 
 ### Added

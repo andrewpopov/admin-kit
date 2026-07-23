@@ -336,6 +336,7 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
           className="admin-kit__logs-output"
           role="region"
           aria-label={`${title} output`}
+          aria-busy={isLoading}
           tabIndex={0}
           onScroll={(event) => {
             const output = event.currentTarget;

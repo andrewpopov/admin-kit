@@ -154,7 +154,12 @@
 .admin-kit__keys,
 .admin-kit__users,
 .admin-kit__events,
-.admin-kit__flags {
+.admin-kit__flags,
+.admin-kit__memberships,
+.admin-kit__sessions,
+.admin-kit__logs,
+.admin-kit__operations,
+.admin-kit__settings {
   color: var(--admin-kit-text);
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.5;
@@ -165,6 +170,11 @@
 .admin-kit__users :where(button, input, select),
 .admin-kit__events :where(button, input, select),
 .admin-kit__flags :where(button, input, select),
+.admin-kit__memberships :where(button, input, select),
+.admin-kit__sessions :where(button, input, select),
+.admin-kit__logs :where(button, input, select),
+.admin-kit__operations :where(button, input, select),
+.admin-kit__settings :where(button, input, select),
 .admin-kit__dialog :where(button, input, select) {
   font: inherit;
 }
@@ -174,6 +184,11 @@
 .admin-kit__users :where(button),
 .admin-kit__events :where(button),
 .admin-kit__flags :where(button),
+.admin-kit__memberships :where(button),
+.admin-kit__sessions :where(button),
+.admin-kit__logs :where(button),
+.admin-kit__operations :where(button),
+.admin-kit__settings :where(button),
 .admin-kit__dialog :where(button) {
   align-items: center;
   appearance: none;
@@ -195,6 +210,11 @@
 .admin-kit__users :where(button:hover:not(:disabled)),
 .admin-kit__events :where(button:hover:not(:disabled)),
 .admin-kit__flags :where(button:hover:not(:disabled)),
+.admin-kit__memberships :where(button:hover:not(:disabled)),
+.admin-kit__sessions :where(button:hover:not(:disabled)),
+.admin-kit__logs :where(button:hover:not(:disabled)),
+.admin-kit__operations :where(button:hover:not(:disabled)),
+.admin-kit__settings :where(button:hover:not(:disabled)),
 .admin-kit__dialog :where(button:hover:not(:disabled)) {
   background: var(--admin-kit-surface-subtle);
   border-color: var(--admin-kit-accent);
@@ -205,6 +225,11 @@
 .admin-kit__users :where(button:disabled),
 .admin-kit__events :where(button:disabled),
 .admin-kit__flags :where(button:disabled),
+.admin-kit__memberships :where(button:disabled),
+.admin-kit__sessions :where(button:disabled),
+.admin-kit__logs :where(button:disabled),
+.admin-kit__operations :where(button:disabled),
+.admin-kit__settings :where(button:disabled),
 .admin-kit__dialog :where(button:disabled) {
   cursor: not-allowed;
   opacity: 0.55;
@@ -215,6 +240,11 @@
 .admin-kit__users :where(button:focus-visible, input:focus-visible, select:focus-visible),
 .admin-kit__events :where(button:focus-visible, input:focus-visible, select:focus-visible),
 .admin-kit__flags :where(button:focus-visible, input:focus-visible, select:focus-visible),
+.admin-kit__memberships :where(button:focus-visible, input:focus-visible, select:focus-visible),
+.admin-kit__sessions :where(button:focus-visible, input:focus-visible, select:focus-visible),
+.admin-kit__logs :where(button:focus-visible, input:focus-visible, select:focus-visible),
+.admin-kit__operations :where(button:focus-visible, input:focus-visible, select:focus-visible),
+.admin-kit__settings :where(button:focus-visible, input:focus-visible, select:focus-visible),
 .admin-kit__dialog :where(button:focus-visible, input:focus-visible, select:focus-visible) {
   outline: 2px solid var(--admin-kit-accent);
   outline-offset: 2px;
@@ -328,6 +358,10 @@
 .admin-kit__operations, .admin-kit__settings { display: grid; gap: 1rem; }.admin-kit__operations header, .admin-kit__settings header { align-items: center; display: flex; justify-content: space-between; gap: 1rem; }.admin-kit__operations h2, .admin-kit__operations p, .admin-kit__settings h2, .admin-kit__settings p { margin: 0; }
 .admin-kit__table-wrap { border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); overflow-x: auto; }.admin-kit__table { border-collapse: collapse; min-width: 42rem; width: 100%; }.admin-kit__table th, .admin-kit__table td { border-bottom: 1px solid var(--admin-kit-border); padding: 0.75rem 1rem; text-align: left; vertical-align: middle; }.admin-kit__table th { background: var(--admin-kit-surface-subtle); color: var(--admin-kit-muted); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }.admin-kit__table tbody tr:last-child td { border-bottom: 0; }.admin-kit__table tbody tr:hover { background: var(--admin-kit-surface-subtle); }.admin-kit__operations td small { display: block; }.admin-kit__state-pill { border-radius: 999px; font-size: .8125rem; padding: .25rem .5rem; }.admin-kit__state-pill--completed { background: var(--admin-kit-success-soft); color: var(--admin-kit-success); }.admin-kit__state-pill--running { background: var(--admin-kit-warning-soft); color: var(--admin-kit-warning); }.admin-kit__state-pill--failed { background: var(--admin-kit-danger-soft); color: var(--admin-kit-danger); }
 .admin-kit__table-cell--nowrap { white-space: nowrap; }
+/* Background refetch (page change / search / manual refresh) with results
+   already on screen: dim in place rather than dropping back to the
+   full-panel loading state, which would discard the visible data. */
+.admin-kit__table[aria-busy="true"], .admin-kit__events-list[aria-busy="true"], .admin-kit__logs-output[aria-busy="true"] { opacity: 0.72; transition: opacity 150ms ease; }
 .admin-kit__settings > label { display: grid; gap: .375rem; max-width: 38rem; }.admin-kit__settings input[type="text"], .admin-kit__settings input[type="password"] { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: .5rem .75rem; }
 .admin-kit__settings-toggle { max-width: 38rem; }
 .admin-kit__portal-empty { color: var(--admin-kit-muted); padding: 1rem; }

@@ -9,6 +9,7 @@ import {
   type AdminSettingField,
   type AdminSettingsAdapter,
 } from "../core";
+import { useAdminLabels } from "./AdminLabels";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
 import { AdminPanelStateView } from "./AdminPanelState";
 import { AdminSwitch } from "./AdminPrimitives";
@@ -57,13 +58,16 @@ export function OperationalJobsPanel({
   formatTimestamp,
   emptyState = { title: "No operational runs yet." },
 }: OperationalJobsPanelProps) {
+  const labels = useAdminLabels();
   const [result, setResult] = useState<{ items: readonly AdminOperationalJob[]; total: number }>();
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const latestLoadId = useRef(0);
   const load = async () => {
     const loadId = ++latestLoadId.current;
+    setIsLoading(true);
     try {
       setError(undefined);
       const next = await adapter.list({ page, pageSize });
@@ -71,6 +75,8 @@ export function OperationalJobsPanel({
     } catch (reason) {
       if (loadId === latestLoadId.current)
         setError(reason instanceof Error ? reason.message : "Unable to load operational jobs.");
+    } finally {
+      if (loadId === latestLoadId.current) setIsLoading(false);
     }
   };
   useEffect(() => {
@@ -145,7 +151,10 @@ export function OperationalJobsPanel({
         />
       ) : (
         <div className="admin-kit__table-wrap admin-kit__operations-table-wrap">
-          <table className="admin-kit__table admin-kit__operations-table" aria-busy={busy}>
+          <table
+            className="admin-kit__table admin-kit__operations-table"
+            aria-busy={busy || isLoading}
+          >
             <thead>
               <tr>
                 <th scope="col">Job</th>
@@ -181,13 +190,11 @@ export function OperationalJobsPanel({
       {totalPages > 1 ? (
         <nav className="admin-kit__pagination" aria-label="Operational jobs pagination">
           <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-            Previous
+            {labels.previousPage}
           </button>
-          <span>
-            Page {page} of {totalPages}
-          </span>
+          <span>{labels.pageStatus(page, totalPages)}</span>
           <button type="button" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-            Next
+            {labels.nextPage}
           </button>
         </nav>
       ) : null}
@@ -214,14 +221,17 @@ export function BackupsPanel({
   className,
   formatTimestamp,
 }: BackupsPanelProps) {
+  const labels = useAdminLabels();
   const [result, setResult] = useState<{ items: readonly AdminBackupSummary[]; total: number }>();
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [restoreTarget, setRestoreTarget] = useState<AdminBackupSummary>();
   const latestLoadId = useRef(0);
   const load = async () => {
     const loadId = ++latestLoadId.current;
+    setIsLoading(true);
     try {
       setError(undefined);
       const next = await adapter.list({ page, pageSize });
@@ -229,6 +239,8 @@ export function BackupsPanel({
     } catch (reason) {
       if (loadId === latestLoadId.current)
         setError(reason instanceof Error ? reason.message : "Unable to load backups.");
+    } finally {
+      if (loadId === latestLoadId.current) setIsLoading(false);
     }
   };
   const run = async () => {
@@ -314,7 +326,10 @@ export function BackupsPanel({
         <AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} />
       ) : null}
       <div className="admin-kit__table-wrap admin-kit__operations-table-wrap">
-        <table className="admin-kit__table admin-kit__operations-table" aria-busy={busy}>
+        <table
+          className="admin-kit__table admin-kit__operations-table"
+          aria-busy={busy || isLoading}
+        >
           <thead>
             <tr>
               <th scope="col">Backup</th>
@@ -365,13 +380,11 @@ export function BackupsPanel({
       {totalPages > 1 ? (
         <nav className="admin-kit__pagination" aria-label="Backups pagination">
           <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-            Previous
+            {labels.previousPage}
           </button>
-          <span>
-            Page {page} of {totalPages}
-          </span>
+          <span>{labels.pageStatus(page, totalPages)}</span>
           <button type="button" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-            Next
+            {labels.nextPage}
           </button>
         </nav>
       ) : null}

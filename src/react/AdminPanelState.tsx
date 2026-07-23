@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useAdminLabels } from "./AdminLabels";
 
 export type AdminPanelState =
   | { kind: "ready"; children: ReactNode }
@@ -14,12 +15,14 @@ export function AdminPanelStateView({
   state: AdminPanelState;
   className?: string;
 }) {
+  const labels = useAdminLabels();
+
   if (state.kind === "ready") return <>{state.children}</>;
 
   if (state.kind === "loading") {
     return (
       <p aria-live="polite" className={["admin-kit__state", className].filter(Boolean).join(" ")}>
-        {state.label ?? "Loading…"}
+        {state.label ?? labels.loading}
       </p>
     );
   }
@@ -40,11 +43,11 @@ export function AdminPanelStateView({
         .join(" ")}
       role="alert"
     >
-      <strong>{state.title ?? "Unable to load this section"}</strong>
+      <strong>{state.title ?? labels.errorTitle}</strong>
       <p>{state.detail}</p>
       {state.onRetry ? (
         <button type="button" onClick={state.onRetry}>
-          Try again
+          {labels.retry}
         </button>
       ) : null}
     </div>
