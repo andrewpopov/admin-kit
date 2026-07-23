@@ -1,6 +1,6 @@
 {
   "name": "@andrewpopov/admin-kit",
-  "version": "0.29.7",
+  "version": "0.30.0",
   "description": "Router-neutral, capability-driven React admin UI primitives. Apps own routes, transport, policy, authorization enforcement, and custom sections.",
   "author": "Andrew Popov",
   "license": "MIT",
@@ -62,22 +62,31 @@
     "test:watch": "vitest",
     "test:browser": "npm run build && node scripts/render-browser-fixture.mjs && playwright test",
     "verify:pack": "node scripts/verify-pack.mjs",
-    "verify:dist-fresh": "node scripts/verify-dist-fresh.mjs"
+    "verify:dist-fresh": "node scripts/verify-dist-fresh.mjs",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.55.0",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.7",
+    "eslint": "^10.7.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "jsdom": "^29.1.1",
+    "prettier": "^3.9.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "typescript": "^5.5.0",
+    "typescript-eslint": "^8.65.0",
     "vitest": "^4.1.10"
   }
 }

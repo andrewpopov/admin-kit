@@ -16,4 +16,4 @@ export interface EventsPanelProps {
     /** Overrides the default timestamp presentation for occurredAt / source.updatedAt. */
     formatTimestamp?: (iso: string) => string;
 }
-export declare function EventsPanel({ adapter, title, headerPresentation, refreshLabel, search, pageSize, presentation, className, formatTimestamp }: EventsPanelProps): import("react").JSX.Element;
+export declare function EventsPanel({ adapter, title, headerPresentation, refreshLabel, search, pageSize, presentation, className, formatTimestamp, }: EventsPanelProps): import("react").JSX.Element;

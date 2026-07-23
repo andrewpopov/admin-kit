@@ -1,0 +1,10 @@
+dist
+node_modules
+package-lock.json
+CHANGELOG.md
+test-results
+# Raw formatting (selector/rule layout) is a tested contract in
+# src/__tests__/styles.test.ts via exact-substring assertions.
+src/styles.css
+# Build/tooling scripts (ESM build machinery) are out of scope for this pass.
+scripts/*.mjs

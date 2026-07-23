@@ -45,9 +45,10 @@ export function AdminDialog({
     if (open) {
       previouslyFocusedRef.current ??= document.activeElement as HTMLElement | null;
       const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-      const initialFocusTarget = Array.from(focusable ?? []).find(
-        (element) => !element.classList.contains("admin-kit__dialog-close"),
-      ) ?? focusable?.[0];
+      const initialFocusTarget =
+        Array.from(focusable ?? []).find(
+          (element) => !element.classList.contains("admin-kit__dialog-close"),
+        ) ?? focusable?.[0];
       initialFocusTarget?.focus();
     } else {
       previouslyFocusedRef.current?.focus();
@@ -77,7 +78,9 @@ export function AdminDialog({
       const first = focusable[0]!;
       const last = focusable[focusable.length - 1]!;
       const active = document.activeElement;
-      if (event.shiftKey ? active === first || !dialogRef.current?.contains(active) : active === last) {
+      if (
+        event.shiftKey ? active === first || !dialogRef.current?.contains(active) : active === last
+      ) {
         event.preventDefault();
         (event.shiftKey ? last : first).focus();
       }
@@ -108,9 +111,21 @@ export function AdminDialog({
       >
         <header className="admin-kit__dialog-header">
           <h2 id={titleId}>{title}</h2>
-          <button aria-label="Close dialog" className="admin-kit__dialog-close" disabled={closeDisabled} onClick={onClose} type="button">×</button>
+          <button
+            aria-label="Close dialog"
+            className="admin-kit__dialog-close"
+            disabled={closeDisabled}
+            onClick={onClose}
+            type="button"
+          >
+            ×
+          </button>
         </header>
-        {description ? <p className="admin-kit__dialog-description" id={descriptionId}>{description}</p> : null}
+        {description ? (
+          <p className="admin-kit__dialog-description" id={descriptionId}>
+            {description}
+          </p>
+        ) : null}
         <div className="admin-kit__dialog-body">{children}</div>
         {actions ? <footer className="admin-kit__dialog-actions">{actions}</footer> : null}
       </section>

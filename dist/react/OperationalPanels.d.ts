@@ -19,7 +19,7 @@ export interface OperationalJobsPanelProps {
     };
 }
 /** Displays host-owned scheduled, import, and retention runs without mislabeling them as backups. */
-export declare function OperationalJobsPanel({ adapter, title, runLabel, pageSize, className, formatTimestamp, emptyState }: OperationalJobsPanelProps): import("react").JSX.Element;
+export declare function OperationalJobsPanel({ adapter, title, runLabel, pageSize, className, formatTimestamp, emptyState, }: OperationalJobsPanelProps): import("react").JSX.Element;
 export interface BackupsPanelProps {
     adapter: AdminBackupsAdapter;
     title?: string;
@@ -30,7 +30,7 @@ export interface BackupsPanelProps {
     /** Overrides the default timestamp presentation for createdAt. */
     formatTimestamp?: (iso: string) => string;
 }
-export declare function BackupsPanel({ adapter, title, runLabel, pageSize, className, formatTimestamp }: BackupsPanelProps): import("react").JSX.Element;
+export declare function BackupsPanel({ adapter, title, runLabel, pageSize, className, formatTimestamp, }: BackupsPanelProps): import("react").JSX.Element;
 export interface SettingsPanelProps {
     adapter: AdminSettingsAdapter;
     title?: string;

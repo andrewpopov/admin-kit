@@ -1,16 +1,16 @@
-import type { MouseEventHandler, ReactNode } from 'react';
-import type { AdminPortalSectionDefinition, AdminSectionGroupDefinition, AdminSectionId } from '../core/contracts';
+import type { MouseEventHandler, ReactNode } from "react";
+import type { AdminPortalSectionDefinition, AdminSectionGroupDefinition, AdminSectionId } from "../core/contracts";
 export interface AdminPortalReactSection extends AdminPortalSectionDefinition {
     render: () => ReactNode;
 }
-export interface AdminPortalReactGroup extends Omit<AdminSectionGroupDefinition, 'sections'> {
+export interface AdminPortalReactGroup extends Omit<AdminSectionGroupDefinition, "sections"> {
     sections: readonly AdminPortalReactSection[];
 }
 export interface AdminPortalNavigationItemProps {
     section: AdminPortalReactSection;
     active: boolean;
     className: string;
-    ariaCurrent?: 'page';
+    ariaCurrent?: "page";
     ariaDisabled?: true;
     tabIndex?: -1;
     onClick: MouseEventHandler<HTMLElement>;

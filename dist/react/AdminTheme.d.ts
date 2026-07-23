@@ -12,4 +12,4 @@ export interface AdminThemeProps {
     children: ReactNode;
 }
 /** Applies the canonical Admin Kit visual system to a complete admin surface. */
-export declare function AdminTheme({ theme, as, className, children, }: AdminThemeProps): import("react").JSX.Element;
+export declare function AdminTheme({ theme, as, className, children }: AdminThemeProps): import("react").JSX.Element;

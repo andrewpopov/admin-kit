@@ -41,7 +41,7 @@ export interface AdminAppSectionDefinition extends AdminPortalSectionDefinition 
     /** The workflow this route exposes; this is the consumer's migration registry. */
     capability: AdminCapability;
 }
-export interface AdminAppGroupDefinition extends Omit<AdminSectionGroupDefinition, 'sections'> {
+export interface AdminAppGroupDefinition extends Omit<AdminSectionGroupDefinition, "sections"> {
     sections: readonly AdminAppSectionDefinition[];
 }
 export interface AdminAppDefinition {

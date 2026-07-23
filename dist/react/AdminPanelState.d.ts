@@ -1,22 +1,22 @@
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 export type AdminPanelState = {
-    kind: 'ready';
+    kind: "ready";
     children: ReactNode;
 } | {
-    kind: 'loading';
+    kind: "loading";
     label?: string;
 } | {
-    kind: 'empty';
+    kind: "empty";
     title: string;
     detail?: string;
 } | {
-    kind: 'error';
+    kind: "error";
     title?: string;
     detail: string;
     onRetry?: () => void;
 };
 /** Accessible, framework-style-neutral state surface for adapter-backed panels. */
-export declare function AdminPanelStateView({ state, className }: {
+export declare function AdminPanelStateView({ state, className, }: {
     state: AdminPanelState;
     className?: string;
 }): import("react").JSX.Element;

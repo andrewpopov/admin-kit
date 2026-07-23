@@ -6,4 +6,4 @@ export interface FeatureFlagsPanelProps {
     className?: string;
 }
 /** A source-aware flag panel that never offers a misleading mutable control. */
-export declare function FeatureFlagsPanel({ adapter, title, className }: FeatureFlagsPanelProps): import("react").JSX.Element;
+export declare function FeatureFlagsPanel({ adapter, title, className, }: FeatureFlagsPanelProps): import("react").JSX.Element;

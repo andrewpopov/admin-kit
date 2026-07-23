@@ -21,4 +21,4 @@ export interface AdminWorkspaceProps {
     className?: string;
 }
 /** Standard semantic framing for dense administrative and operational views. */
-export declare function AdminWorkspace({ as, title, showHeader, presentation, description, actions, summary, toolbar, children, className }: AdminWorkspaceProps): import("react").JSX.Element;
+export declare function AdminWorkspace({ as, title, showHeader, presentation, description, actions, summary, toolbar, children, className, }: AdminWorkspaceProps): import("react").JSX.Element;

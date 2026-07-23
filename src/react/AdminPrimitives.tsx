@@ -41,7 +41,11 @@ export function AdminField({ label, hint, error, children, className }: AdminFie
       <span className="admin-kit__field-label">{label}</span>
       {children}
       {hint ? <small className="admin-kit__field-hint">{hint}</small> : null}
-      {error ? <small className="admin-kit__field-error" role="alert">{error}</small> : null}
+      {error ? (
+        <small className="admin-kit__field-error" role="alert">
+          {error}
+        </small>
+      ) : null}
     </label>
   );
 }
@@ -54,10 +58,21 @@ export interface AdminStackProps {
 
 /** A stable vertical rhythm for custom extension content. */
 export function AdminStack({ children, gap = "md", className }: AdminStackProps) {
-  return <div className={["admin-kit__stack", `admin-kit__stack--${gap}`, className].filter(Boolean).join(" ")}>{children}</div>;
+  return (
+    <div
+      className={["admin-kit__stack", `admin-kit__stack--${gap}`, className]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      {children}
+    </div>
+  );
 }
 
-export interface AdminSwitchProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+export interface AdminSwitchProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "children"
+> {
   checked: boolean;
   label: ReactNode;
   description?: ReactNode;
@@ -65,7 +80,15 @@ export interface AdminSwitchProps extends Omit<ButtonHTMLAttributes<HTMLButtonEl
 }
 
 /** A full-row, labelled switch for consequential binary admin settings. */
-export function AdminSwitch({ checked, label, description, statusLabel, className, type = "button", ...props }: AdminSwitchProps) {
+export function AdminSwitch({
+  checked,
+  label,
+  description,
+  statusLabel,
+  className,
+  type = "button",
+  ...props
+}: AdminSwitchProps) {
   return (
     <button
       {...props}
@@ -75,7 +98,9 @@ export function AdminSwitch({ checked, label, description, statusLabel, classNam
       role="switch"
       type={type}
     >
-      <span aria-hidden="true" className="admin-kit__switch-track"><span /></span>
+      <span aria-hidden="true" className="admin-kit__switch-track">
+        <span />
+      </span>
       <span className="admin-kit__switch-copy">
         <strong>{label}</strong>
         {description ? <span>{description}</span> : null}

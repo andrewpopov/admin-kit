@@ -20,7 +20,9 @@ afterEach(cleanup);
 describe("AdminApiKeyForm", () => {
   it("create mode emits an AdminApiKeyCreateRequest with name, expiry, and scopes", () => {
     const onSubmit = vi.fn();
-    render(<AdminApiKeyForm mode="create" scopeGroups={groups} pending={false} onSubmit={onSubmit} />);
+    render(
+      <AdminApiKeyForm mode="create" scopeGroups={groups} pending={false} onSubmit={onSubmit} />,
+    );
 
     fireEvent.change(screen.getByLabelText("Name"), { target: { value: "CLI" } });
     fireEvent.click(screen.getByRole("checkbox", { name: /Read catalog/ }));
@@ -35,7 +37,9 @@ describe("AdminApiKeyForm", () => {
 
   it("create mode maps the expiry select to expiresInDays (Never → null)", () => {
     const onSubmit = vi.fn();
-    render(<AdminApiKeyForm mode="create" scopeGroups={groups} pending={false} onSubmit={onSubmit} />);
+    render(
+      <AdminApiKeyForm mode="create" scopeGroups={groups} pending={false} onSubmit={onSubmit} />,
+    );
 
     fireEvent.change(screen.getByLabelText("Name"), { target: { value: "CLI" } });
     fireEvent.change(screen.getByLabelText("Expires"), { target: { value: "never" } });
@@ -49,7 +53,9 @@ describe("AdminApiKeyForm", () => {
   });
 
   it("create mode disables submit until a name is entered", () => {
-    render(<AdminApiKeyForm mode="create" scopeGroups={groups} pending={false} onSubmit={vi.fn()} />);
+    render(
+      <AdminApiKeyForm mode="create" scopeGroups={groups} pending={false} onSubmit={vi.fn()} />,
+    );
 
     const submit = screen.getByRole("button", { name: "Create API key" }) as HTMLButtonElement;
     expect(submit.disabled).toBe(true);
@@ -71,13 +77,19 @@ describe("AdminApiKeyForm", () => {
       />,
     );
 
-    const legacyScope = screen.getByRole("checkbox", { name: /Existing scope.*legacy\.full-access/ });
+    const legacyScope = screen.getByRole("checkbox", {
+      name: /Existing scope.*legacy\.full-access/,
+    });
     fireEvent.click(legacyScope);
     expect(screen.getByText(/Select at least 1 scope to continue\./)).toBeTruthy();
-    expect((screen.getByRole("button", { name: "Save changes" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      (screen.getByRole("button", { name: "Save changes" }) as HTMLButtonElement).disabled,
+    ).toBe(true);
 
     fireEvent.click(screen.getByRole("checkbox", { name: /Read catalog/ }));
-    expect((screen.getByRole("button", { name: "Save changes" }) as HTMLButtonElement).disabled).toBe(false);
+    expect(
+      (screen.getByRole("button", { name: "Save changes" }) as HTMLButtonElement).disabled,
+    ).toBe(false);
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
     expect(onSubmit).toHaveBeenCalledExactlyOnceWith({ scopes: ["library.read"] });
   });
@@ -96,8 +108,12 @@ describe("AdminApiKeyForm", () => {
 
     expect(screen.queryByLabelText("Name")).toBeNull();
     expect(screen.queryByLabelText("Expires")).toBeNull();
-    expect((screen.getByRole("checkbox", { name: /Read catalog/ }) as HTMLInputElement).checked).toBe(true);
-    expect((screen.getByRole("checkbox", { name: /Manage catalog/ }) as HTMLInputElement).checked).toBe(false);
+    expect(
+      (screen.getByRole("checkbox", { name: /Read catalog/ }) as HTMLInputElement).checked,
+    ).toBe(true);
+    expect(
+      (screen.getByRole("checkbox", { name: /Manage catalog/ }) as HTMLInputElement).checked,
+    ).toBe(false);
     expect(screen.getByText(/does/)).toBeTruthy();
   });
 
@@ -151,8 +167,12 @@ describe("AdminApiKeyForm", () => {
       />,
     );
 
-    expect((screen.getByRole("button", { name: "Save changes" }) as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByRole("button", { name: "Cancel" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      (screen.getByRole("button", { name: "Save changes" }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect((screen.getByRole("button", { name: "Cancel" }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
     for (const checkbox of screen.getAllByRole("checkbox")) {
       expect((checkbox as HTMLInputElement).disabled).toBe(true);
     }

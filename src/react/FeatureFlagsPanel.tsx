@@ -6,10 +6,7 @@ import {
 } from "../core";
 import { AdminPanelStateView } from "./AdminPanelState";
 
-const sourceLabel: Record<
-  AdminFeatureFlagsSnapshot["flags"][number]["source"],
-  string
-> = {
+const sourceLabel: Record<AdminFeatureFlagsSnapshot["flags"][number]["source"], string> = {
   store: "Store override",
   environment: "Environment controlled",
   default: "Default value",
@@ -24,7 +21,11 @@ export interface FeatureFlagsPanelProps {
 }
 
 /** A source-aware flag panel that never offers a misleading mutable control. */
-export function FeatureFlagsPanel({ adapter, title = "Feature flags", className }: FeatureFlagsPanelProps) {
+export function FeatureFlagsPanel({
+  adapter,
+  title = "Feature flags",
+  className,
+}: FeatureFlagsPanelProps) {
   const idBase = useId();
   const [snapshot, setSnapshot] = useState<AdminFeatureFlagsSnapshot>();
   const [loadError, setLoadError] = useState<string>();
@@ -46,11 +47,7 @@ export function FeatureFlagsPanel({ adapter, title = "Feature flags", className 
       if (loadId === latestLoadId.current) setSnapshot(next);
     } catch (reason) {
       if (loadId === latestLoadId.current) {
-        setLoadError(
-          reason instanceof Error
-            ? reason.message
-            : "Unable to load feature flags.",
-        );
+        setLoadError(reason instanceof Error ? reason.message : "Unable to load feature flags.");
       }
     }
   };
@@ -65,7 +62,9 @@ export function FeatureFlagsPanel({ adapter, title = "Feature flags", className 
     // in flight for the previous adapter can still resolve and pass the
     // `loadId === latestLoadId.current` check because the effect that would
     // have bumped it for the new adapter hasn't started yet.
-    return () => { latestLoadId.current += 1; };
+    return () => {
+      latestLoadId.current += 1;
+    };
   }, [adapter]);
 
   if (loadError && !snapshot)
@@ -93,9 +92,7 @@ export function FeatureFlagsPanel({ adapter, title = "Feature flags", className 
       if (epoch === adapterEpoch.current) await load();
     } catch (reason) {
       setActionError(
-        reason instanceof Error
-          ? reason.message
-          : "Unable to update the feature flag.",
+        reason instanceof Error ? reason.message : "Unable to update the feature flag.",
       );
     } finally {
       setPendingKey(undefined);
@@ -103,28 +100,31 @@ export function FeatureFlagsPanel({ adapter, title = "Feature flags", className 
   };
 
   return (
-    <section className={["admin-kit__flags", className].filter(Boolean).join(" ")} aria-label={title}>
+    <section
+      className={["admin-kit__flags", className].filter(Boolean).join(" ")}
+      aria-label={title}
+    >
       <header className="admin-kit__flags-header">
         <h2>{title}</h2>
         <p>
           Store health: <strong>{snapshot.storeHealth}</strong>
         </p>
-        {snapshot.storeHealthDetail ? (
-          <p role="status">{snapshot.storeHealthDetail}</p>
-        ) : null}
+        {snapshot.storeHealthDetail ? <p role="status">{snapshot.storeHealthDetail}</p> : null}
       </header>
       {loadError ? (
         <AdminPanelStateView
           state={{ kind: "error", detail: loadError, onRetry: () => void load() }}
         />
       ) : null}
-      {actionError ? <p className="admin-kit__action-error" role="alert">{actionError}</p> : null}
+      {actionError ? (
+        <p className="admin-kit__action-error" role="alert">
+          {actionError}
+        </p>
+      ) : null}
       <ul className="admin-kit__flags-list">
         {snapshot.flags.map((flag) => {
           const canMutate =
-            flag.mutable &&
-            snapshot.storeHealth === "healthy" &&
-            Boolean(adapter.setEnabled);
+            flag.mutable && snapshot.storeHealth === "healthy" && Boolean(adapter.setEnabled);
           const controlId = `${idBase}-flag-${flag.key}`;
           return (
             <li className="admin-kit__flag" key={flag.key}>
@@ -132,17 +132,13 @@ export function FeatureFlagsPanel({ adapter, title = "Feature flags", className 
                 <label htmlFor={controlId}>{flag.label}</label>
                 <code>{flag.key}</code>
                 {flag.description ? <p>{flag.description}</p> : null}
-                <p className="admin-kit__flag-source">
-                  Source: {sourceLabel[flag.source]}
-                </p>
+                <p className="admin-kit__flag-source">Source: {sourceLabel[flag.source]}</p>
               </div>
               <input
                 checked={flag.enabled}
                 disabled={!canMutate || pendingKey === flag.key}
                 id={controlId}
-                onChange={(event) =>
-                  void setEnabled(flag.key, event.target.checked)
-                }
+                onChange={(event) => void setEnabled(flag.key, event.target.checked)}
                 type="checkbox"
               />
             </li>

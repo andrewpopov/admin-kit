@@ -24,12 +24,16 @@ export function AdminPanelHeader({
   const Heading = (presentation === "page" ? "h1" : "h2") as ElementType;
 
   return (
-    <header className={[
-      "admin-kit__panel-header",
-      `admin-kit__panel-header--${presentation}`,
-      toolbar ? "admin-kit__panel-header--with-toolbar" : undefined,
-      className,
-    ].filter(Boolean).join(" ")}>
+    <header
+      className={[
+        "admin-kit__panel-header",
+        `admin-kit__panel-header--${presentation}`,
+        toolbar ? "admin-kit__panel-header--with-toolbar" : undefined,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <div className="admin-kit__panel-header-main">
         <div>
           <Heading>{title}</Heading>

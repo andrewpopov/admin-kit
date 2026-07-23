@@ -12,7 +12,7 @@ const EXPIRY_OPTIONS = [
     { label: "Never", value: null },
 ];
 /** Stable string key for the expiry <select> (numbers and the `null` sentinel). */
-const expiryKey = (value) => value === null ? "never" : String(value);
+const expiryKey = (value) => (value === null ? "never" : String(value));
 /**
  * The one form behind both built-in credential flows. In `create` mode it
  * collects a name, an expiry, and scopes and emits an `AdminApiKeyCreateRequest`;

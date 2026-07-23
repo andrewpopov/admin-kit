@@ -28,7 +28,11 @@ afterEach(cleanup);
 describe("ApiKeysPanel posture and shortcuts slots", () => {
   it("passes a summary/posture/queue consistent with the adapter's keys", async () => {
     let captured:
-      | { summary: AdminApiKeysSummary; posture: AdminApiKeysPosture; queue: readonly AdminApiKeyQueueItem[] }
+      | {
+          summary: AdminApiKeysSummary;
+          posture: AdminApiKeysPosture;
+          queue: readonly AdminApiKeyQueueItem[];
+        }
       | undefined;
     render(
       <ApiKeysPanel
@@ -55,7 +59,11 @@ describe("ApiKeysPanel posture and shortcuts slots", () => {
     const { container } = render(
       <ApiKeysPanel
         createInput={{ name: "Automation" }}
-        adapter={{ list: vi.fn().mockResolvedValue([activeKeyOne]), create: vi.fn(), revoke: vi.fn() }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([activeKeyOne]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+        }}
         renderPosture={() => <div data-testid="posture-slot">posture</div>}
         renderShortcuts={() => <div data-testid="shortcuts-slot">shortcuts</div>}
       />,
@@ -63,8 +71,8 @@ describe("ApiKeysPanel posture and shortcuts slots", () => {
 
     await screen.findByText("Automation");
     const section = container.querySelector("section");
-    const order = Array.from(section?.children ?? []).map((node) =>
-      (node as HTMLElement).getAttribute("data-testid") ?? node.tagName,
+    const order = Array.from(section?.children ?? []).map(
+      (node) => (node as HTMLElement).getAttribute("data-testid") ?? node.tagName,
     );
     const postureIndex = order.indexOf("posture-slot");
     const shortcutsIndex = order.indexOf("shortcuts-slot");
@@ -78,7 +86,11 @@ describe("ApiKeysPanel posture and shortcuts slots", () => {
     const { container } = render(
       <ApiKeysPanel
         createInput={{ name: "Automation" }}
-        adapter={{ list: vi.fn().mockResolvedValue([activeKeyOne]), create: vi.fn(), revoke: vi.fn() }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([activeKeyOne]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+        }}
       />,
     );
 
@@ -90,7 +102,8 @@ describe("ApiKeysPanel posture and shortcuts slots", () => {
   });
 
   it("re-derives posture after a revoke reload", async () => {
-    const list = vi.fn()
+    const list = vi
+      .fn()
       .mockResolvedValueOnce([activeKeyOne, activeKeyTwoUnused])
       .mockResolvedValueOnce([activeKeyOne]);
     const revoke = vi.fn().mockResolvedValue(undefined);

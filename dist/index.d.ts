@@ -1,3 +1,3 @@
-export * from './core';
-export * from './react';
-export { createAdminPageFixture } from './testing';
+export * from "./core";
+export * from "./react";
+export { createAdminPageFixture } from "./testing";

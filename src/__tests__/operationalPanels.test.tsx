@@ -7,16 +7,44 @@ afterEach(cleanup);
 
 describe("operational panels", () => {
   it("renders status and backup rows through the shared semantic table contract", async () => {
-    render(<><AdminStatusSummary items={[{ label: "Recovery", value: "Healthy", tone: "healthy" }]} /><BackupsPanel adapter={{ list: vi.fn().mockResolvedValue({ items: [{ id: "b1", label: "Daily", createdAt: "Today", state: "completed" }], page: 1, pageSize: 25, total: 1 }) }} /></>);
+    render(
+      <>
+        <AdminStatusSummary items={[{ label: "Recovery", value: "Healthy", tone: "healthy" }]} />
+        <BackupsPanel
+          adapter={{
+            list: vi.fn().mockResolvedValue({
+              items: [{ id: "b1", label: "Daily", createdAt: "Today", state: "completed" }],
+              page: 1,
+              pageSize: 25,
+              total: 1,
+            }),
+          }}
+        />
+      </>,
+    );
     expect(screen.getByText("Healthy")).toBeTruthy();
     const table = await screen.findByRole("table");
     expect(table.classList.contains("admin-kit__table")).toBe(true);
     expect(screen.getByRole("columnheader", { name: "Backup" }).getAttribute("scope")).toBe("col");
   });
   it("explains the empty backup state and keeps the recovery action prominent", async () => {
-    render(<BackupsPanel adapter={{ list: vi.fn().mockResolvedValue({ items: [], page: 1, pageSize: 25, total: 0 }), run: { execute: vi.fn() } }} runLabel="Run backup now" />);
-    expect(await screen.findByText("No backups yet. Run a backup to create your first recovery point.")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Run backup now" }).classList.contains("admin-kit__button--primary")).toBe(true);
+    render(
+      <BackupsPanel
+        adapter={{
+          list: vi.fn().mockResolvedValue({ items: [], page: 1, pageSize: 25, total: 0 }),
+          run: { execute: vi.fn() },
+        }}
+        runLabel="Run backup now"
+      />,
+    );
+    expect(
+      await screen.findByText("No backups yet. Run a backup to create your first recovery point."),
+    ).toBeTruthy();
+    expect(
+      screen
+        .getByRole("button", { name: "Run backup now" })
+        .classList.contains("admin-kit__button--primary"),
+    ).toBe(true);
   });
   it("does not restore a backup until the confirmation dialog is confirmed", async () => {
     const restore = vi.fn().mockResolvedValue(undefined);
@@ -47,15 +75,34 @@ describe("operational panels", () => {
   });
 
   it("renders settings fields through a host-owned adapter", async () => {
-    render(<SettingsPanel adapter={{ load: vi.fn().mockResolvedValue([{ id: "retention", label: "Retention", value: "30" }]), save: { execute: vi.fn() } }} />);
+    render(
+      <SettingsPanel
+        adapter={{
+          load: vi.fn().mockResolvedValue([{ id: "retention", label: "Retention", value: "30" }]),
+          save: { execute: vi.fn() },
+        }}
+      />,
+    );
     expect(await screen.findByDisplayValue("30")).toBeTruthy();
   });
   it("uses the shared switch for boolean settings and saves the staged value", async () => {
     const save = vi.fn().mockResolvedValue(undefined);
-    render(<SettingsPanel adapter={{
-      load: vi.fn().mockResolvedValue([{ id: "registration", label: "Public registration", description: "Allow visitors to create accounts.", type: "boolean", value: false }]),
-      save: { execute: save },
-    }} />);
+    render(
+      <SettingsPanel
+        adapter={{
+          load: vi.fn().mockResolvedValue([
+            {
+              id: "registration",
+              label: "Public registration",
+              description: "Allow visitors to create accounts.",
+              type: "boolean",
+              value: false,
+            },
+          ]),
+          save: { execute: save },
+        }}
+      />,
+    );
 
     const registration = await screen.findByRole("switch", { name: /Public registration/ });
     expect(registration.getAttribute("aria-checked")).toBe("false");
@@ -66,7 +113,22 @@ describe("operational panels", () => {
     await waitFor(() => expect(save).toHaveBeenCalledWith({ values: { registration: true } }));
   });
   it("uses a distinct operational-jobs vocabulary for scheduled work", async () => {
-    render(<OperationalJobsPanel title="Retention" runLabel="Run retention" adapter={{ list: vi.fn().mockResolvedValue({ items: [{ id: "r1", label: "Retention policy", startedAt: "Today", state: "completed" }], page: 1, pageSize: 25, total: 1 }) }} />);
+    render(
+      <OperationalJobsPanel
+        title="Retention"
+        runLabel="Run retention"
+        adapter={{
+          list: vi.fn().mockResolvedValue({
+            items: [
+              { id: "r1", label: "Retention policy", startedAt: "Today", state: "completed" },
+            ],
+            page: 1,
+            pageSize: 25,
+            total: 1,
+          }),
+        }}
+      />,
+    );
     expect(await screen.findByText("Retention policy")).toBeTruthy();
     expect(screen.getByRole("table").classList.contains("admin-kit__table")).toBe(true);
   });
@@ -74,11 +136,16 @@ describe("operational panels", () => {
   it("explains the zero-run state while keeping the run action available", async () => {
     const run = vi.fn().mockResolvedValue(undefined);
     const list = vi.fn().mockResolvedValue({ items: [], page: 1, pageSize: 25, total: 0 });
-    render(<OperationalJobsPanel
-      adapter={{ list, run: { execute: run } }}
-      emptyState={{ title: "No retention runs yet.", detail: "The policy is active before the first manual run." }}
-      runLabel="Run retention now"
-    />);
+    render(
+      <OperationalJobsPanel
+        adapter={{ list, run: { execute: run } }}
+        emptyState={{
+          title: "No retention runs yet.",
+          detail: "The policy is active before the first manual run.",
+        }}
+        runLabel="Run retention now"
+      />,
+    );
 
     await screen.findByText("No retention runs yet.");
     expect(screen.getByText("The policy is active before the first manual run.")).toBeTruthy();
@@ -88,7 +155,12 @@ describe("operational panels", () => {
   });
 
   it("paginates backups instead of silently truncating past the first page, and shows the true total", async () => {
-    const makeBackup = (id: string) => ({ id, label: `Backup ${id}`, createdAt: "Today", state: "completed" as const });
+    const makeBackup = (id: string) => ({
+      id,
+      label: `Backup ${id}`,
+      createdAt: "Today",
+      state: "completed" as const,
+    });
     const page1 = Array.from({ length: 25 }, (_, i) => makeBackup(`p1-${i}`));
     const page2 = Array.from({ length: 25 }, (_, i) => makeBackup(`p2-${i}`));
     const list = vi.fn().mockImplementation(async ({ page }: { page: number }) => ({
@@ -112,7 +184,12 @@ describe("operational panels", () => {
   });
 
   it("paginates operational jobs instead of silently truncating past the first page, and shows the true total", async () => {
-    const makeJob = (id: string) => ({ id, label: `Job ${id}`, startedAt: "Today", state: "completed" as const });
+    const makeJob = (id: string) => ({
+      id,
+      label: `Job ${id}`,
+      startedAt: "Today",
+      state: "completed" as const,
+    });
     const page1 = Array.from({ length: 25 }, (_, i) => makeJob(`p1-${i}`));
     const page2 = Array.from({ length: 25 }, (_, i) => makeJob(`p2-${i}`));
     const list = vi.fn().mockImplementation(async ({ page }: { page: number }) => ({
@@ -134,13 +211,25 @@ describe("operational panels", () => {
   });
 
   it("ignores a stale page-2 response that resolves after navigating back to page 1", async () => {
-    const page1 = [{ id: "b1", label: "Backup b1", createdAt: "Today", state: "completed" as const }];
-    const page2 = [{ id: "b2", label: "Backup b2", createdAt: "Today", state: "completed" as const }];
-    const page3 = [{ id: "b3", label: "Backup b3", createdAt: "Today", state: "completed" as const }];
+    const page1 = [
+      { id: "b1", label: "Backup b1", createdAt: "Today", state: "completed" as const },
+    ];
+    const page2 = [
+      { id: "b2", label: "Backup b2", createdAt: "Today", state: "completed" as const },
+    ];
+    const page3 = [
+      { id: "b3", label: "Backup b3", createdAt: "Today", state: "completed" as const },
+    ];
     let resolvePage2: ((value: unknown) => void) | undefined;
-    const list = vi.fn()
+    const list = vi
+      .fn()
       .mockResolvedValueOnce({ items: page1, page: 1, pageSize: 1, total: 3 })
-      .mockImplementationOnce(() => new Promise((resolve) => { resolvePage2 = resolve; }))
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolvePage2 = resolve;
+          }),
+      )
       .mockResolvedValueOnce({ items: page3, page: 1, pageSize: 1, total: 3 });
     render(<BackupsPanel adapter={{ list }} pageSize={1} />);
 
@@ -167,8 +256,19 @@ describe("operational panels", () => {
           adapter={{
             list: vi.fn().mockResolvedValue({
               items: [
-                { id: "r1", label: "Finished job", startedAt: "2026-07-13T09:00:00.000Z", finishedAt: "2026-07-13T09:05:00.000Z", state: "completed" as const },
-                { id: "r2", label: "Running job", startedAt: "2026-07-13T09:10:00.000Z", state: "running" as const },
+                {
+                  id: "r1",
+                  label: "Finished job",
+                  startedAt: "2026-07-13T09:00:00.000Z",
+                  finishedAt: "2026-07-13T09:05:00.000Z",
+                  state: "completed" as const,
+                },
+                {
+                  id: "r2",
+                  label: "Running job",
+                  startedAt: "2026-07-13T09:10:00.000Z",
+                  state: "running" as const,
+                },
               ],
               page: 1,
               pageSize: 25,
@@ -179,7 +279,14 @@ describe("operational panels", () => {
         <BackupsPanel
           adapter={{
             list: vi.fn().mockResolvedValue({
-              items: [{ id: "b1", label: "Nightly", createdAt: "2026-07-13T02:00:00.000Z", state: "completed" as const }],
+              items: [
+                {
+                  id: "b1",
+                  label: "Nightly",
+                  createdAt: "2026-07-13T02:00:00.000Z",
+                  state: "completed" as const,
+                },
+              ],
               page: 1,
               pageSize: 25,
               total: 1,
@@ -205,7 +312,15 @@ describe("operational panels", () => {
           formatTimestamp={(iso) => `stamp:${iso}`}
           adapter={{
             list: vi.fn().mockResolvedValue({
-              items: [{ id: "r1", label: "Finished job", startedAt: "2026-07-13T09:00:00.000Z", finishedAt: "2026-07-13T09:05:00.000Z", state: "completed" as const }],
+              items: [
+                {
+                  id: "r1",
+                  label: "Finished job",
+                  startedAt: "2026-07-13T09:00:00.000Z",
+                  finishedAt: "2026-07-13T09:05:00.000Z",
+                  state: "completed" as const,
+                },
+              ],
               page: 1,
               pageSize: 25,
               total: 1,
@@ -216,7 +331,14 @@ describe("operational panels", () => {
           formatTimestamp={(iso) => `stamp:${iso}`}
           adapter={{
             list: vi.fn().mockResolvedValue({
-              items: [{ id: "b1", label: "Nightly", createdAt: "2026-07-13T02:00:00.000Z", state: "completed" as const }],
+              items: [
+                {
+                  id: "b1",
+                  label: "Nightly",
+                  createdAt: "2026-07-13T02:00:00.000Z",
+                  state: "completed" as const,
+                },
+              ],
               page: 1,
               pageSize: 25,
               total: 1,
@@ -236,12 +358,24 @@ describe("operational panels", () => {
     // load() call actually begins: chain three transitions (page 1 -> 2 ->
     // 3) while page 1's request is still in flight, so the invalidation
     // must survive across two intervening transitions, not just one.
-    const page1Items = [{ id: "b1", label: "Backup b1", createdAt: "Today", state: "completed" as const }];
-    const page2Items = [{ id: "b2", label: "Backup b2", createdAt: "Today", state: "completed" as const }];
-    const page3Items = [{ id: "b3", label: "Backup b3", createdAt: "Today", state: "completed" as const }];
+    const page1Items = [
+      { id: "b1", label: "Backup b1", createdAt: "Today", state: "completed" as const },
+    ];
+    const page2Items = [
+      { id: "b2", label: "Backup b2", createdAt: "Today", state: "completed" as const },
+    ];
+    const page3Items = [
+      { id: "b3", label: "Backup b3", createdAt: "Today", state: "completed" as const },
+    ];
     let resolveStalePage1: ((value: unknown) => void) | undefined;
-    const list = vi.fn()
-      .mockImplementationOnce(() => new Promise((resolve) => { resolveStalePage1 = resolve; }))
+    const list = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveStalePage1 = resolve;
+          }),
+      )
       .mockResolvedValueOnce({ items: page2Items, page: 2, pageSize: 1, total: 3 })
       .mockResolvedValueOnce({ items: page3Items, page: 3, pageSize: 1, total: 3 });
     render(<BackupsPanel adapter={{ list }} pageSize={1} />);
@@ -269,7 +403,10 @@ describe("operational panels", () => {
   it("invalidates an in-flight request on unmount so its resolution cannot leak a late state update", async () => {
     let resolvePending: ((value: unknown) => void) | undefined;
     const list = vi.fn().mockImplementationOnce(
-      () => new Promise((resolve) => { resolvePending = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolvePending = resolve;
+        }),
     );
     const { unmount } = render(<BackupsPanel adapter={{ list }} pageSize={1} />);
     await waitFor(() => expect(list).toHaveBeenCalledTimes(1));
@@ -279,19 +416,50 @@ describe("operational panels", () => {
     // Resolving after unmount must not throw (the effect cleanup already
     // invalidated this load id).
     expect(() =>
-      resolvePending?.({ items: [{ id: "b1", label: "Backup b1", createdAt: "Today", state: "completed" as const }], page: 1, pageSize: 1, total: 1 }),
+      resolvePending?.({
+        items: [{ id: "b1", label: "Backup b1", createdAt: "Today", state: "completed" as const }],
+        page: 1,
+        pageSize: 1,
+        total: 1,
+      }),
     ).not.toThrow();
   });
 
   it("clamps to the last valid page instead of stranding the user on an empty out-of-range page (BackupsPanel)", async () => {
-    const list = vi.fn()
-      .mockResolvedValueOnce({ items: [{ id: "p1", label: "Backup p1", createdAt: "Today", state: "completed" as const }], page: 1, pageSize: 1, total: 3 })
-      .mockResolvedValueOnce({ items: [{ id: "p2", label: "Backup p2", createdAt: "Today", state: "completed" as const }], page: 2, pageSize: 1, total: 3 })
-      .mockResolvedValueOnce({ items: [{ id: "p3", label: "Backup p3", createdAt: "Today", state: "completed" as const }], page: 3, pageSize: 1, total: 3 })
+    const list = vi
+      .fn()
+      .mockResolvedValueOnce({
+        items: [{ id: "p1", label: "Backup p1", createdAt: "Today", state: "completed" as const }],
+        page: 1,
+        pageSize: 1,
+        total: 3,
+      })
+      .mockResolvedValueOnce({
+        items: [{ id: "p2", label: "Backup p2", createdAt: "Today", state: "completed" as const }],
+        page: 2,
+        pageSize: 1,
+        total: 3,
+      })
+      .mockResolvedValueOnce({
+        items: [{ id: "p3", label: "Backup p3", createdAt: "Today", state: "completed" as const }],
+        page: 3,
+        pageSize: 1,
+        total: 3,
+      })
       // Rows were deleted between requests: only 2 remain, so page 3 is now
       // out of range for the response that lands right after "Run backup".
-      .mockResolvedValue({ items: [{ id: "p2", label: "Backup p2", createdAt: "Today", state: "completed" as const }], page: 3, pageSize: 1, total: 2 });
-    render(<BackupsPanel adapter={{ list, run: { execute: vi.fn().mockResolvedValue(undefined) } }} pageSize={1} />);
+      .mockResolvedValue({
+        items: [{ id: "p2", label: "Backup p2", createdAt: "Today", state: "completed" as const }],
+        page: 3,
+        pageSize: 1,
+        total: 2,
+      });
+    render(
+      <BackupsPanel
+        adapter={{ list, run: { execute: vi.fn().mockResolvedValue(undefined) } }}
+        pageSize={1}
+      />,
+    );
 
     await screen.findByText("Backup p1");
     fireEvent.click(screen.getByRole("button", { name: "Next" }));
@@ -311,12 +479,38 @@ describe("operational panels", () => {
   });
 
   it("clamps to the last valid page instead of stranding the user on an empty out-of-range page (OperationalJobsPanel)", async () => {
-    const list = vi.fn()
-      .mockResolvedValueOnce({ items: [{ id: "p1", label: "Job p1", startedAt: "Today", state: "completed" as const }], page: 1, pageSize: 1, total: 3 })
-      .mockResolvedValueOnce({ items: [{ id: "p2", label: "Job p2", startedAt: "Today", state: "completed" as const }], page: 2, pageSize: 1, total: 3 })
-      .mockResolvedValueOnce({ items: [{ id: "p3", label: "Job p3", startedAt: "Today", state: "completed" as const }], page: 3, pageSize: 1, total: 3 })
-      .mockResolvedValue({ items: [{ id: "p2", label: "Job p2", startedAt: "Today", state: "completed" as const }], page: 3, pageSize: 1, total: 2 });
-    render(<OperationalJobsPanel adapter={{ list, run: { execute: vi.fn().mockResolvedValue(undefined) } }} pageSize={1} />);
+    const list = vi
+      .fn()
+      .mockResolvedValueOnce({
+        items: [{ id: "p1", label: "Job p1", startedAt: "Today", state: "completed" as const }],
+        page: 1,
+        pageSize: 1,
+        total: 3,
+      })
+      .mockResolvedValueOnce({
+        items: [{ id: "p2", label: "Job p2", startedAt: "Today", state: "completed" as const }],
+        page: 2,
+        pageSize: 1,
+        total: 3,
+      })
+      .mockResolvedValueOnce({
+        items: [{ id: "p3", label: "Job p3", startedAt: "Today", state: "completed" as const }],
+        page: 3,
+        pageSize: 1,
+        total: 3,
+      })
+      .mockResolvedValue({
+        items: [{ id: "p2", label: "Job p2", startedAt: "Today", state: "completed" as const }],
+        page: 3,
+        pageSize: 1,
+        total: 2,
+      });
+    render(
+      <OperationalJobsPanel
+        adapter={{ list, run: { execute: vi.fn().mockResolvedValue(undefined) } }}
+        pageSize={1}
+      />,
+    );
 
     await screen.findByText("Job p1");
     fireEvent.click(screen.getByRole("button", { name: "Next" }));
@@ -336,15 +530,37 @@ describe("operational panels", () => {
   it("applies the className prop to the operational panels", async () => {
     render(
       <>
-        <BackupsPanel className="host-backups" adapter={{ list: vi.fn().mockResolvedValue({ items: [], page: 1, pageSize: 25, total: 0 }) }} />
-        <OperationalJobsPanel className="host-jobs" adapter={{ list: vi.fn().mockResolvedValue({ items: [], page: 1, pageSize: 25, total: 0 }) }} />
-        <SettingsPanel className="host-settings" adapter={{ load: vi.fn().mockResolvedValue([]), save: { execute: vi.fn() } }} />
+        <BackupsPanel
+          className="host-backups"
+          adapter={{
+            list: vi.fn().mockResolvedValue({ items: [], page: 1, pageSize: 25, total: 0 }),
+          }}
+        />
+        <OperationalJobsPanel
+          className="host-jobs"
+          adapter={{
+            list: vi.fn().mockResolvedValue({ items: [], page: 1, pageSize: 25, total: 0 }),
+          }}
+        />
+        <SettingsPanel
+          className="host-settings"
+          adapter={{ load: vi.fn().mockResolvedValue([]), save: { execute: vi.fn() } }}
+        />
       </>,
     );
 
-    expect(await screen.findByLabelText("Backups")).toHaveProperty("className", expect.stringContaining("host-backups"));
-    expect(screen.getByLabelText("Operational jobs")).toHaveProperty("className", expect.stringContaining("host-jobs"));
-    expect(screen.getByLabelText("Settings")).toHaveProperty("className", expect.stringContaining("host-settings"));
+    expect(await screen.findByLabelText("Backups")).toHaveProperty(
+      "className",
+      expect.stringContaining("host-backups"),
+    );
+    expect(screen.getByLabelText("Operational jobs")).toHaveProperty(
+      "className",
+      expect.stringContaining("host-jobs"),
+    );
+    expect(screen.getByLabelText("Settings")).toHaveProperty(
+      "className",
+      expect.stringContaining("host-settings"),
+    );
   });
 
   it("closes the restore dialog on failure so the alert error is visible", async () => {
@@ -374,9 +590,14 @@ describe("operational panels", () => {
   it("ignores a stale settings load response that resolves after the adapter changes", async () => {
     let resolveStale: ((value: unknown) => void) | undefined;
     const staleLoad = vi.fn().mockImplementation(
-      () => new Promise((resolve) => { resolveStale = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveStale = resolve;
+        }),
     );
-    const freshLoad = vi.fn().mockResolvedValue([{ id: "fresh", label: "Fresh field", value: "42" }]);
+    const freshLoad = vi
+      .fn()
+      .mockResolvedValue([{ id: "fresh", label: "Fresh field", value: "42" }]);
     const { rerender } = render(
       <SettingsPanel adapter={{ load: staleLoad, save: { execute: vi.fn() } }} />,
     );
@@ -392,13 +613,21 @@ describe("operational panels", () => {
 
   it("clears stale fields when the adapter changes and the new adapter's load fails", async () => {
     const { rerender } = render(
-      <SettingsPanel adapter={{ load: vi.fn().mockResolvedValue([{ id: "first", label: "First field", value: "hello" }]), save: { execute: vi.fn() } }} />,
+      <SettingsPanel
+        adapter={{
+          load: vi.fn().mockResolvedValue([{ id: "first", label: "First field", value: "hello" }]),
+          save: { execute: vi.fn() },
+        }}
+      />,
     );
     await screen.findByDisplayValue("hello");
 
     rerender(
       <SettingsPanel
-        adapter={{ load: vi.fn().mockRejectedValue(new Error("Settings host unavailable")), save: { execute: vi.fn() } }}
+        adapter={{
+          load: vi.fn().mockRejectedValue(new Error("Settings host unavailable")),
+          save: { execute: vi.fn() },
+        }}
       />,
     );
 

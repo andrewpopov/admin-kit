@@ -7,6 +7,301 @@
     <title>Admin Kit browser fixture</title>
   </head>
   <body>
-    <section class="admin-kit admin-kit--theme-core admin-kit__portal" data-admin-kit-theme="core"><nav aria-label="Administration sections" class="admin-kit__portal-navigation"><section class="admin-kit__portal-group"><header class="admin-kit__portal-group-header"><p class="admin-kit__portal-group-label">Administration</p></header><ul class="admin-kit__portal-list"><li><button aria-current="page" class="admin-kit__portal-link" type="button"><span>Users</span><small>Account access and lifecycle</small></button></li></ul></section></nav><div class="admin-kit__portal-content" data-admin-section="users"><main class="admin-kit admin-kit--theme-core admin-kit__workspace" data-admin-kit-theme="core"><header class="admin-kit__workspace-header"><div><h1>Users</h1><p>Manage account roles and lifecycle.</p></div><div class="admin-kit__workspace-actions"><button class="admin-kit__button admin-kit__button--primary" type="button">Invite user</button><button class="admin-kit__button admin-kit__button--neutral" type="button">Export</button></div></header><section class="admin-kit__workspace-content" aria-label="Users"><section class="admin-kit__users" aria-label="Users"><header class="admin-kit__panel-header admin-kit__panel-header--section admin-kit__users-header"><div class="admin-kit__panel-header-main"><div><h2>Users</h2><p>1 user</p></div></div></header><div class="admin-kit__table-wrap admin-kit__users-table-wrap"><table class="admin-kit__table admin-kit__users-table"><thead><tr><th scope="col">User</th><th scope="col">Role</th><th scope="col">Status</th></tr></thead><tbody><tr aria-busy="false"><td><div class="admin-kit__user-identity"><strong>avery.long.email.address@example.test</strong></div></td><td><span class="admin-kit__user-value">Owner</span></td><td><span class="admin-kit__user-value">Active</span></td></tr></tbody></table></div></section></section></main></div></section><section class="admin-kit admin-kit--theme-core admin-kit__workspace" data-admin-kit-theme="core"><header class="admin-kit__workspace-header"><div><h1>Runtime logs</h1><p>Inspect bounded output from the selected process.</p></div></header><section class="admin-kit__workspace-content" aria-label="Runtime logs"><section class="admin-kit__logs" aria-label="Server logs" aria-busy="false"><header class="admin-kit__logs-header"><div><h2>Server logs</h2><p>2 matching lines</p></div><div class="admin-kit__logs-actions"><button class="admin-kit__button" type="button" role="switch" aria-checked="true">Follow latest on</button><button class="admin-kit__button admin-kit__button--primary" type="button">Refresh</button></div></header><form class="admin-kit__logs-filters"><label><span>Source</span><select><option value="api.log">api.log</option><option value="web.log">web.log</option></select></label><label><span>Lines</span><select><option value="100">100</option><option value="200">200</option><option value="500">500</option><option value="1000">1000</option></select></label><label class="admin-kit__logs-search"><span>Search logs</span><input type="search" placeholder="Message or raw output" value=""></label><button class="admin-kit__button" type="submit">Apply</button></form><div class="admin-kit__logs-summary"><span>Showing 2 of 2 loaded</span><button class="admin-kit__button" type="button">Copy visible</button></div><p class="admin-kit__logs-feedback" aria-live="polite"></p><div class="admin-kit__logs-output" role="region" aria-label="Server logs output" tabindex="0"><ol class="admin-kit__logs-list"><li class="admin-kit__log-line admin-kit__log-line--info"><div class="admin-kit__log-context"><time datetime="2024-01-01T15:12:00.000Z">Jan 1, 2024, 10:12 AM</time><span>INFO</span><span>http</span></div><pre>request.completed correlation_id=01JZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ</pre></li><li class="admin-kit__log-line admin-kit__log-line--danger"><div class="admin-kit__log-context"><time datetime="2024-01-01T15:13:00.000Z">Jan 1, 2024, 10:13 AM</time><span>ERROR</span><span>worker</span></div><pre>worker.failed reason=connection-timeout</pre></li></ol></div></section></section></section><section class="admin-kit admin-kit--theme-core admin-kit__workspace" data-admin-kit-theme="core"><header class="admin-kit__workspace-header"><div><h1>API keys</h1><p>Long credential metadata stays inside the viewport.</p></div></header><section class="admin-kit__workspace-content" aria-label="API keys"><section class="admin-kit__keys" aria-label="API keys"><header class="admin-kit__panel-header admin-kit__panel-header--section admin-kit__keys-header"><div class="admin-kit__panel-header-main"><div><h2>API keys</h2><p>1 credential · 1 active</p></div></div></header><div class="admin-kit__table-wrap admin-kit__keys-table-wrap"><table class="admin-kit__table admin-kit__keys-table"><thead><tr><th scope="col">Key</th><th scope="col">Scope</th><th scope="col">State</th><th scope="col">Created</th><th scope="col">Last used</th><th scope="col">Expires</th><th scope="col">Actions</th></tr></thead><tbody><tr aria-busy="false"><td><div class="admin-kit__key-identity"><strong>automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production</strong><code>ak_1234567890abcdef</code></div></td><td><ul class="admin-kit__scope-chips"><li class="admin-kit__scope-chip">/api/catalog/reconciliation/long-running-imports-and-automations</li></ul></td><td><span class="admin-kit__state-pill admin-kit__state-pill--key-active">active</span></td><td class="admin-kit__key-timestamp">Jul 12, 2026, 8:00 PM</td><td class="admin-kit__key-timestamp">never</td><td class="admin-kit__key-timestamp">never</td><td><div class="admin-kit__key-actions"><button type="button" aria-label="Revoke automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production">Revoke</button></div></td></tr></tbody></table></div></section></section></section><section class="admin-kit admin-kit--theme-core admin-kit__workspace" data-admin-kit-theme="core"><header class="admin-kit__workspace-header"><div><h1>API key cards</h1><p>Compact credential review at narrow widths.</p></div></header><section class="admin-kit__workspace-content" aria-label="API key cards"><section class="admin-kit__keys" aria-label="API keys"><header class="admin-kit__panel-header admin-kit__panel-header--section admin-kit__keys-header"><div class="admin-kit__panel-header-main"><div><h2>API keys</h2><p>1 credential · 1 active</p></div></div></header><ol class="admin-kit__key-cards"><li aria-busy="false" class="admin-kit__key-card"><div class="admin-kit__key-card-header"><div class="admin-kit__key-identity"><strong>automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production</strong><code>ak_1234567890abcdef</code></div><span class="admin-kit__state-pill admin-kit__state-pill--key-active">active</span></div><dl class="admin-kit__key-summary"><div><dt>Created</dt><dd>Jul 12, 2026, 8:00 PM</dd></div><div><dt>Last used</dt><dd>never</dd></div><div><dt>Expires</dt><dd>never</dd></div></dl><details class="admin-kit__key-details-disclosure"><summary aria-label="Scopes and details for automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production">1 scope</summary><ul class="admin-kit__scope-chips"><li class="admin-kit__scope-chip">/api/catalog/reconciliation/long-running-imports-and-automations</li></ul></details><div class="admin-kit__key-actions"><button type="button" aria-label="Revoke automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production">Revoke</button></div></li></ol></section></section></section>
+    <section class="admin-kit admin-kit--theme-core admin-kit__portal" data-admin-kit-theme="core">
+      <nav aria-label="Administration sections" class="admin-kit__portal-navigation">
+        <section class="admin-kit__portal-group">
+          <header class="admin-kit__portal-group-header">
+            <p class="admin-kit__portal-group-label">Administration</p>
+          </header>
+          <ul class="admin-kit__portal-list">
+            <li>
+              <button aria-current="page" class="admin-kit__portal-link" type="button">
+                <span>Users</span><small>Account access and lifecycle</small>
+              </button>
+            </li>
+          </ul>
+        </section>
+      </nav>
+      <div class="admin-kit__portal-content" data-admin-section="users">
+        <main
+          class="admin-kit admin-kit--theme-core admin-kit__workspace"
+          data-admin-kit-theme="core"
+        >
+          <header class="admin-kit__workspace-header">
+            <div>
+              <h1>Users</h1>
+              <p>Manage account roles and lifecycle.</p>
+            </div>
+            <div class="admin-kit__workspace-actions">
+              <button class="admin-kit__button admin-kit__button--primary" type="button">
+                Invite user</button
+              ><button class="admin-kit__button admin-kit__button--neutral" type="button">
+                Export
+              </button>
+            </div>
+          </header>
+          <section class="admin-kit__workspace-content" aria-label="Users">
+            <section class="admin-kit__users" aria-label="Users">
+              <header
+                class="admin-kit__panel-header admin-kit__panel-header--section admin-kit__users-header"
+              >
+                <div class="admin-kit__panel-header-main">
+                  <div>
+                    <h2>Users</h2>
+                    <p>1 user</p>
+                  </div>
+                </div>
+              </header>
+              <div class="admin-kit__table-wrap admin-kit__users-table-wrap">
+                <table class="admin-kit__table admin-kit__users-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">User</th>
+                      <th scope="col">Role</th>
+                      <th scope="col">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr aria-busy="false">
+                      <td>
+                        <div class="admin-kit__user-identity">
+                          <strong>avery.long.email.address@example.test</strong>
+                        </div>
+                      </td>
+                      <td><span class="admin-kit__user-value">Owner</span></td>
+                      <td><span class="admin-kit__user-value">Active</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+        </main>
+      </div>
+    </section>
+    <section
+      class="admin-kit admin-kit--theme-core admin-kit__workspace"
+      data-admin-kit-theme="core"
+    >
+      <header class="admin-kit__workspace-header">
+        <div>
+          <h1>Runtime logs</h1>
+          <p>Inspect bounded output from the selected process.</p>
+        </div>
+      </header>
+      <section class="admin-kit__workspace-content" aria-label="Runtime logs">
+        <section class="admin-kit__logs" aria-label="Server logs" aria-busy="false">
+          <header class="admin-kit__logs-header">
+            <div>
+              <h2>Server logs</h2>
+              <p>2 matching lines</p>
+            </div>
+            <div class="admin-kit__logs-actions">
+              <button class="admin-kit__button" type="button" role="switch" aria-checked="true">
+                Follow latest on</button
+              ><button class="admin-kit__button admin-kit__button--primary" type="button">
+                Refresh
+              </button>
+            </div>
+          </header>
+          <form class="admin-kit__logs-filters">
+            <label
+              ><span>Source</span
+              ><select>
+                <option value="api.log">api.log</option>
+                <option value="web.log">web.log</option>
+              </select></label
+            ><label
+              ><span>Lines</span
+              ><select>
+                <option value="100">100</option>
+                <option value="200">200</option>
+                <option value="500">500</option>
+                <option value="1000">1000</option>
+              </select></label
+            ><label class="admin-kit__logs-search"
+              ><span>Search logs</span
+              ><input type="search" placeholder="Message or raw output" value="" /></label
+            ><button class="admin-kit__button" type="submit">Apply</button>
+          </form>
+          <div class="admin-kit__logs-summary">
+            <span>Showing 2 of 2 loaded</span
+            ><button class="admin-kit__button" type="button">Copy visible</button>
+          </div>
+          <p class="admin-kit__logs-feedback" aria-live="polite"></p>
+          <div
+            class="admin-kit__logs-output"
+            role="region"
+            aria-label="Server logs output"
+            tabindex="0"
+          >
+            <ol class="admin-kit__logs-list">
+              <li class="admin-kit__log-line admin-kit__log-line--info">
+                <div class="admin-kit__log-context">
+                  <time datetime="2024-01-01T15:12:00.000Z">Jan 1, 2024, 10:12 AM</time
+                  ><span>INFO</span><span>http</span>
+                </div>
+                <pre>
+request.completed correlation_id=01JZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ</pre>
+              </li>
+              <li class="admin-kit__log-line admin-kit__log-line--danger">
+                <div class="admin-kit__log-context">
+                  <time datetime="2024-01-01T15:13:00.000Z">Jan 1, 2024, 10:13 AM</time
+                  ><span>ERROR</span><span>worker</span>
+                </div>
+                <pre>worker.failed reason=connection-timeout</pre>
+              </li>
+            </ol>
+          </div>
+        </section>
+      </section>
+    </section>
+    <section
+      class="admin-kit admin-kit--theme-core admin-kit__workspace"
+      data-admin-kit-theme="core"
+    >
+      <header class="admin-kit__workspace-header">
+        <div>
+          <h1>API keys</h1>
+          <p>Long credential metadata stays inside the viewport.</p>
+        </div>
+      </header>
+      <section class="admin-kit__workspace-content" aria-label="API keys">
+        <section class="admin-kit__keys" aria-label="API keys">
+          <header
+            class="admin-kit__panel-header admin-kit__panel-header--section admin-kit__keys-header"
+          >
+            <div class="admin-kit__panel-header-main">
+              <div>
+                <h2>API keys</h2>
+                <p>1 credential · 1 active</p>
+              </div>
+            </div>
+          </header>
+          <div class="admin-kit__table-wrap admin-kit__keys-table-wrap">
+            <table class="admin-kit__table admin-kit__keys-table">
+              <thead>
+                <tr>
+                  <th scope="col">Key</th>
+                  <th scope="col">Scope</th>
+                  <th scope="col">State</th>
+                  <th scope="col">Created</th>
+                  <th scope="col">Last used</th>
+                  <th scope="col">Expires</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr aria-busy="false">
+                  <td>
+                    <div class="admin-kit__key-identity">
+                      <strong
+                        >automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production</strong
+                      ><code>ak_1234567890abcdef</code>
+                    </div>
+                  </td>
+                  <td>
+                    <ul class="admin-kit__scope-chips">
+                      <li class="admin-kit__scope-chip">
+                        /api/catalog/reconciliation/long-running-imports-and-automations
+                      </li>
+                    </ul>
+                  </td>
+                  <td>
+                    <span class="admin-kit__state-pill admin-kit__state-pill--key-active"
+                      >active</span
+                    >
+                  </td>
+                  <td class="admin-kit__key-timestamp">Jul 12, 2026, 8:00 PM</td>
+                  <td class="admin-kit__key-timestamp">never</td>
+                  <td class="admin-kit__key-timestamp">never</td>
+                  <td>
+                    <div class="admin-kit__key-actions">
+                      <button
+                        type="button"
+                        aria-label="Revoke automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production"
+                      >
+                        Revoke
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </section>
+    <section
+      class="admin-kit admin-kit--theme-core admin-kit__workspace"
+      data-admin-kit-theme="core"
+    >
+      <header class="admin-kit__workspace-header">
+        <div>
+          <h1>API key cards</h1>
+          <p>Compact credential review at narrow widths.</p>
+        </div>
+      </header>
+      <section class="admin-kit__workspace-content" aria-label="API key cards">
+        <section class="admin-kit__keys" aria-label="API keys">
+          <header
+            class="admin-kit__panel-header admin-kit__panel-header--section admin-kit__keys-header"
+          >
+            <div class="admin-kit__panel-header-main">
+              <div>
+                <h2>API keys</h2>
+                <p>1 credential · 1 active</p>
+              </div>
+            </div>
+          </header>
+          <ol class="admin-kit__key-cards">
+            <li aria-busy="false" class="admin-kit__key-card">
+              <div class="admin-kit__key-card-header">
+                <div class="admin-kit__key-identity">
+                  <strong
+                    >automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production</strong
+                  ><code>ak_1234567890abcdef</code>
+                </div>
+                <span class="admin-kit__state-pill admin-kit__state-pill--key-active">active</span>
+              </div>
+              <dl class="admin-kit__key-summary">
+                <div>
+                  <dt>Created</dt>
+                  <dd>Jul 12, 2026, 8:00 PM</dd>
+                </div>
+                <div>
+                  <dt>Last used</dt>
+                  <dd>never</dd>
+                </div>
+                <div>
+                  <dt>Expires</dt>
+                  <dd>never</dd>
+                </div>
+              </dl>
+              <details class="admin-kit__key-details-disclosure">
+                <summary
+                  aria-label="Scopes and details for automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production"
+                >
+                  1 scope
+                </summary>
+                <ul class="admin-kit__scope-chips">
+                  <li class="admin-kit__scope-chip">
+                    /api/catalog/reconciliation/long-running-imports-and-automations
+                  </li>
+                </ul>
+              </details>
+              <div class="admin-kit__key-actions">
+                <button
+                  type="button"
+                  aria-label="Revoke automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production"
+                >
+                  Revoke
+                </button>
+              </div>
+            </li>
+          </ol>
+        </section>
+      </section>
+    </section>
   </body>
 </html>

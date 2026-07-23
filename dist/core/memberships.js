@@ -46,9 +46,7 @@ function validateAdminMemberships(members, roles) {
         ids.add(member.memberId);
         return Object.freeze({
             ...member,
-            permissions: member.permissions
-                ? Object.freeze({ ...member.permissions })
-                : undefined,
+            permissions: member.permissions ? Object.freeze({ ...member.permissions }) : undefined,
         });
     }));
 }

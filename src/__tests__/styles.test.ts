@@ -30,7 +30,11 @@ function resolveVar(value: string, scope: "root" | "dark"): string {
 
 function hexToRgb(hex: string): [number, number, number] {
   let h = hex.replace("#", "");
-  if (h.length === 3) h = h.split("").map(c => c + c).join("");
+  if (h.length === 3)
+    h = h
+      .split("")
+      .map((c) => c + c)
+      .join("");
   const num = parseInt(h, 16);
   return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
 }
@@ -73,13 +77,17 @@ describe("Admin Kit styles", () => {
     expect(styles).toContain(".admin-kit__dialog-body");
     expect(styles).toContain("--admin-kit-surface-subtle:");
     expect(styles).toContain("--admin-kit-accent-soft:");
-    expect(styles).toContain(".admin-kit__dialog-actions button:last-child:not(.admin-kit__button--danger)");
+    expect(styles).toContain(
+      ".admin-kit__dialog-actions button:last-child:not(.admin-kit__button--danger)",
+    );
     expect(styles).toContain(".admin-kit__keys > button");
   });
 
   it("protects the shared responsive table and workspace contracts", () => {
     expect(styles).toContain(".admin-kit__workspace { box-sizing: border-box;");
-    expect(styles).toContain(".admin-kit__workspace-header { align-items: stretch; flex-direction: column; }");
+    expect(styles).toContain(
+      ".admin-kit__workspace-header { align-items: stretch; flex-direction: column; }",
+    );
     expect(styles).toContain(".admin-kit__workspace-content--bare");
     expect(styles).toContain(".admin-kit__panel-header--page h1");
     expect(styles).toContain(".admin-kit__panel-header-actions");
@@ -98,7 +106,9 @@ describe("Admin Kit styles", () => {
     expect(styles).toContain("align-self: start;");
     expect(styles).toContain("position: sticky;");
     expect(styles).toContain("max-height: calc(100dvh - (var(--admin-kit-sticky-top) * 2));");
-    expect(styles).toContain(".admin-kit__portal-navigation { border-radius: var(--admin-kit-radius-sm); max-height: none; overflow-y: visible; position: static; }");
+    expect(styles).toContain(
+      ".admin-kit__portal-navigation { border-radius: var(--admin-kit-radius-sm); max-height: none; overflow-y: visible; position: static; }",
+    );
   });
 
   it("defines the foreground-on-fill and semantic tokens introduced in Stage 2", () => {
@@ -150,7 +160,11 @@ describe("Admin Kit styles", () => {
   describe("WCAG AA contrast for foreground-on-fill tokens", () => {
     const cases: Array<{ fg: string; bg: string; label: string }> = [
       { fg: "--admin-kit-on-accent", bg: "--admin-kit-accent", label: "on-accent/accent" },
-      { fg: "--admin-kit-on-accent", bg: "--admin-kit-accent-strong", label: "on-accent/accent-strong" },
+      {
+        fg: "--admin-kit-on-accent",
+        bg: "--admin-kit-accent-strong",
+        label: "on-accent/accent-strong",
+      },
       { fg: "--admin-kit-on-danger", bg: "--admin-kit-danger", label: "on-danger/danger" },
     ];
 

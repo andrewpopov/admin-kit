@@ -122,7 +122,9 @@ export function AdminConfirmationDialog({
         <h2 id={titleId}>{title}</h2>
         <p id={descriptionId}>{description}</p>
         <div className="admin-kit__dialog-actions">
-          <button ref={cancelRef} type="button" disabled={pending} onClick={onCancel}>Cancel</button>
+          <button ref={cancelRef} type="button" disabled={pending} onClick={onCancel}>
+            Cancel
+          </button>
           <button
             className={danger ? "admin-kit__button--danger" : undefined}
             type="button"
@@ -142,8 +144,5 @@ export function AdminConfirmationDialog({
   // actually open the component has long since mounted and portaled.
   if (!mounted) return surface;
 
-  return createPortal(
-    surface,
-    document.body,
-  );
+  return createPortal(surface, document.body);
 }

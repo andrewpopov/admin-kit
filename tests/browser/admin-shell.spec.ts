@@ -4,7 +4,9 @@ import { resolve } from "node:path";
 
 const fixture = pathToFileURL(resolve("tests/browser/admin-shell.html")).href;
 
-test("keeps routed navigation intrinsic and collection overflow inside their panels", async ({ page }) => {
+test("keeps routed navigation intrinsic and collection overflow inside their panels", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(fixture);
   await expect(page.getByRole("main")).toHaveCount(1);
@@ -18,8 +20,16 @@ test("keeps routed navigation intrinsic and collection overflow inside their pan
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   await expect(page.locator(".admin-kit__key-cards")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Server logs", level: 2 })).toBeVisible();
-  expect(await page.locator(".admin-kit__logs-output").evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+  expect(
+    await page
+      .locator(".admin-kit__logs-output")
+      .evaluate((node) => node.scrollWidth <= node.clientWidth),
+  ).toBe(true);
   await expect(
-    page.getByLabel("API key cards").getByText("automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production"),
+    page
+      .getByLabel("API key cards")
+      .getByText(
+        "automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production",
+      ),
   ).toBeVisible();
 });

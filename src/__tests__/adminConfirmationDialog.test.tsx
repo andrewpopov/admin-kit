@@ -2,7 +2,10 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AdminConfirmationDialog, type AdminConfirmationDialogProps } from "../react/AdminConfirmationDialog";
+import {
+  AdminConfirmationDialog,
+  type AdminConfirmationDialogProps,
+} from "../react/AdminConfirmationDialog";
 
 afterEach(cleanup);
 
@@ -38,7 +41,9 @@ describe("AdminConfirmationDialog", () => {
       const [open, setOpen] = useState(true);
       return (
         <div>
-          <button type="button" id="opener">Opener</button>
+          <button type="button" id="opener">
+            Opener
+          </button>
           <AdminConfirmationDialog
             open={open}
             title="Danger zone"

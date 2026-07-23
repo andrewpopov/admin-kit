@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.30.0
+
+### Added
+
+- ESLint (flat config) and Prettier now gate the package. `npm run lint` and
+  `npm run format:check` run in CI alongside typecheck; `npm run format`
+  applies formatting. The react-hooks ruleset is scoped to the two
+  long-standing correctness rules (`rules-of-hooks`, `exhaustive-deps`); the
+  experimental React Compiler rules folded into eslint-plugin-react-hooks v7
+  are intentionally not enabled.
+
+### Changed
+
+- The README install pin now tracks the current release and documents the
+  git-tag distribution model (`github:andrewpopov/admin-kit#vX.Y.Z`); consumers
+  pin to a release tag and bump deliberately.
+
 ## 0.29.6
 
 ### Fixed

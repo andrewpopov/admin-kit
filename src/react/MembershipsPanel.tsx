@@ -68,7 +68,9 @@ export function MembershipsPanel<
 
   useEffect(() => {
     void load();
-    return () => { latestLoadId.current += 1; };
+    return () => {
+      latestLoadId.current += 1;
+    };
   }, [adapter]);
 
   const submitInvite = async (input: InviteInput): Promise<boolean> => {
@@ -95,7 +97,9 @@ export function MembershipsPanel<
       await adapter.setRole.execute({ memberId, role });
       await load();
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Unable to update the member role.");
+      setActionError(
+        reason instanceof Error ? reason.message : "Unable to update the member role.",
+      );
     } finally {
       setPendingMemberId(undefined);
     }
@@ -118,61 +122,157 @@ export function MembershipsPanel<
   };
 
   if (loadError && !members) {
-    return <AdminPanelStateView className={className} state={{ kind: "error", detail: loadError, onRetry: () => void load() }} />;
+    return (
+      <AdminPanelStateView
+        className={className}
+        state={{ kind: "error", detail: loadError, onRetry: () => void load() }}
+      />
+    );
   }
   if (!members) {
-    return <AdminPanelStateView className={className} state={{ kind: "loading", label: "Loading members…" }} />;
+    return (
+      <AdminPanelStateView
+        className={className}
+        state={{ kind: "loading", label: "Loading members…" }}
+      />
+    );
   }
 
   const hasActions = Boolean(
     renderMemberActions ||
-    (adapter.remove && members.some((member) => member.mutable && member.permissions?.canRemove !== false)),
+    (adapter.remove &&
+      members.some((member) => member.mutable && member.permissions?.canRemove !== false)),
   );
   return (
-    <section className={["admin-kit__memberships", className].filter(Boolean).join(" ")} aria-label={title}>
+    <section
+      className={["admin-kit__memberships", className].filter(Boolean).join(" ")}
+      aria-label={title}
+    >
       <header className="admin-kit__memberships-header">
         <div>
           <h2>{title}</h2>
-          <p>{adapter.scope.label} · {members.length} {members.length === 1 ? "member" : "members"}</p>
+          <p>
+            {adapter.scope.label} · {members.length} {members.length === 1 ? "member" : "members"}
+          </p>
         </div>
         {renderAddMember && adapter.invite
           ? renderAddMember({ submit: submitInvite, reload: load, isPending: isAdding })
           : null}
       </header>
-      {loadError ? <AdminPanelStateView state={{ kind: "error", detail: loadError, onRetry: () => void load() }} /> : null}
-      {actionError ? <p className="admin-kit__action-error" role="alert">{actionError}</p> : null}
+      {loadError ? (
+        <AdminPanelStateView
+          state={{ kind: "error", detail: loadError, onRetry: () => void load() }}
+        />
+      ) : null}
+      {actionError ? (
+        <p className="admin-kit__action-error" role="alert">
+          {actionError}
+        </p>
+      ) : null}
       {members.length === 0 ? (
         <AdminPanelStateView state={{ kind: "empty", title: "No members found." }} />
       ) : (
         <div className="admin-kit__table-wrap admin-kit__memberships-table-wrap">
           <table className="admin-kit__table admin-kit__memberships-table">
-            <thead><tr><th scope="col">Member</th><th scope="col">Access</th><th scope="col">Role</th>{hasActions ? <th scope="col">Actions</th> : null}</tr></thead>
-            <tbody>{members.map((member) => {
-              const pending = pendingMemberId === member.memberId;
-              const canChangeRole = member.mutable && member.permissions?.canChangeRole !== false && Boolean(adapter.setRole);
-              const canRemove = member.mutable && member.permissions?.canRemove !== false && Boolean(adapter.remove);
-              const role = adapter.roles.find((candidate) => candidate.value === member.role)!;
-              return <tr key={member.memberId} aria-busy={pending}>
-                <td><div className="admin-kit__membership-identity"><strong>{member.label}</strong>{member.secondaryLabel ? <span>{member.secondaryLabel}</span> : null}</div></td>
-                <td><span className="admin-kit__membership-source">{member.source === "inherited" ? "Inherited" : "Direct"}</span></td>
-                <td>{canChangeRole ? <select aria-label={`Role for ${member.label}`} disabled={pending} value={member.role} onChange={(event) => void updateRole(member.memberId, event.target.value)}>{adapter.roles.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : <span className={`admin-kit__membership-role admin-kit__membership-role--${role.tone ?? "neutral"}`}>{role.label}</span>}</td>
-                {hasActions ? <td><div className="admin-kit__membership-controls">{renderMemberActions ? renderMemberActions(member, { reload: load, isPending: pending }) : null}{canRemove ? <button className="admin-kit__button" disabled={pending} type="button" onClick={() => setRemoveTarget(member)}>Remove</button> : null}</div></td> : null}
-              </tr>;
-            })}</tbody>
+            <thead>
+              <tr>
+                <th scope="col">Member</th>
+                <th scope="col">Access</th>
+                <th scope="col">Role</th>
+                {hasActions ? <th scope="col">Actions</th> : null}
+              </tr>
+            </thead>
+            <tbody>
+              {members.map((member) => {
+                const pending = pendingMemberId === member.memberId;
+                const canChangeRole =
+                  member.mutable &&
+                  member.permissions?.canChangeRole !== false &&
+                  Boolean(adapter.setRole);
+                const canRemove =
+                  member.mutable &&
+                  member.permissions?.canRemove !== false &&
+                  Boolean(adapter.remove);
+                const role = adapter.roles.find((candidate) => candidate.value === member.role)!;
+                return (
+                  <tr key={member.memberId} aria-busy={pending}>
+                    <td>
+                      <div className="admin-kit__membership-identity">
+                        <strong>{member.label}</strong>
+                        {member.secondaryLabel ? <span>{member.secondaryLabel}</span> : null}
+                      </div>
+                    </td>
+                    <td>
+                      <span className="admin-kit__membership-source">
+                        {member.source === "inherited" ? "Inherited" : "Direct"}
+                      </span>
+                    </td>
+                    <td>
+                      {canChangeRole ? (
+                        <select
+                          aria-label={`Role for ${member.label}`}
+                          disabled={pending}
+                          value={member.role}
+                          onChange={(event) => void updateRole(member.memberId, event.target.value)}
+                        >
+                          {adapter.roles.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span
+                          className={`admin-kit__membership-role admin-kit__membership-role--${role.tone ?? "neutral"}`}
+                        >
+                          {role.label}
+                        </span>
+                      )}
+                    </td>
+                    {hasActions ? (
+                      <td>
+                        <div className="admin-kit__membership-controls">
+                          {renderMemberActions
+                            ? renderMemberActions(member, { reload: load, isPending: pending })
+                            : null}
+                          {canRemove ? (
+                            <button
+                              className="admin-kit__button"
+                              disabled={pending}
+                              type="button"
+                              onClick={() => setRemoveTarget(member)}
+                            >
+                              Remove
+                            </button>
+                          ) : null}
+                        </div>
+                      </td>
+                    ) : null}
+                  </tr>
+                );
+              })}
+            </tbody>
           </table>
         </div>
       )}
-      {adapter.remove ? <AdminConfirmationDialog
-        className={dialogClassName}
-        open={Boolean(removeTarget)}
-        title="Remove member"
-        description={removeTarget ? getRemoveDescription?.(removeTarget) ?? `Remove ${removeTarget.label} from ${adapter.scope.label}? Their access through this direct membership will end.` : ""}
-        confirmLabel="Remove member"
-        danger
-        pending={Boolean(removeTarget && pendingMemberId === removeTarget.memberId)}
-        onCancel={() => setRemoveTarget(undefined)}
-        onConfirm={() => removeTarget && void remove(removeTarget.memberId)}
-      /> : null}
+      {adapter.remove ? (
+        <AdminConfirmationDialog
+          className={dialogClassName}
+          open={Boolean(removeTarget)}
+          title="Remove member"
+          description={
+            removeTarget
+              ? (getRemoveDescription?.(removeTarget) ??
+                `Remove ${removeTarget.label} from ${adapter.scope.label}? Their access through this direct membership will end.`)
+              : ""
+          }
+          confirmLabel="Remove member"
+          danger
+          pending={Boolean(removeTarget && pendingMemberId === removeTarget.memberId)}
+          onCancel={() => setRemoveTarget(undefined)}
+          onConfirm={() => removeTarget && void remove(removeTarget.memberId)}
+        />
+      ) : null}
     </section>
   );
 }

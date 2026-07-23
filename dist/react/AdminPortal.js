@@ -7,9 +7,9 @@ const jsx_runtime_1 = require("react/jsx-runtime");
  * navigation, and authorization; the portal owns grouping, selection,
  * responsive layout, disabled behavior, and accessible page semantics.
  */
-function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationItem, ariaLabel = 'Administration sections', className, emptyState = 'No administration sections are available.', inactiveSectionState, }) {
+function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationItem, ariaLabel = "Administration sections", className, emptyState = "No administration sections are available.", inactiveSectionState, }) {
     if (!renderNavigationItem && !onSectionChange) {
-        throw new Error('AdminPortal default navigation needs onSectionChange.');
+        throw new Error("AdminPortal default navigation needs onSectionChange.");
     }
     const visibleGroups = groups
         .filter((group) => group.visible !== false)
@@ -21,9 +21,16 @@ function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationI
     const sections = visibleGroups.flatMap((group) => group.sections);
     const active = sections.find((section) => section.id === activeSection);
     if (!active) {
-        return ((0, jsx_runtime_1.jsx)("section", { className: ['admin-kit', 'admin-kit--theme-core', 'admin-kit__portal-empty', className].filter(Boolean).join(' '), "data-admin-kit-theme": "core", children: sections.length === 0 ? emptyState : inactiveSectionState?.(activeSection) ?? 'This administration section is unavailable.' }));
+        return ((0, jsx_runtime_1.jsx)("section", { className: ["admin-kit", "admin-kit--theme-core", "admin-kit__portal-empty", className]
+                .filter(Boolean)
+                .join(" "), "data-admin-kit-theme": "core", children: sections.length === 0
+                ? emptyState
+                : (inactiveSectionState?.(activeSection) ??
+                    "This administration section is unavailable.") }));
     }
-    return ((0, jsx_runtime_1.jsxs)("section", { className: ['admin-kit', 'admin-kit--theme-core', 'admin-kit__portal', className].filter(Boolean).join(' '), "data-admin-kit-theme": "core", children: [(0, jsx_runtime_1.jsx)("nav", { "aria-label": ariaLabel, className: "admin-kit__portal-navigation", children: visibleGroups.map((group) => ((0, jsx_runtime_1.jsxs)("section", { className: "admin-kit__portal-group", children: [(0, jsx_runtime_1.jsxs)("header", { className: "admin-kit__portal-group-header", children: [(0, jsx_runtime_1.jsx)("p", { className: "admin-kit__portal-group-label", children: group.label }), group.description ? (0, jsx_runtime_1.jsx)("p", { children: group.description }) : null] }), (0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__portal-list", children: group.sections.map((section) => {
+    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit", "admin-kit--theme-core", "admin-kit__portal", className]
+            .filter(Boolean)
+            .join(" "), "data-admin-kit-theme": "core", children: [(0, jsx_runtime_1.jsx)("nav", { "aria-label": ariaLabel, className: "admin-kit__portal-navigation", children: visibleGroups.map((group) => ((0, jsx_runtime_1.jsxs)("section", { className: "admin-kit__portal-group", children: [(0, jsx_runtime_1.jsxs)("header", { className: "admin-kit__portal-group-header", children: [(0, jsx_runtime_1.jsx)("p", { className: "admin-kit__portal-group-label", children: group.label }), group.description ? (0, jsx_runtime_1.jsx)("p", { children: group.description }) : null] }), (0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__portal-list", children: group.sections.map((section) => {
                                 const isActive = section.id === active.id;
                                 const onClick = (event) => {
                                     if (section.disabled) {
@@ -35,8 +42,8 @@ function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationI
                                 const navigationProps = {
                                     section,
                                     active: isActive,
-                                    className: 'admin-kit__portal-link',
-                                    ariaCurrent: isActive ? 'page' : undefined,
+                                    className: "admin-kit__portal-link",
+                                    ariaCurrent: isActive ? "page" : undefined,
                                     ariaDisabled: section.disabled ? true : undefined,
                                     tabIndex: section.disabled ? -1 : undefined,
                                     onClick,

@@ -22,9 +22,7 @@ export interface ForeignApiAccessCredential {
 }
 
 /** Foreign contract — mirrors `api-access-kit`'s `IssuedApiAccessCredential`. */
-export interface ForeignIssuedApiAccessCredential<
-  Credential extends ForeignApiAccessCredential,
-> {
+export interface ForeignIssuedApiAccessCredential<Credential extends ForeignApiAccessCredential> {
   credential: Credential;
   secret: string;
 }
@@ -161,9 +159,7 @@ function mapCredential<Credential extends ForeignApiAccessCredential>(
 export function createApiKeysAdapter<
   Credential extends ForeignApiAccessCredential,
   CreateInput = never,
->(
-  options: CreateApiKeysAdapterOptions<Credential, CreateInput>,
-): AdminApiKeysAdapter<CreateInput> {
+>(options: CreateApiKeysAdapterOptions<Credential, CreateInput>): AdminApiKeysAdapter<CreateInput> {
   const nowIso = () => (options.now?.() ?? new Date()).toISOString();
 
   return {

@@ -42,7 +42,11 @@ describe("createFeatureFlagsAdapter", () => {
           ]),
       },
       registry: [
-        { key: "new-checkout", description: "Enables the new checkout flow.", label: "New checkout" },
+        {
+          key: "new-checkout",
+          description: "Enables the new checkout flow.",
+          label: "New checkout",
+        },
       ],
     });
 
@@ -107,7 +111,9 @@ describe("createFeatureFlagsAdapter", () => {
       setEnabled: () => {},
     });
 
-    await expect(adapter.setEnabled!({ key: "missing", enabled: true })).rejects.toThrow(/unknown/i);
+    await expect(adapter.setEnabled!({ key: "missing", enabled: true })).rejects.toThrow(
+      /unknown/i,
+    );
   });
 
   it("rejects setEnabled on a non-store-sourced flag without invoking the write seam", async () => {

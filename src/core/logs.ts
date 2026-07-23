@@ -63,7 +63,8 @@ function validateOptions(options: readonly AdminLogFilterOption[] | undefined, n
   for (const option of options ?? []) {
     requireText(option.value, `${name} value`);
     requireText(option.label, `${name} ${option.value} label`);
-    if (values.has(option.value)) throw new Error(`Duplicate ${name.toLowerCase()} value: ${option.value}.`);
+    if (values.has(option.value))
+      throw new Error(`Duplicate ${name.toLowerCase()} value: ${option.value}.`);
     values.add(option.value);
   }
 }
@@ -72,7 +73,10 @@ export function defineAdminLogsAdapter<Entry extends AdminLogEntry = AdminLogEnt
   adapter: AdminLogsAdapter<Entry>,
 ): AdminLogsAdapter<Entry> {
   const lineLimits = adapter.lineLimits ?? [100, 200, 500, 1000];
-  if (lineLimits.length === 0 || lineLimits.some((limit) => !Number.isInteger(limit) || limit <= 0)) {
+  if (
+    lineLimits.length === 0 ||
+    lineLimits.some((limit) => !Number.isInteger(limit) || limit <= 0)
+  ) {
     throw new Error("Runtime log line limits must be positive integers.");
   }
   if (new Set(lineLimits).size !== lineLimits.length) {
@@ -82,7 +86,8 @@ export function defineAdminLogsAdapter<Entry extends AdminLogEntry = AdminLogEnt
   if (!lineLimits.includes(defaultLineLimit)) {
     throw new Error("The default runtime log line limit must be declared in lineLimits.");
   }
-  if (adapter.defaultSource !== undefined) requireText(adapter.defaultSource, "Default runtime log source");
+  if (adapter.defaultSource !== undefined)
+    requireText(adapter.defaultSource, "Default runtime log source");
   return Object.freeze({
     ...adapter,
     lineLimits: Object.freeze([...lineLimits]),
@@ -94,13 +99,16 @@ export function validateAdminLogsSnapshot<Entry extends AdminLogEntry>(
   snapshot: AdminLogsSnapshot<Entry>,
 ): AdminLogsSnapshot<Entry> {
   if (!Number.isInteger(snapshot.total) || snapshot.total < snapshot.entries.length) {
-    throw new Error("Runtime log total must be an integer at least as large as the returned entries.");
+    throw new Error(
+      "Runtime log total must be an integer at least as large as the returned entries.",
+    );
   }
   const sourceValues = new Set<string>();
   const sources = snapshot.sources.map((source) => {
     requireText(source.value, "Runtime log source value");
     requireText(source.label, `Runtime log source ${source.value} label`);
-    if (sourceValues.has(source.value)) throw new Error(`Duplicate runtime log source: ${source.value}.`);
+    if (sourceValues.has(source.value))
+      throw new Error(`Duplicate runtime log source: ${source.value}.`);
     sourceValues.add(source.value);
     return Object.freeze({ ...source });
   });
@@ -143,7 +151,11 @@ export function validateAdminLogsSnapshot<Entry extends AdminLogEntry>(
     ...snapshot,
     sources: Object.freeze(sources),
     entries: Object.freeze(entries),
-    levels: snapshot.levels ? Object.freeze(snapshot.levels.map((option) => Object.freeze({ ...option }))) : undefined,
-    categories: snapshot.categories ? Object.freeze(snapshot.categories.map((option) => Object.freeze({ ...option }))) : undefined,
+    levels: snapshot.levels
+      ? Object.freeze(snapshot.levels.map((option) => Object.freeze({ ...option })))
+      : undefined,
+    categories: snapshot.categories
+      ? Object.freeze(snapshot.categories.map((option) => Object.freeze({ ...option })))
+      : undefined,
   });
 }

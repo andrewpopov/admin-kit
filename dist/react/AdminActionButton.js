@@ -7,5 +7,7 @@ const jsx_runtime_1 = require("react/jsx-runtime");
  * disabled state, and server-authorized behavior.
  */
 function AdminActionButton({ className, tone = "neutral", type = "button", ...props }) {
-    return (0, jsx_runtime_1.jsx)("button", { ...props, className: ["admin-kit__button", `admin-kit__button--${tone}`, className].filter(Boolean).join(" "), type: type });
+    return ((0, jsx_runtime_1.jsx)("button", { ...props, className: ["admin-kit__button", `admin-kit__button--${tone}`, className]
+            .filter(Boolean)
+            .join(" "), type: type }));
 }

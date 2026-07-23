@@ -1,4 +1,4 @@
-import type { AdminPage } from '../core/contracts';
+import type { AdminPage } from "../core/contracts";
 /**
  * Builds a stable page fixture for adapter and consumer-shaped tests.
  *

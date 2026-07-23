@@ -37,8 +37,14 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.26.0
+npm install github:andrewpopov/admin-kit#v0.30.0
 ```
+
+This package is distributed as a pinned git tag, not through a registry.
+Install `github:andrewpopov/admin-kit#vX.Y.Z`, pin to the release you've
+verified against, and bump the tag deliberately rather than tracking a moving
+ref. See [releases/tags](https://github.com/andrewpopov/admin-kit/tags) for
+available versions.
 
 `react` and `react-dom` are peer dependencies (`^18 || ^19`). `react-dom` is
 required because confirmation dialogs render through a portal.
@@ -144,14 +150,18 @@ design system.
 <AdminTheme>
   <AdminCard title="Credential policy">
     <AdminStack>
-      <AdminField label="Expiry"><select>{/* host-owned options */}</select></AdminField>
+      <AdminField label="Expiry">
+        <select>{/* host-owned options */}</select>
+      </AdminField>
     </AdminStack>
   </AdminCard>
 </AdminTheme>
 ```
 
 ```css
-.product-only-detail { max-inline-size: 56rem; }
+.product-only-detail {
+  max-inline-size: 56rem;
+}
 ```
 
 `className` is available on every panel — the shells (`AdminConsole`,
@@ -182,9 +192,22 @@ in the host:
   title="Invite user"
   description="Send a one-time setup link."
   onClose={close}
-  actions={<><AdminActionButton onClick={close}>Cancel</AdminActionButton><AdminActionButton tone="primary" type="submit" form="invite-user">Send invite</AdminActionButton></>}
+  actions={
+    <>
+      <AdminActionButton onClick={close}>Cancel</AdminActionButton>
+      <AdminActionButton tone="primary" type="submit" form="invite-user">
+        Send invite
+      </AdminActionButton>
+    </>
+  }
 >
-  <form id="invite-user"><AdminStack><AdminField label="Email"><input type="email" /></AdminField></AdminStack></form>
+  <form id="invite-user">
+    <AdminStack>
+      <AdminField label="Email">
+        <input type="email" />
+      </AdminField>
+    </AdminStack>
+  </form>
 </AdminDialog>
 ```
 
@@ -193,14 +216,14 @@ in the host:
 `.dark` on any ancestor is the authoritative signal and is unchanged:
 
 ```html
-<body class="dark">
+<body class="dark"></body>
 ```
 
 Hosts that follow the OS setting instead of an in-app toggle can opt into system
 dark mode:
 
 ```html
-<body data-admin-kit-theme="auto">
+<body data-admin-kit-theme="auto"></body>
 ```
 
 This is deliberately opt-in. Applying `prefers-color-scheme` unconditionally would
@@ -255,14 +278,7 @@ import { AdminPortal } from "@andrewpopov/admin-kit/react";
       sections: [{ id: "catalog", label: "Catalog", render: () => <Catalog /> }],
     },
   ]}
-  renderNavigationItem={({
-    section,
-    className,
-    ariaCurrent,
-    ariaDisabled,
-    tabIndex,
-    onClick,
-  }) => (
+  renderNavigationItem={({ section, className, ariaCurrent, ariaDisabled, tabIndex, onClick }) => (
     <RouterLink
       aria-current={ariaCurrent}
       aria-disabled={ariaDisabled}
@@ -344,10 +360,8 @@ reusable `h2` panel contract.
   adapter={users}
   search={{ placeholder: "Search by email" }}
   renderHeaderActions={({ reload }) => <InviteUserDialog onSuccess={reload} />}
-  renderUserActions={(user, { reload }) => (
-    <UserActions user={user} onSuccess={reload} />
-  )}
-/>;
+  renderUserActions={(user, { reload }) => <UserActions user={user} onSuccess={reload} />}
+/>
 ```
 
 Map stable account facts such as creation time and last login through
@@ -380,7 +394,10 @@ inventing one tenant schema.
 ```tsx
 const memberships = defineAdminMembershipsAdapter({
   scope: { id: workspace.id, label: workspace.name, kind: "workspace" },
-  roles: [{ value: "ADMIN", label: "Administrator" }, { value: "MEMBER", label: "Member" }],
+  roles: [
+    { value: "ADMIN", label: "Administrator" },
+    { value: "MEMBER", label: "Member" },
+  ],
   list: () => api.listMembers(workspace.id),
   invite: { execute: ({ email, role }) => api.inviteMember(workspace.id, email, role) },
   setRole: { execute: ({ memberId, role }) => api.setMemberRole(workspace.id, memberId, role) },
@@ -553,11 +570,7 @@ const logs = defineAdminLogsAdapter({
   },
 });
 
-<LogsPanel
-  adapter={logs}
-  pollIntervalMs={5_000}
-  defaultAutoRefresh
-/>;
+<LogsPanel adapter={logs} pollIntervalMs={5_000} defaultAutoRefresh />;
 ```
 
 The output opens in **Follow latest** mode, so the newest bounded line is in
@@ -636,7 +649,11 @@ in; structural typing does the rest, and the bridge compiles even when the
 backend package isn't installed.
 
 ```ts
-import { createFeatureFlagsAdapter, createBackupsAdapter, createApiKeysAdapter } from "@andrewpopov/admin-kit/bridges";
+import {
+  createFeatureFlagsAdapter,
+  createBackupsAdapter,
+  createApiKeysAdapter,
+} from "@andrewpopov/admin-kit/bridges";
 ```
 
 ### `createFeatureFlagsAdapter({ flags, registry, setEnabled? })`
@@ -648,7 +665,7 @@ registry into an `AdminFeatureFlagsAdapter`.
   `setEnabled()` — it must return a FRESH read, never a cached one. Pass
   `() => flags.snapshot()` for `SyncFlags` (every call already re-evaluates),
   or `() => flags.loadSnapshot()` for `AsyncFlags`. Do **not** pass `() =>
-  flags.snapshot()` for `AsyncFlags` — that returns its cached last-known-good
+flags.snapshot()` for `AsyncFlags` — that returns its cached last-known-good
   snapshot, so both `list()` and the post-write re-read in `setEnabled` would
   silently observe a stale value instead of the write that was just made.
 - Store health maps `ok` -> `healthy`, `store-unavailable` -> `unavailable`,
@@ -733,16 +750,16 @@ directly against their own data.
 The kit is a behavioral superset of repeated administration workflows, not a
 union of every product page.
 
-| Capability | Fleet evidence | Shared package ownership |
-| --- | --- | --- |
-| Accounts | Bewks, Cairn, Sano OS, Savoro, Smarthome | Directory state, declared role/status controls, host action seams |
-| Scoped memberships | Cairn organizations/projects, Savoro shared resources | Direct/inherited presentation, role mutation, add composition, confirmed removal |
-| Active sessions | Bewks, Sano OS, Smarthome | Safe metadata, current-session presentation, confirmed individual revoke, host-defined bulk revoke semantics |
-| Credentials | Bewks, Cairn, Sano OS, Savoro, Smarthome | Secret-safe list and create/rotate/revoke/update lifecycle |
-| Administrative events | Bewks, Cairn, Savoro, Smarthome | Normalized records, declared filters, source context, paging |
-| Settings and operations | Bewks, Cairn, Savoro | Typed fields, status summaries, backups, jobs, retry and confirmation behavior |
-| Runtime log tails | Bewks, Savoro, Smarthome | Sources, bounded snapshots, level/category/search controls, refresh/polling, copy, stale-response safety |
-| Imports, catalogs, integrations, security enrollment | Product-specific | Host pages composed inside `AdminPortal`; do not generalize their domain policy |
+| Capability                                           | Fleet evidence                                        | Shared package ownership                                                                                     |
+| ---------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Accounts                                             | Bewks, Cairn, Sano OS, Savoro, Smarthome              | Directory state, declared role/status controls, host action seams                                            |
+| Scoped memberships                                   | Cairn organizations/projects, Savoro shared resources | Direct/inherited presentation, role mutation, add composition, confirmed removal                             |
+| Active sessions                                      | Bewks, Sano OS, Smarthome                             | Safe metadata, current-session presentation, confirmed individual revoke, host-defined bulk revoke semantics |
+| Credentials                                          | Bewks, Cairn, Sano OS, Savoro, Smarthome              | Secret-safe list and create/rotate/revoke/update lifecycle                                                   |
+| Administrative events                                | Bewks, Cairn, Savoro, Smarthome                       | Normalized records, declared filters, source context, paging                                                 |
+| Settings and operations                              | Bewks, Cairn, Savoro                                  | Typed fields, status summaries, backups, jobs, retry and confirmation behavior                               |
+| Runtime log tails                                    | Bewks, Savoro, Smarthome                              | Sources, bounded snapshots, level/category/search controls, refresh/polling, copy, stale-response safety     |
+| Imports, catalogs, integrations, security enrollment | Product-specific                                      | Host pages composed inside `AdminPortal`; do not generalize their domain policy                              |
 
 ## Release requirements
 

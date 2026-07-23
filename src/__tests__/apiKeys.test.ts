@@ -8,9 +8,7 @@ import {
 
 describe("resolveAdminApiKeyState", () => {
   it("resolves an unparseable expiresAt to revoked, never active", () => {
-    expect(
-      resolveAdminApiKeyState({ state: "active", expiresAt: "not-a-date" }),
-    ).toBe("revoked");
+    expect(resolveAdminApiKeyState({ state: "active", expiresAt: "not-a-date" })).toBe("revoked");
   });
 
   it("still resolves revocation over a valid future expiry", () => {
@@ -46,9 +44,7 @@ describe("validateAdminApiKeys", () => {
 
   it("rejects a key with revokedAt set but state active", () => {
     expect(() =>
-      validateAdminApiKeys([
-        { ...base, state: "active", revokedAt: "2026-01-02T00:00:00.000Z" },
-      ]),
+      validateAdminApiKeys([{ ...base, state: "active", revokedAt: "2026-01-02T00:00:00.000Z" }]),
     ).toThrow(/revokedAt.*not "revoked"/i);
   });
 
@@ -71,22 +67,32 @@ describe("validateAdminApiKeys", () => {
 
 describe("validateAdminApiKeyCreateRequest", () => {
   it("requires a non-empty name", () => {
-    expect(() => validateAdminApiKeyCreateRequest({ name: "  ", scopes: [] })).toThrow(/needs a name/);
+    expect(() => validateAdminApiKeyCreateRequest({ name: "  ", scopes: [] })).toThrow(
+      /needs a name/,
+    );
   });
 
   it("normalizes scopes: rejects blanks, dedupes, and preserves order", () => {
     expect(
       validateAdminApiKeyCreateRequest({ name: "CLI", scopes: ["b", "a", "b"] }).scopes,
     ).toEqual(["b", "a"]);
-    expect(() =>
-      validateAdminApiKeyCreateRequest({ name: "CLI", scopes: ["a", ""] }),
-    ).toThrow(/non-empty scope strings/);
+    expect(() => validateAdminApiKeyCreateRequest({ name: "CLI", scopes: ["a", ""] })).toThrow(
+      /non-empty scope strings/,
+    );
   });
 
   it("accepts undefined, null, and a positive integer expiry", () => {
-    expect(validateAdminApiKeyCreateRequest({ name: "CLI", scopes: [] }).expiresInDays).toBeUndefined();
-    expect(validateAdminApiKeyCreateRequest({ name: "CLI", scopes: [], expiresInDays: null }).expiresInDays).toBeNull();
-    expect(validateAdminApiKeyCreateRequest({ name: "CLI", scopes: [], expiresInDays: 90 }).expiresInDays).toBe(90);
+    expect(
+      validateAdminApiKeyCreateRequest({ name: "CLI", scopes: [] }).expiresInDays,
+    ).toBeUndefined();
+    expect(
+      validateAdminApiKeyCreateRequest({ name: "CLI", scopes: [], expiresInDays: null })
+        .expiresInDays,
+    ).toBeNull();
+    expect(
+      validateAdminApiKeyCreateRequest({ name: "CLI", scopes: [], expiresInDays: 90 })
+        .expiresInDays,
+    ).toBe(90);
   });
 
   it("rejects 0, negatives, fractions, and NaN expiry", () => {
@@ -101,6 +107,8 @@ describe("validateAdminApiKeyCreateRequest", () => {
 describe("validateAdminApiKeyScopeUpdate", () => {
   it("normalizes scopes and rejects blank entries", () => {
     expect(validateAdminApiKeyScopeUpdate({ scopes: ["a", "a", "b"] }).scopes).toEqual(["a", "b"]);
-    expect(() => validateAdminApiKeyScopeUpdate({ scopes: [" "] })).toThrow(/non-empty scope strings/);
+    expect(() => validateAdminApiKeyScopeUpdate({ scopes: [" "] })).toThrow(
+      /non-empty scope strings/,
+    );
   });
 });

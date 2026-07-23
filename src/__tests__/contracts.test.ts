@@ -23,10 +23,7 @@ describe("defineAdminConsole", () => {
       ],
     });
 
-    expect(consoleDefinition.sections.map((section) => section.id)).toEqual([
-      "users",
-      "flags",
-    ]);
+    expect(consoleDefinition.sections.map((section) => section.id)).toEqual(["users", "flags"]);
     expect(Object.isFrozen(consoleDefinition.sections)).toBe(true);
   });
 
@@ -70,10 +67,7 @@ describe("defineAdminPortal", () => {
 
   it.each([
     [{ groups: [] }, /at least one section group/i],
-    [
-      { groups: [{ id: "core", label: "Core", sections: [] }] },
-      /needs at least one section/i,
-    ],
+    [{ groups: [{ id: "core", label: "Core", sections: [] }] }, /needs at least one section/i],
     [
       {
         groups: [
@@ -100,14 +94,16 @@ describe("defineAdminPortal", () => {
 describe("defineAdminApp", () => {
   it("freezes the canonical capability registry", () => {
     const app = defineAdminApp({
-      groups: [{
-        id: "core",
-        label: "Core administration",
-        sections: [
-          { id: "users", label: "Users", capability: "users" },
-          { id: "catalog", label: "Catalog", capability: "custom:catalog" },
-        ],
-      }],
+      groups: [
+        {
+          id: "core",
+          label: "Core administration",
+          sections: [
+            { id: "users", label: "Users", capability: "users" },
+            { id: "catalog", label: "Catalog", capability: "custom:catalog" },
+          ],
+        },
+      ],
     });
 
     expect(app.groups[0]?.sections[0]?.capability).toBe("users");
@@ -116,9 +112,45 @@ describe("defineAdminApp", () => {
   });
 
   it.each([
-    [{ groups: [{ id: "core", label: "Core", sections: [{ id: "users", label: "Users", capability: "unknown" }] }] }, /unknown admin capability/i],
-    [{ groups: [{ id: "core", label: "Core", sections: [{ id: "catalog", label: "Catalog", capability: "custom: " }] }] }, /unknown admin capability/i],
-    [{ groups: [{ id: "core", label: "Core", sections: [{ id: "users", label: "Users", capability: "users" }, { id: "people", label: "People", capability: "users" }] }] }, /duplicate admin capability/i],
+    [
+      {
+        groups: [
+          {
+            id: "core",
+            label: "Core",
+            sections: [{ id: "users", label: "Users", capability: "unknown" }],
+          },
+        ],
+      },
+      /unknown admin capability/i,
+    ],
+    [
+      {
+        groups: [
+          {
+            id: "core",
+            label: "Core",
+            sections: [{ id: "catalog", label: "Catalog", capability: "custom: " }],
+          },
+        ],
+      },
+      /unknown admin capability/i,
+    ],
+    [
+      {
+        groups: [
+          {
+            id: "core",
+            label: "Core",
+            sections: [
+              { id: "users", label: "Users", capability: "users" },
+              { id: "people", label: "People", capability: "users" },
+            ],
+          },
+        ],
+      },
+      /duplicate admin capability/i,
+    ],
   ])("rejects an invalid capability registry", (definition, message) => {
     expect(() => defineAdminApp(definition as never)).toThrow(message);
   });
@@ -140,8 +172,7 @@ describe("feature flag snapshots", () => {
     });
     const bewksFallback = validateAdminFeatureFlagsSnapshot({
       storeHealth: "unavailable",
-      storeHealthDetail:
-        "Settings database is unavailable; defaults are active.",
+      storeHealthDetail: "Settings database is unavailable; defaults are active.",
       flags: [
         {
           key: "new_user_registration",
@@ -173,18 +204,13 @@ describe("feature flag snapshots", () => {
       },
       /cannot be mutable/i,
     ],
-    [
-      { storeHealth: "healthy", storeHealthDetail: "nope", flags: [] },
-      /must not report/i,
-    ],
+    [{ storeHealth: "healthy", storeHealthDetail: "nope", flags: [] }, /must not report/i],
   ];
 
   it.each(misleadingSnapshots)(
     "rejects a misleading effective-state presentation",
     (snapshot, message) => {
-      expect(() => validateAdminFeatureFlagsSnapshot(snapshot)).toThrow(
-        message,
-      );
+      expect(() => validateAdminFeatureFlagsSnapshot(snapshot)).toThrow(message);
     },
   );
 });
@@ -223,65 +249,59 @@ describe("defineAdminUsersAdapter", () => {
       },
       delete: {
         execute: async ({
-          userId,
-          confirmToken,
+          userId: _userId,
+          confirmToken: _confirmToken,
         }: {
           userId: string;
           confirmToken: string;
         }) => undefined,
       },
     });
-    const bewks = defineAdminUsersAdapter<AdminUserSummary, never, { email: string; role: string }>({
-      list: async () => ({
-        items: [
-          {
-            id: "u2",
-            label: "ada@example.com",
-            secondaryLabel: "Ada",
-            role: { value: "member", label: "Member" },
-            status: { value: "disabled", label: "Disabled" },
-            details: [{ label: "Invited", value: "Jul 13, 2026" }],
-          },
-        ],
-        page: 1,
-        pageSize: 25,
-        total: 1,
-      }),
-      roles: [
-        { value: "member", label: "Member" },
-        { value: "guest", label: "Guest" },
-      ],
-      setRole: {
-        execute: async ({ userId, role }) => ({
-          id: userId,
-          label: "ada@example.com",
-          role: { value: role, label: role },
+    const bewks = defineAdminUsersAdapter<AdminUserSummary, never, { email: string; role: string }>(
+      {
+        list: async () => ({
+          items: [
+            {
+              id: "u2",
+              label: "ada@example.com",
+              secondaryLabel: "Ada",
+              role: { value: "member", label: "Member" },
+              status: { value: "disabled", label: "Disabled" },
+              details: [{ label: "Invited", value: "Jul 13, 2026" }],
+            },
+          ],
+          page: 1,
+          pageSize: 25,
+          total: 1,
         }),
+        roles: [
+          { value: "member", label: "Member" },
+          { value: "guest", label: "Guest" },
+        ],
+        setRole: {
+          execute: async ({ userId, role }) => ({
+            id: userId,
+            label: "ada@example.com",
+            role: { value: role, label: role },
+          }),
+        },
+        resetCredentials: { execute: async () => undefined },
+        invite: { execute: async () => ({ id: "u3", label: "new@example.test" }) },
       },
-      resetCredentials: { execute: async () => undefined },
-      invite: { execute: async () => ({ id: "u3", label: "new@example.test" }) },
-    });
+    );
 
-    expect(
-      (await savoro.list({ page: 1, pageSize: 25 })).items[0]?.status?.value,
-    ).toBe("active");
-    expect(
-      (await bewks.list({ page: 1, pageSize: 25 })).items[0]?.secondaryLabel,
-    ).toBe("Ada");
-    expect((await savoro.list({ page: 1, pageSize: 25 })).items[0]?.details?.[0]?.value).toBe("Never");
+    expect((await savoro.list({ page: 1, pageSize: 25 })).items[0]?.status?.value).toBe("active");
+    expect((await bewks.list({ page: 1, pageSize: 25 })).items[0]?.secondaryLabel).toBe("Ada");
+    expect((await savoro.list({ page: 1, pageSize: 25 })).items[0]?.details?.[0]?.value).toBe(
+      "Never",
+    );
     expect(bewks.invite).toBeDefined();
     expect(bewks.statuses).toBeUndefined();
   });
 
   it.each([
-    [
-      { roles: [{ value: " ", label: "Owner" }] },
-      /role values must not be empty/i,
-    ],
-    [
-      { statuses: [{ value: "active", label: " " }] },
-      /status value active needs a label/i,
-    ],
+    [{ roles: [{ value: " ", label: "Owner" }] }, /role values must not be empty/i],
+    [{ statuses: [{ value: "active", label: " " }] }, /status value active needs a label/i],
     [
       {
         roles: [
@@ -340,11 +360,7 @@ describe("admin adapter helpers", () => {
   });
 
   it("creates immutable consumer-shaped page data", () => {
-    const page = createAdminPageFixture(
-      [{ id: "first" }, { id: "second" }],
-      1,
-      25,
-    );
+    const page = createAdminPageFixture([{ id: "first" }, { id: "second" }], 1, 25);
     expect(page).toMatchObject({ page: 1, pageSize: 25, total: 2 });
     expect(Object.isFrozen(page.items)).toBe(true);
   });
@@ -357,9 +373,7 @@ describe("admin adapter helpers", () => {
   it("rejects an explicit total that the page and pageSize prove impossible", () => {
     // Page 2 with pageSize 2 implies at least 2 prior items; a total of 2
     // cannot fit 2 prior items plus this page's 1 item.
-    expect(() => createAdminPageFixture([{ id: "third" }], 2, 2, 2)).toThrow(
-      /exceeds total/i,
-    );
+    expect(() => createAdminPageFixture([{ id: "third" }], 2, 2, 2)).toThrow(/exceeds total/i);
   });
 
   it("rejects a total smaller than the provided items", () => {
@@ -379,11 +393,20 @@ describe("scoped membership adapters", () => {
         { value: "MEMBER", label: "Member" },
         { value: "GUEST", label: "Guest" },
       ],
-      list: async () => [{
-        memberId: "mizen-user-1", label: "Ada", secondaryLabel: "ada@example.test",
-        role: "ADMIN", source: "explicit", mutable: true,
-      }],
-      invite: { execute: async ({ email, role }: { email: string; role: string }) => undefined },
+      list: async () => [
+        {
+          memberId: "mizen-user-1",
+          label: "Ada",
+          secondaryLabel: "ada@example.test",
+          role: "ADMIN",
+          source: "explicit",
+          mutable: true,
+        },
+      ],
+      invite: {
+        execute: async ({ email: _email, role: _role }: { email: string; role: string }) =>
+          undefined,
+      },
       setRole: { execute: async () => undefined },
       remove: { execute: async () => undefined },
     });
@@ -395,10 +418,15 @@ describe("scoped membership adapters", () => {
         { value: "MEMBER", label: "Member" },
         { value: "VIEWER", label: "Viewer" },
       ],
-      list: async () => [{
-        memberId: "cairn-user-1", label: "Ada", role: "MEMBER",
-        source: "inherited", mutable: false,
-      }],
+      list: async () => [
+        {
+          memberId: "cairn-user-1",
+          label: "Ada",
+          role: "MEMBER",
+          source: "inherited",
+          mutable: false,
+        },
+      ],
       setRole: { execute: async () => undefined },
     });
 
@@ -410,16 +438,49 @@ describe("scoped membership adapters", () => {
 
   it("rejects undeclared roles and mutable inherited memberships", () => {
     const roles = [{ value: "MEMBER", label: "Member" }];
-    expect(() => validateAdminMemberships([{
-      memberId: "u1", label: "Ada", role: "OWNER", source: "explicit", mutable: true,
-    }], roles)).toThrow(/undeclared role/i);
-    expect(() => validateAdminMemberships([{
-      memberId: "u1", label: "Ada", role: "MEMBER", source: "inherited", mutable: true,
-    }], roles)).toThrow(/cannot be mutable/i);
-    expect(() => validateAdminMemberships([{
-      memberId: "u1", label: "Ada", role: "MEMBER", source: "inherited", mutable: false,
-      permissions: { canRemove: true },
-    }], roles)).toThrow(/cannot expose mutations/i);
+    expect(() =>
+      validateAdminMemberships(
+        [
+          {
+            memberId: "u1",
+            label: "Ada",
+            role: "OWNER",
+            source: "explicit",
+            mutable: true,
+          },
+        ],
+        roles,
+      ),
+    ).toThrow(/undeclared role/i);
+    expect(() =>
+      validateAdminMemberships(
+        [
+          {
+            memberId: "u1",
+            label: "Ada",
+            role: "MEMBER",
+            source: "inherited",
+            mutable: true,
+          },
+        ],
+        roles,
+      ),
+    ).toThrow(/cannot be mutable/i);
+    expect(() =>
+      validateAdminMemberships(
+        [
+          {
+            memberId: "u1",
+            label: "Ada",
+            role: "MEMBER",
+            source: "inherited",
+            mutable: false,
+            permissions: { canRemove: true },
+          },
+        ],
+        roles,
+      ),
+    ).toThrow(/cannot expose mutations/i);
   });
 });
 

@@ -1,6 +1,6 @@
-import { type ReactNode } from 'react';
-import { type AdminThemeName } from './AdminTheme';
-import type { AdminAppFrame } from './AdminApp';
+import { type ReactNode } from "react";
+import { type AdminThemeName } from "./AdminTheme";
+import type { AdminAppFrame } from "./AdminApp";
 export interface AdminAppShellNavigationContext {
     idPrefix: string;
     onNavigate?: () => void;

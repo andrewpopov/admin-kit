@@ -16,9 +16,7 @@ function AdminScopePicker({ groups, value, onChange, disabled, className, }) {
     const toggle = (scope) => {
         if (disabled)
             return;
-        onChange(selected.has(scope)
-            ? value.filter((candidate) => candidate !== scope)
-            : [...value, scope]);
+        onChange(selected.has(scope) ? value.filter((candidate) => candidate !== scope) : [...value, scope]);
     };
     return ((0, jsx_runtime_1.jsxs)("div", { className: ["admin-kit__scope-picker", className].filter(Boolean).join(" "), children: [groups.map((group) => {
                 const groupValues = group.scopes.map((scope) => scope.value);

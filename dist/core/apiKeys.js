@@ -107,9 +107,7 @@ function validateAdminApiKeyCreateRequest(request) {
     // invalid expiry never reaches the host adapter.
     if (expiresInDays !== undefined &&
         expiresInDays !== null &&
-        (typeof expiresInDays !== "number" ||
-            !Number.isInteger(expiresInDays) ||
-            expiresInDays <= 0)) {
+        (typeof expiresInDays !== "number" || !Number.isInteger(expiresInDays) || expiresInDays <= 0)) {
         throw new Error("API key expiry must be a positive whole number of days, or null.");
     }
     return Object.freeze({
