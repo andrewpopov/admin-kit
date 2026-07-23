@@ -106,14 +106,18 @@ describe("Admin Kit styles", () => {
     // sidebar layout), not the browser viewport.
     expect(styles).toContain("container-name: admin-kit-table;");
     expect(styles).toContain("container-type: inline-size;");
-    expect(styles).toContain("@container admin-kit-table (max-width: 64rem)");
-    expect(styles).toContain("@container admin-kit-table (max-width: 48rem)");
-    expect(styles).toContain(
-      ".admin-kit__users-table .admin-kit__table-cell--tertiary { display: none; }",
-    );
-    expect(styles).toContain(
-      ".admin-kit__users-table .admin-kit__table-cell--secondary { display: none; }",
-    );
+    // Assert the MECHANISM, not the tuned thresholds: both priority rules must
+    // live inside an `admin-kit-table` container query. Pinning exact rem values
+    // here made this test fail purely for being re-tuned (0.33.1), which guards
+    // nothing — the contract is "container-based", the numbers are calibration.
+    for (const priority of ["tertiary", "secondary"]) {
+      const rule = `.admin-kit__users-table .admin-kit__table-cell--${priority} { display: none; }`;
+      expect(styles).toContain(rule);
+      const containerQuery = new RegExp(
+        `@container admin-kit-table \\(max-width: [\\d.]+rem\\) \\{\\s*${rule.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+      );
+      expect(styles).toMatch(containerQuery);
+    }
 
     // The old viewport-media-query versions of these two priority rules must
     // be gone — only the @container versions above should hide these cells.

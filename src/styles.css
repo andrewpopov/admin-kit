@@ -696,10 +696,15 @@
    viewport but only a ~1012px table container — and the table still needs to
    drop lower-priority columns so primary actions (like Delete) stay on
    screen instead of overflowing out of view. */
-@container admin-kit-table (max-width: 64rem) {
+/* Thresholds are the available TABLE container width, and are set from what a
+   full users table actually needs rather than round numbers: with all columns a
+   7-column users table measures ~1210px, so a host whose content area is
+   narrowed by a sidebar (commonly ~1050px) must drop the tertiary column to fit
+   — a 64rem/1024px trigger sat just below that and never fired. */
+@container admin-kit-table (max-width: 72rem) {
   .admin-kit__users-table .admin-kit__table-cell--tertiary { display: none; }
 }
-@container admin-kit-table (max-width: 48rem) {
+@container admin-kit-table (max-width: 56rem) {
   .admin-kit__users-table .admin-kit__table-cell--secondary { display: none; }
 }
 
