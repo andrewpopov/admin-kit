@@ -34,6 +34,7 @@ describe('UsersPanel', () => {
     const header = container.querySelector('.admin-kit__panel-header--page');
     expect(header).toBeTruthy();
     expect(within(header as HTMLElement).getByRole('heading', { name: 'Users', level: 1 })).toBeTruthy();
+    expect(header?.querySelector('.admin-kit__panel-toolbar')).toBeTruthy();
     expect(within(header as HTMLElement).getByRole('searchbox')).toBeTruthy();
     expect(within(header as HTMLElement).getByRole('button', { name: 'Show deactivated' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'Users', level: 2 })).toBeNull();
@@ -78,6 +79,18 @@ describe('UsersPanel', () => {
     await screen.findByText('ada@example.test');
     expect(screen.getByRole('columnheader', { name: 'Email' })).toBeTruthy();
     expect(screen.queryByRole('columnheader', { name: 'Role' })).toBeNull();
+  });
+
+  it('applies typed responsive column hints to both the heading and cells', async () => {
+    render(<UsersPanel adapter={{ list: vi.fn().mockResolvedValue({ items: users, page: 1, pageSize: 25, total: 1 }) }} columns={[
+      { id: 'email', label: 'Email', render: (user) => user.label, priority: 'primary' },
+      { id: 'created', label: 'Created', render: () => 'Jul 10, 2026', nowrap: true, priority: 'tertiary' },
+    ]} />);
+
+    await screen.findByText('ada@example.test');
+    expect(screen.getByRole('columnheader', { name: 'Created' }).className).toContain('admin-kit__table-cell--nowrap');
+    expect(screen.getByRole('columnheader', { name: 'Created' }).className).toContain('admin-kit__table-cell--tertiary');
+    expect(screen.getByText('Jul 10, 2026').className).toContain('admin-kit__table-cell--nowrap');
   });
 
   it('sends custom-column sorting to the adapter and exposes the active direction', async () => {

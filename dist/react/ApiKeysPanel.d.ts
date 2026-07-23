@@ -9,6 +9,8 @@ interface ApiKeysPanelSharedProps {
     headerPresentation?: AdminPanelHeaderPresentation;
     /** Host-owned primary actions displayed beside the panel title. */
     headerActions?: ReactNode;
+    /** Responsive uses table scan density on desktop and compact cards on narrow screens. */
+    presentation?: "cards" | "responsive" | "table";
     /**
      * Renders a host-vocabulary posture/health summary above the create/list
      * regions; the kit derives the facts, the host owns copy and links.
@@ -46,6 +48,12 @@ interface ApiKeysPanelDataProps<CreateInput, UpdateInput> {
     renderEdit?: (controls: {
         key: AdminApiKey;
         update: (input: UpdateInput) => Promise<boolean>;
+        pending: boolean;
+    }) => ReactNode;
+    /** Adds host-specific controls without replacing the shared credential collection. */
+    renderKeyActions?: (controls: {
+        key: AdminApiKey;
+        update?: (input: UpdateInput) => Promise<boolean>;
         pending: boolean;
     }) => ReactNode;
     /**

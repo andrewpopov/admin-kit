@@ -37,6 +37,10 @@ export interface AdminUserTableColumn<User extends AdminUserSummary> {
     className?: string;
     headerClassName?: string;
     sortable?: boolean;
+    /** Keeps concise values such as timestamps on a single line. */
+    nowrap?: boolean;
+    /** Responsive priority; lower-priority columns are hidden before the table scrolls. */
+    priority?: "primary" | "secondary" | "tertiary";
 }
 export interface AdminUserTableSort {
     columnId: string;

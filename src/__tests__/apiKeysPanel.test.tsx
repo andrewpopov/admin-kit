@@ -57,6 +57,23 @@ describe("ApiKeysPanel", () => {
     expect(screen.queryByRole("heading", { name: "API keys", level: 2 })).toBeNull();
   });
 
+  it("keeps host key controls inside the shared framed table presentation", async () => {
+    const update = vi.fn().mockResolvedValue(undefined);
+    const { container } = render(
+      <ApiKeysPanel
+        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn(), revoke: vi.fn(), update }}
+        presentation="table"
+        renderKeyActions={({ key, pending }) => <button disabled={pending} type="button">Set expiry for {key.name}</button>}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    expect(container.querySelector(".admin-kit__table-wrap.admin-kit__keys-table-wrap")).toBeTruthy();
+    expect(screen.getByRole("columnheader", { name: "Scope" })).toBeTruthy();
+    expect(screen.getByRole("columnheader", { name: "State" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Set expiry for Automation" })).toBeTruthy();
+  });
+
   it("reveals secrets only from create or confirmed rotation responses", async () => {
     const create = vi.fn().mockResolvedValue({ key: activeKey, secret: "create-once" });
     const rotate = vi.fn().mockResolvedValue({ key: activeKey, secret: "rotate-once" });
