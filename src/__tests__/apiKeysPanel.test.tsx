@@ -32,7 +32,11 @@ describe("ApiKeysPanel", () => {
   it("keeps the page header mounted on the first load error", async () => {
     render(
       <ApiKeysPanel
-        adapter={{ list: vi.fn().mockRejectedValue(new Error("Keys unavailable")), create: vi.fn(), revoke: vi.fn() }}
+        adapter={{
+          list: vi.fn().mockRejectedValue(new Error("Keys unavailable")),
+          create: vi.fn(),
+          revoke: vi.fn(),
+        }}
         headerPresentation="page"
       />,
     );
@@ -105,7 +109,10 @@ describe("ApiKeysPanel", () => {
   it("fires the adapter exactly once when Confirm is double-clicked", async () => {
     let resolveRevoke: (() => void) | undefined;
     const revoke = vi.fn().mockImplementation(
-      () => new Promise<void>((resolve) => { resolveRevoke = resolve; }),
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRevoke = resolve;
+        }),
     );
     render(
       <ApiKeysPanel
@@ -133,7 +140,12 @@ describe("ApiKeysPanel", () => {
     };
     render(
       <ApiKeysPanel
-        adapter={{ list: vi.fn().mockResolvedValue([expired]), create: vi.fn(), revoke: vi.fn(), rotate: vi.fn() }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([expired]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+          rotate: vi.fn(),
+        }}
       />,
     );
 
@@ -152,7 +164,11 @@ describe("ApiKeysPanel", () => {
     };
     render(
       <ApiKeysPanel
-        adapter={{ list: vi.fn().mockResolvedValue([withTimestamps, activeKey]), create: vi.fn(), revoke: vi.fn() }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([withTimestamps, activeKey]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+        }}
       />,
     );
 
@@ -172,7 +188,11 @@ describe("ApiKeysPanel", () => {
     };
     render(
       <ApiKeysPanel
-        adapter={{ list: vi.fn().mockResolvedValue([withTimestamps]), create: vi.fn(), revoke: vi.fn() }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([withTimestamps]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+        }}
         formatTimestamp={(iso) => `stamp:${iso}`}
       />,
     );
@@ -189,7 +209,11 @@ describe("ApiKeysPanel", () => {
         adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create, revoke: vi.fn() }}
         title="Personal access tokens"
         renderCreate={({ create: submit, pending }) => (
-          <button type="button" disabled={pending} onClick={() => void submit({ name: "CLI", expiresInDays: 30 })}>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => void submit({ name: "CLI", expiresInDays: 30 })}
+          >
             Generate token
           </button>
         )}
@@ -226,13 +250,18 @@ describe("ApiKeysPanel", () => {
   });
 
   it("keeps a newly issued secret visible when metadata refresh fails", async () => {
-    const list = vi.fn()
+    const list = vi
+      .fn()
       .mockResolvedValueOnce([activeKey])
       .mockRejectedValueOnce(new Error("Metadata refresh failed"));
     render(
       <ApiKeysPanel
         createInput={{ name: "Automation" }}
-        adapter={{ list, create: vi.fn().mockResolvedValue({ key: activeKey, secret: "recoverable-once" }), revoke: vi.fn() }}
+        adapter={{
+          list,
+          create: vi.fn().mockResolvedValue({ key: activeKey, secret: "recoverable-once" }),
+          revoke: vi.fn(),
+        }}
       />,
     );
 
@@ -248,7 +277,11 @@ describe("ApiKeysPanel", () => {
     render(
       <ApiKeysPanel
         createInput={{ name: "Automation" }}
-        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn().mockRejectedValue(new Error("Creation denied")), revoke: vi.fn() }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([activeKey]),
+          create: vi.fn().mockRejectedValue(new Error("Creation denied")),
+          revoke: vi.fn(),
+        }}
       />,
     );
 
@@ -267,7 +300,11 @@ describe("ApiKeysPanel", () => {
       <ApiKeysPanel
         createInput={{ name: "Automation" }}
         adapter={{
-          list: vi.fn().mockResolvedValue([{ ...activeKey, details: [{ label: "Allowed paths", value: "/api/books" }] }]),
+          list: vi
+            .fn()
+            .mockResolvedValue([
+              { ...activeKey, details: [{ label: "Allowed paths", value: "/api/books" }] },
+            ]),
           create: vi.fn().mockResolvedValue({ key: activeKey, secret: "copy-once" }),
           revoke: vi.fn(),
         }}
@@ -288,7 +325,12 @@ describe("ApiKeysPanel", () => {
     const update = vi.fn().mockResolvedValue(activeKey);
     render(
       <ApiKeysPanel<{ name: string }, { allowedActions: string[] }>
-        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn(), revoke: vi.fn(), update }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([activeKey]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+          update,
+        }}
         renderEdit={({ key, update: save }) => {
           submit = save;
           return <button type="button">Edit {key.name}</button>;
@@ -298,7 +340,10 @@ describe("ApiKeysPanel", () => {
 
     await screen.findByRole("button", { name: "Edit Automation" });
     await expect(submit?.({ allowedActions: ["pantry.read"] })).resolves.toBe(true);
-    expect(update).toHaveBeenCalledWith({ keyId: "key-1", update: { allowedActions: ["pantry.read"] } });
+    expect(update).toHaveBeenCalledWith({
+      keyId: "key-1",
+      update: { allowedActions: ["pantry.read"] },
+    });
   });
 
   it("lets a host render policy-specific rows while the panel retains revoke confirmation", async () => {
@@ -310,7 +355,9 @@ describe("ApiKeysPanel", () => {
           <div>
             <span>{keys[0]?.name} policy: organization projects</span>
             <span>{pendingKeyId ?? "idle"}</span>
-            <button type="button" onClick={() => requestRevoke(keys[0]!)}>Delete custom key</button>
+            <button type="button" onClick={() => requestRevoke(keys[0]!)}>
+              Delete custom key
+            </button>
           </div>
         )}
       />,
@@ -326,7 +373,10 @@ describe("ApiKeysPanel", () => {
   it("ignores a stale list response that resolves after the adapter changes", async () => {
     let resolveStale: ((value: unknown) => void) | undefined;
     const staleList = vi.fn().mockImplementation(
-      () => new Promise((resolve) => { resolveStale = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveStale = resolve;
+        }),
     );
     const freshKey = { ...activeKey, id: "key-2", name: "Fresh" };
     const freshList = vi.fn().mockResolvedValue([freshKey]);
@@ -370,7 +420,10 @@ describe("ApiKeysPanel", () => {
   it("drops a create response and reload that resolve after the adapter changes", async () => {
     let resolveCreate: ((value: unknown) => void) | undefined;
     const staleCreate = vi.fn().mockImplementation(
-      () => new Promise((resolve) => { resolveCreate = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveCreate = resolve;
+        }),
     );
     const staleList = vi.fn().mockResolvedValue([activeKey]);
     const freshKey = { ...activeKey, id: "key-2", name: "Fresh" };
@@ -408,13 +461,19 @@ describe("ApiKeysPanel", () => {
 
   it("clears stale keys when the adapter changes and the new adapter's load fails", async () => {
     const { rerender } = render(
-      <ApiKeysPanel adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn(), revoke: vi.fn() }} />,
+      <ApiKeysPanel
+        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn(), revoke: vi.fn() }}
+      />,
     );
     await screen.findByText("Automation");
 
     rerender(
       <ApiKeysPanel
-        adapter={{ list: vi.fn().mockRejectedValue(new Error("Key host unavailable")), create: vi.fn(), revoke: vi.fn() }}
+        adapter={{
+          list: vi.fn().mockRejectedValue(new Error("Key host unavailable")),
+          create: vi.fn(),
+          revoke: vi.fn(),
+        }}
       />,
     );
 
@@ -424,10 +483,17 @@ describe("ApiKeysPanel", () => {
 
   it("gives a custom row the package-owned metadata update lifecycle", async () => {
     const update = vi.fn().mockResolvedValue(activeKey);
-    let save: ((key: typeof activeKey, input: { expiresAt: string | null }) => Promise<boolean>) | undefined;
+    let save:
+      | ((key: typeof activeKey, input: { expiresAt: string | null }) => Promise<boolean>)
+      | undefined;
     render(
       <ApiKeysPanel<{ name: string }, { expiresAt: string | null }>
-        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn(), revoke: vi.fn(), update }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([activeKey]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+          update,
+        }}
         renderKeys={({ keys, update: updateKey }) => {
           save = updateKey;
           return <span>{keys[0]?.name}</span>;
@@ -478,7 +544,11 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     fireEvent.click(createForm.getByRole("button", { name: "Create API key" }));
 
     await waitFor(() =>
-      expect(create).toHaveBeenCalledWith({ name: "CLI", expiresInDays: 90, scopes: ["library.write"] }),
+      expect(create).toHaveBeenCalledWith({
+        name: "CLI",
+        expiresInDays: 90,
+        scopes: ["library.write"],
+      }),
     );
     await screen.findByText("made-once");
   });
@@ -487,7 +557,12 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     render(
       <ApiKeysPanel
         scopeGroups={scopeGroups}
-        adapter={{ list: vi.fn().mockResolvedValue([scopedKey]), create: vi.fn(), revoke: vi.fn(), update: vi.fn() }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([scopedKey]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+          update: vi.fn(),
+        }}
       />,
     );
 
@@ -506,7 +581,12 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     render(
       <ApiKeysPanel
         scopeGroups={scopeGroups}
-        adapter={{ list: vi.fn().mockResolvedValue([scopedKey]), create: vi.fn(), revoke: vi.fn(), update }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([scopedKey]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+          update,
+        }}
       />,
     );
 
@@ -514,7 +594,9 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Edit scopes for Automation" }));
     const editor = within(screen.getByRole("region", { name: "Edit scopes for Automation" }));
     // Seeded from the key's scopes: library.read checked. Add library.write.
-    expect((editor.getByRole("checkbox", { name: /Read catalog/ }) as HTMLInputElement).checked).toBe(true);
+    expect(
+      (editor.getByRole("checkbox", { name: /Read catalog/ }) as HTMLInputElement).checked,
+    ).toBe(true);
     fireEvent.click(editor.getByRole("checkbox", { name: /Manage catalog/ }));
     fireEvent.click(editor.getByRole("button", { name: "Save changes" }));
 
@@ -551,7 +633,12 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     render(
       <ApiKeysPanel
         scopeGroups={scopeGroups}
-        adapter={{ list: vi.fn().mockResolvedValue([scopedKey]), create: vi.fn(), revoke: vi.fn(), update }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([scopedKey]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+          update,
+        }}
         renderEdit={({ key }) => <button type="button">Edit {key.name}</button>}
       />,
     );
@@ -564,7 +651,12 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     render(
       <ApiKeysPanel
         createInput={{ name: "Automation" }}
-        adapter={{ list: vi.fn().mockResolvedValue([scopedKey]), create: vi.fn(), revoke: vi.fn(), update: vi.fn() }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([scopedKey]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+          update: vi.fn(),
+        }}
       />,
     );
 
@@ -580,14 +672,21 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     render(
       <ApiKeysPanel
         scopeGroups={scopeGroups}
-        adapter={{ list: vi.fn().mockResolvedValue([legacyKey]), create: vi.fn(), revoke: vi.fn(), update }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([legacyKey]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+          update,
+        }}
       />,
     );
 
     await screen.findByText("Automation");
     fireEvent.click(screen.getByRole("button", { name: "Edit scopes for Automation" }));
     const editor = within(screen.getByRole("region", { name: "Edit scopes for Automation" }));
-    const legacyScope = editor.getByRole("checkbox", { name: /Existing scope.*\/api/ }) as HTMLInputElement;
+    const legacyScope = editor.getByRole("checkbox", {
+      name: /Existing scope.*\/api/,
+    }) as HTMLInputElement;
     expect(legacyScope.checked).toBe(true);
 
     fireEvent.click(legacyScope);

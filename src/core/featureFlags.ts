@@ -1,5 +1,4 @@
-export type FeatureFlagSource =
-  "store" | "environment" | "default" | "store-error-policy";
+export type FeatureFlagSource = "store" | "environment" | "default" | "store-error-policy";
 export type FeatureFlagStoreHealth = "healthy" | "degraded" | "unavailable";
 
 export interface AdminFeatureFlag {
@@ -20,10 +19,7 @@ export interface AdminFeatureFlagsSnapshot {
 
 export interface AdminFeatureFlagsAdapter {
   list(): Promise<AdminFeatureFlagsSnapshot>;
-  setEnabled?: (input: {
-    key: string;
-    enabled: boolean;
-  }) => Promise<AdminFeatureFlag>;
+  setEnabled?: (input: { key: string; enabled: boolean }) => Promise<AdminFeatureFlag>;
 }
 
 const nonStoreSources = new Set<FeatureFlagSource>([
@@ -45,12 +41,9 @@ export function validateAdminFeatureFlagsSnapshot(
 ): AdminFeatureFlagsSnapshot {
   const keys = new Set<string>();
   for (const flag of snapshot.flags) {
-    if (!flag.key.trim())
-      throw new Error("Feature flag keys must not be empty.");
-    if (!flag.label.trim())
-      throw new Error(`Feature flag ${flag.key} needs a label.`);
-    if (keys.has(flag.key))
-      throw new Error(`Duplicate feature flag key: ${flag.key}.`);
+    if (!flag.key.trim()) throw new Error("Feature flag keys must not be empty.");
+    if (!flag.label.trim()) throw new Error(`Feature flag ${flag.key} needs a label.`);
+    if (keys.has(flag.key)) throw new Error(`Duplicate feature flag key: ${flag.key}.`);
     if (nonStoreSources.has(flag.source) && flag.mutable) {
       throw new Error(
         `Feature flag ${flag.key} cannot be mutable while ${flag.source} controls it.`,
@@ -60,15 +53,11 @@ export function validateAdminFeatureFlagsSnapshot(
   }
 
   if (snapshot.storeHealth === "healthy" && snapshot.storeHealthDetail) {
-    throw new Error(
-      "A healthy feature flag store must not report a health detail.",
-    );
+    throw new Error("A healthy feature flag store must not report a health detail.");
   }
 
   return Object.freeze({
     ...snapshot,
-    flags: Object.freeze(
-      snapshot.flags.map((flag) => Object.freeze({ ...flag })),
-    ),
+    flags: Object.freeze(snapshot.flags.map((flag) => Object.freeze({ ...flag }))),
   });
 }

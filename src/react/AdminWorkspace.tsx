@@ -23,17 +23,60 @@ export interface AdminWorkspaceProps {
 }
 
 /** Standard semantic framing for dense administrative and operational views. */
-export function AdminWorkspace({ as = "main", title, showHeader = true, presentation = "framed", description, actions, summary, toolbar, children, className }: AdminWorkspaceProps) {
+export function AdminWorkspace({
+  as = "main",
+  title,
+  showHeader = true,
+  presentation = "framed",
+  description,
+  actions,
+  summary,
+  toolbar,
+  children,
+  className,
+}: AdminWorkspaceProps) {
   const Workspace = as as ElementType;
   const panelLed = presentation === "panel-led";
 
-  return <Workspace className={["admin-kit", "admin-kit--theme-core", "admin-kit__workspace", panelLed ? "admin-kit__workspace--panel-led" : null, className].filter(Boolean).join(" ")} data-admin-kit-theme="core">
-    {showHeader && !panelLed ? <header className="admin-kit__workspace-header">
-      <div><h1>{title}</h1>{description ? <p>{description}</p> : null}</div>
-      {actions ? <div className="admin-kit__workspace-actions">{actions}</div> : null}
-    </header> : null}
-    {summary ? <section className="admin-kit__workspace-summary" aria-label={`${title} summary`}>{summary}</section> : null}
-    {toolbar ? <div className="admin-kit__workspace-toolbar">{toolbar}</div> : null}
-    <section className={["admin-kit__workspace-content", panelLed ? "admin-kit__workspace-content--bare" : null].filter(Boolean).join(" ")} aria-label={title}>{children}</section>
-  </Workspace>;
+  return (
+    <Workspace
+      className={[
+        "admin-kit",
+        "admin-kit--theme-core",
+        "admin-kit__workspace",
+        panelLed ? "admin-kit__workspace--panel-led" : null,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      data-admin-kit-theme="core"
+    >
+      {showHeader && !panelLed ? (
+        <header className="admin-kit__workspace-header">
+          <div>
+            <h1>{title}</h1>
+            {description ? <p>{description}</p> : null}
+          </div>
+          {actions ? <div className="admin-kit__workspace-actions">{actions}</div> : null}
+        </header>
+      ) : null}
+      {summary ? (
+        <section className="admin-kit__workspace-summary" aria-label={`${title} summary`}>
+          {summary}
+        </section>
+      ) : null}
+      {toolbar ? <div className="admin-kit__workspace-toolbar">{toolbar}</div> : null}
+      <section
+        className={[
+          "admin-kit__workspace-content",
+          panelLed ? "admin-kit__workspace-content--bare" : null,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        aria-label={title}
+      >
+        {children}
+      </section>
+    </Workspace>
+  );
 }

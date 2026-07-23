@@ -12,8 +12,20 @@ test("keeps desktop landmarks and mobile overflow inside their panels", async ({
 
   await page.setViewportSize({ width: 320, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
-  expect(await page.locator(".admin-kit__table-wrap").evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
+  expect(
+    await page
+      .locator(".admin-kit__table-wrap")
+      .evaluate((node) => node.scrollWidth > node.clientWidth),
+  ).toBe(true);
   await expect(page.getByRole("heading", { name: "Server logs", level: 2 })).toBeVisible();
-  expect(await page.locator(".admin-kit__logs-output").evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
-  await expect(page.getByText("automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production")).toBeVisible();
+  expect(
+    await page
+      .locator(".admin-kit__logs-output")
+      .evaluate((node) => node.scrollWidth <= node.clientWidth),
+  ).toBe(true);
+  await expect(
+    page.getByText(
+      "automation-for-the-long-running-catalog-reconciliation-and-import-pipeline-production",
+    ),
+  ).toBeVisible();
 });

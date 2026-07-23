@@ -74,8 +74,7 @@ export function defineAdminMembershipsAdapter<
   for (const role of adapter.roles) {
     requireText(role.value, "Membership role value");
     requireText(role.label, `Membership role ${role.value} label`);
-    if (roles.has(role.value))
-      throw new Error(`Duplicate membership role: ${role.value}.`);
+    if (roles.has(role.value)) throw new Error(`Duplicate membership role: ${role.value}.`);
     roles.add(role.value);
   }
 
@@ -111,9 +110,7 @@ export function validateAdminMemberships<Member extends AdminMembershipSummary>(
       ids.add(member.memberId);
       return Object.freeze({
         ...member,
-        permissions: member.permissions
-          ? Object.freeze({ ...member.permissions })
-          : undefined,
+        permissions: member.permissions ? Object.freeze({ ...member.permissions }) : undefined,
       }) as Member;
     }),
   );

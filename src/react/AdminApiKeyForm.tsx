@@ -19,9 +19,7 @@ export interface AdminApiKeyFormProps {
   initialScopes?: readonly string[];
   /** Minimum scopes required before this form can be submitted. Defaults to zero. */
   minimumScopeCount?: number;
-  onSubmit: (
-    request: AdminApiKeyCreateRequest | AdminApiKeyScopeUpdate,
-  ) => void | Promise<void>;
+  onSubmit: (request: AdminApiKeyCreateRequest | AdminApiKeyScopeUpdate) => void | Promise<void>;
   onCancel?: () => void;
   submitLabel?: string;
 }
@@ -39,8 +37,7 @@ const EXPIRY_OPTIONS: readonly ExpiryOption[] = [
 ];
 
 /** Stable string key for the expiry <select> (numbers and the `null` sentinel). */
-const expiryKey = (value: number | null): string =>
-  value === null ? "never" : String(value);
+const expiryKey = (value: number | null): string => (value === null ? "never" : String(value));
 
 /**
  * The one form behind both built-in credential flows. In `create` mode it
@@ -75,9 +72,7 @@ export function AdminApiKeyForm({
 
   const submit = () => {
     if (mode === "create") {
-      void onSubmit(
-        validateAdminApiKeyCreateRequest({ name, expiresInDays, scopes }),
-      );
+      void onSubmit(validateAdminApiKeyCreateRequest({ name, expiresInDays, scopes }));
     } else {
       void onSubmit(validateAdminApiKeyScopeUpdate({ scopes }));
     }
@@ -88,9 +83,8 @@ export function AdminApiKeyForm({
       {mode === "create" ? (
         <>
           <p className="admin-kit__key-form-intro">
-            Name the credential, choose how long it should live, and pick the
-            scopes it may use. These settings apply to the key you&apos;re about
-            to create.
+            Name the credential, choose how long it should live, and pick the scopes it may use.
+            These settings apply to the key you&apos;re about to create.
           </p>
           <div className="admin-kit__key-form-grid">
             <label className="admin-kit__field">
@@ -126,10 +120,9 @@ export function AdminApiKeyForm({
         </>
       ) : (
         <p className="admin-kit__key-form-note">
-          <strong>Scopes only.</strong> Saving updates what this key can do and
-          takes effect immediately — it does <strong>not</strong> issue a new
-          secret, and the key keeps working. To replace the secret, rotate the
-          key instead.
+          <strong>Scopes only.</strong> Saving updates what this key can do and takes effect
+          immediately — it does <strong>not</strong> issue a new secret, and the key keeps working.
+          To replace the secret, rotate the key instead.
         </p>
       )}
 

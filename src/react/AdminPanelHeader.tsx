@@ -22,11 +22,9 @@ export function AdminPanelHeader({
 
   return (
     <header
-      className={[
-        "admin-kit__panel-header",
-        `admin-kit__panel-header--${presentation}`,
-        className,
-      ].filter(Boolean).join(" ")}
+      className={["admin-kit__panel-header", `admin-kit__panel-header--${presentation}`, className]
+        .filter(Boolean)
+        .join(" ")}
     >
       <div>
         <Heading>{title}</Heading>

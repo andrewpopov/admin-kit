@@ -18,10 +18,7 @@ import {
 } from "../core";
 import { AdminApiKeyForm } from "./AdminApiKeyForm";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
-import {
-  AdminPanelHeader,
-  type AdminPanelHeaderPresentation,
-} from "./AdminPanelHeader";
+import { AdminPanelHeader, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
 
 /** Props whose types never depend on the adapter's create/update shapes. */
@@ -91,12 +88,11 @@ interface ApiKeysPanelDataProps<CreateInput, UpdateInput> {
  * render-prop escape hatches, and no `scopeGroups`. Behaves exactly as the
  * panel always has.
  */
-type ApiKeysPanelGenericProps<CreateInput, UpdateInput = never> =
-  ApiKeysPanelSharedProps &
-    ApiKeysPanelDataProps<CreateInput, UpdateInput> & {
-      scopeGroups?: undefined;
-      minimumScopeCount?: undefined;
-    };
+type ApiKeysPanelGenericProps<CreateInput, UpdateInput = never> = ApiKeysPanelSharedProps &
+  ApiKeysPanelDataProps<CreateInput, UpdateInput> & {
+    scopeGroups?: undefined;
+    minimumScopeCount?: undefined;
+  };
 
 /**
  * Built-in mode: opting into the kit's scope-aware create + edit flows pins the
@@ -116,8 +112,7 @@ type ApiKeysPanelBuiltinProps = ApiKeysPanelSharedProps &
   };
 
 export type ApiKeysPanelProps<CreateInput, UpdateInput = never> =
-  | ApiKeysPanelGenericProps<CreateInput, UpdateInput>
-  | ApiKeysPanelBuiltinProps;
+  ApiKeysPanelGenericProps<CreateInput, UpdateInput> | ApiKeysPanelBuiltinProps;
 
 /**
  * The implementation is typed to the built-in request shapes. Both union arms
@@ -170,9 +165,7 @@ function ApiKeysPanelImpl({
       if (loadId === latestLoadId.current) setKeys(nextKeys);
     } catch (reason) {
       if (loadId === latestLoadId.current) {
-        setLoadError(
-          reason instanceof Error ? reason.message : "Unable to load API keys.",
-        );
+        setLoadError(reason instanceof Error ? reason.message : "Unable to load API keys.");
       }
     }
   };
@@ -186,7 +179,9 @@ function ApiKeysPanelImpl({
     // in flight for the previous adapter can still resolve and pass the
     // `loadId === latestLoadId.current` check because the effect that would
     // have bumped it for the new adapter hasn't started yet.
-    return () => { latestLoadId.current += 1; };
+    return () => {
+      latestLoadId.current += 1;
+    };
   }, [adapter]);
   useEffect(() => {
     setSecret(undefined);
@@ -196,24 +191,36 @@ function ApiKeysPanelImpl({
     <AdminPanelHeader
       actions={headerActions}
       className="admin-kit__keys-header"
-      detail={counts ? <p>
-        {counts.total} {counts.total === 1 ? "credential" : "credentials"}
-        {counts.total > 0 ? ` · ${counts.active} active` : ""}
-      </p> : null}
+      detail={
+        counts ? (
+          <p>
+            {counts.total} {counts.total === 1 ? "credential" : "credentials"}
+            {counts.total > 0 ? ` · ${counts.active} active` : ""}
+          </p>
+        ) : null
+      }
       presentation={headerPresentation}
       title={title}
     />
   );
   if (loadError && !keys)
     return (
-      <section className={["admin-kit__keys", className].filter(Boolean).join(" ")} aria-label={title}>
+      <section
+        className={["admin-kit__keys", className].filter(Boolean).join(" ")}
+        aria-label={title}
+      >
         {panelHeader()}
-        <AdminPanelStateView state={{ kind: "error", detail: loadError, onRetry: () => void load() }} />
+        <AdminPanelStateView
+          state={{ kind: "error", detail: loadError, onRetry: () => void load() }}
+        />
       </section>
     );
   if (!keys)
     return (
-      <section className={["admin-kit__keys", className].filter(Boolean).join(" ")} aria-label={title}>
+      <section
+        className={["admin-kit__keys", className].filter(Boolean).join(" ")}
+        aria-label={title}
+      >
         {panelHeader()}
         <AdminPanelStateView state={{ kind: "loading", label: "Loading API keys…" }} />
       </section>
@@ -223,7 +230,11 @@ function ApiKeysPanelImpl({
     state: resolveAdminApiKeyState(key),
   }));
   let postureControls:
-    | { summary: AdminApiKeysSummary; posture: AdminApiKeysPosture; queue: readonly AdminApiKeyQueueItem[] }
+    | {
+        summary: AdminApiKeysSummary;
+        posture: AdminApiKeysPosture;
+        queue: readonly AdminApiKeyQueueItem[];
+      }
     | undefined;
   if (renderPosture || renderShortcuts) {
     const summary = summarizeAdminApiKeys(keys);
@@ -245,9 +256,7 @@ function ApiKeysPanelImpl({
       await load();
       return true;
     } catch (reason) {
-      setActionError(
-        reason instanceof Error ? reason.message : "Unable to create API key.",
-      );
+      setActionError(reason instanceof Error ? reason.message : "Unable to create API key.");
       return false;
     } finally {
       setPending(undefined);
@@ -289,9 +298,7 @@ function ApiKeysPanelImpl({
       if (action === "revoke") {
         await adapter.revoke({ keyId: key.id });
       } else if (adapter.rotate) {
-        const result = validateAdminApiKeyCreated(
-          await adapter.rotate({ keyId: key.id }),
-        );
+        const result = validateAdminApiKeyCreated(await adapter.rotate({ keyId: key.id }));
         if (epoch === adapterEpoch.current) {
           setSecret(result.secret);
           setCopyStatus(undefined);
@@ -300,17 +307,12 @@ function ApiKeysPanelImpl({
       if (epoch === adapterEpoch.current) await load();
       setConfirmation(undefined);
     } catch (reason) {
-      setActionError(
-        reason instanceof Error
-          ? reason.message
-          : `Unable to ${action} API key.`,
-      );
+      setActionError(reason instanceof Error ? reason.message : `Unable to ${action} API key.`);
     } finally {
       setPending(undefined);
     }
   };
-  const requestRevoke = (key: AdminApiKey) =>
-    setConfirmation({ action: "revoke", key });
+  const requestRevoke = (key: AdminApiKey) => setConfirmation({ action: "revoke", key });
   const requestRotate = adapter.rotate
     ? (key: AdminApiKey) => setConfirmation({ action: "rotate", key })
     : undefined;
@@ -320,24 +322,45 @@ function ApiKeysPanelImpl({
   // an update (`adapter.update` is optional — without it Save would no-op).
   const builtInEditEnabled = Boolean(scopeGroups) && !renderEdit && Boolean(adapter.update);
   return (
-    <section className={["admin-kit__keys", className].filter(Boolean).join(" ")} aria-label={title}>
+    <section
+      className={["admin-kit__keys", className].filter(Boolean).join(" ")}
+      aria-label={title}
+    >
       {panelHeader({ total: lifecycleKeys.length, active: activeCount })}
       {loadError ? (
         <AdminPanelStateView
           state={{ kind: "error", detail: loadError, onRetry: () => void load() }}
         />
       ) : null}
-      {actionError ? <p className="admin-kit__action-error" role="alert">{actionError}</p> : null}
+      {actionError ? (
+        <p className="admin-kit__action-error" role="alert">
+          {actionError}
+        </p>
+      ) : null}
       {secret ? (
         <div className="admin-kit__secret" role="alert">
           <strong>Copy this secret now. It will not be shown again.</strong>
           <code>{secret}</code>
           <div className="admin-kit__secret-actions">
-            <button className="admin-kit__button admin-kit__button--primary" type="button" onClick={() => void copySecret()}>Copy secret</button>
-            <button className="admin-kit__button" type="button" onClick={() => setSecret(undefined)}>
+            <button
+              className="admin-kit__button admin-kit__button--primary"
+              type="button"
+              onClick={() => void copySecret()}
+            >
+              Copy secret
+            </button>
+            <button
+              className="admin-kit__button"
+              type="button"
+              onClick={() => setSecret(undefined)}
+            >
               I copied it
             </button>
-            {copyStatus ? <span aria-live="polite" className="admin-kit__secret-status">{copyStatus}</span> : null}
+            {copyStatus ? (
+              <span aria-live="polite" className="admin-kit__secret-status">
+                {copyStatus}
+              </span>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -355,7 +378,10 @@ function ApiKeysPanelImpl({
           onToggle={(event) => setCreateOpen(event.currentTarget.open)}
         >
           <summary>
-            <span className="admin-kit__key-create-icon" aria-hidden="true">＋</span> Create a new key
+            <span className="admin-kit__key-create-icon" aria-hidden="true">
+              ＋
+            </span>{" "}
+            Create a new key
           </summary>
           <div className="admin-kit__key-create-body">
             <AdminApiKeyForm
@@ -376,13 +402,15 @@ function ApiKeysPanelImpl({
           Create API key
         </button>
       ) : null}
-      {renderKeys ? renderKeys({
-        keys: lifecycleKeys,
-        requestRevoke,
-        requestRotate,
-        update: adapter.update ? update : undefined,
-        pendingKeyId: pending === "create" ? undefined : pending,
-      }) : lifecycleKeys.length === 0 ? (
+      {renderKeys ? (
+        renderKeys({
+          keys: lifecycleKeys,
+          requestRevoke,
+          requestRotate,
+          update: adapter.update ? update : undefined,
+          pendingKeyId: pending === "create" ? undefined : pending,
+        })
+      ) : lifecycleKeys.length === 0 ? (
         <AdminPanelStateView state={{ kind: "empty", title: "No API keys yet." }} />
       ) : (
         <ol className="admin-kit__key-cards">
@@ -396,16 +424,26 @@ function ApiKeysPanelImpl({
                     <strong>{key.name}</strong>
                     <code>{key.maskedKey}</code>
                   </div>
-                  <span className={`admin-kit__state-pill admin-kit__state-pill--key-${key.state}`}>{key.state}</span>
+                  <span className={`admin-kit__state-pill admin-kit__state-pill--key-${key.state}`}>
+                    {key.state}
+                  </span>
                 </div>
                 <dl className="admin-kit__key-summary">
                   <div>
                     <dt>Last used</dt>
-                    <dd>{key.lastUsedAt ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp) : "never"}</dd>
+                    <dd>
+                      {key.lastUsedAt
+                        ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp)
+                        : "never"}
+                    </dd>
                   </div>
                   <div>
                     <dt>Expires</dt>
-                    <dd>{key.expiresAt ? formatAdminTimestamp(key.expiresAt, formatTimestamp) : "never"}</dd>
+                    <dd>
+                      {key.expiresAt
+                        ? formatAdminTimestamp(key.expiresAt, formatTimestamp)
+                        : "never"}
+                    </dd>
                   </div>
                   {key.details?.[0] ? (
                     <div>
@@ -415,17 +453,28 @@ function ApiKeysPanelImpl({
                   ) : null}
                 </dl>
                 <details className="admin-kit__key-details-disclosure">
-                  <summary aria-label={`Scopes and details for ${key.name}`}>{key.scopes.length} {key.scopes.length === 1 ? "scope" : "scopes"}</summary>
+                  <summary aria-label={`Scopes and details for ${key.name}`}>
+                    {key.scopes.length} {key.scopes.length === 1 ? "scope" : "scopes"}
+                  </summary>
                   {key.scopes.length ? (
                     <ul className="admin-kit__scope-chips">
                       {key.scopes.map((scope) => (
-                        <li className="admin-kit__scope-chip" key={scope}>{scope}</li>
+                        <li className="admin-kit__scope-chip" key={scope}>
+                          {scope}
+                        </li>
                       ))}
                     </ul>
-                  ) : <span className="admin-kit__key-empty">No scopes assigned.</span>}
+                  ) : (
+                    <span className="admin-kit__key-empty">No scopes assigned.</span>
+                  )}
                   {key.details && key.details.length > 1 ? (
                     <dl className="admin-kit__key-details">
-                      {key.details.slice(1).map((detail) => <div key={detail.label}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}
+                      {key.details.slice(1).map((detail) => (
+                        <div key={detail.label}>
+                          <dt>{detail.label}</dt>
+                          <dd>{detail.value}</dd>
+                        </div>
+                      ))}
                     </dl>
                   ) : null}
                 </details>
@@ -444,16 +493,45 @@ function ApiKeysPanelImpl({
                         Edit scopes
                       </button>
                     ) : null}
-                    {adapter.rotate ? <button type="button" aria-label={`Rotate ${key.name}`} disabled={isPending} onClick={() => requestRotate?.(key)}>Rotate</button> : null}
-                    {adapter.update && renderEdit ? renderEdit({ key, update: (input) => update(key, input), pending: isPending }) : null}
-                    <button type="button" aria-label={`Revoke ${key.name}`} disabled={isPending} onClick={() => requestRevoke(key)}>Revoke</button>
+                    {adapter.rotate ? (
+                      <button
+                        type="button"
+                        aria-label={`Rotate ${key.name}`}
+                        disabled={isPending}
+                        onClick={() => requestRotate?.(key)}
+                      >
+                        Rotate
+                      </button>
+                    ) : null}
+                    {adapter.update && renderEdit
+                      ? renderEdit({
+                          key,
+                          update: (input) => update(key, input),
+                          pending: isPending,
+                        })
+                      : null}
+                    <button
+                      type="button"
+                      aria-label={`Revoke ${key.name}`}
+                      disabled={isPending}
+                      onClick={() => requestRevoke(key)}
+                    >
+                      Revoke
+                    </button>
                   </div>
                 ) : null}
                 {isEditing && scopeGroups ? (
-                  <div className="admin-kit__key-edit" id={`admin-kit-key-edit-${key.id}`} role="region" aria-label={`Edit scopes for ${key.name}`}>
+                  <div
+                    className="admin-kit__key-edit"
+                    id={`admin-kit-key-edit-${key.id}`}
+                    role="region"
+                    aria-label={`Edit scopes for ${key.name}`}
+                  >
                     <div className="admin-kit__key-edit-header">
                       <h3>Edit scopes</h3>
-                      <p>{key.name} · {key.maskedKey}</p>
+                      <p>
+                        {key.name} · {key.maskedKey}
+                      </p>
                     </div>
                     <AdminApiKeyForm
                       mode="edit"

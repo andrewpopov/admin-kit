@@ -12,7 +12,9 @@ const base = {
   scopes: ["read"] as const,
 };
 
-function key(overrides: Partial<AdminApiKey> & Pick<AdminApiKey, "id" | "state" | "createdAt">): AdminApiKey {
+function key(
+  overrides: Partial<AdminApiKey> & Pick<AdminApiKey, "id" | "state" | "createdAt">,
+): AdminApiKey {
   return { ...base, ...overrides };
 }
 
@@ -32,8 +34,18 @@ describe("summarizeAdminApiKeys", () => {
 
   it("counts an all-revoked list", () => {
     const keys = [
-      key({ id: "k1", state: "revoked", createdAt: "2026-01-01T00:00:00.000Z", revokedAt: "2026-01-02T00:00:00.000Z" }),
-      key({ id: "k2", state: "revoked", createdAt: "2026-01-01T00:00:00.000Z", revokedAt: "2026-01-02T00:00:00.000Z" }),
+      key({
+        id: "k1",
+        state: "revoked",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        revokedAt: "2026-01-02T00:00:00.000Z",
+      }),
+      key({
+        id: "k2",
+        state: "revoked",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        revokedAt: "2026-01-02T00:00:00.000Z",
+      }),
     ];
     const summary = summarizeAdminApiKeys(keys);
     expect(summary.total).toBe(2);
@@ -45,7 +57,12 @@ describe("summarizeAdminApiKeys", () => {
   it("detects unused active keys (no lastUsedAt)", () => {
     const keys = [
       key({ id: "k1", state: "active", createdAt: "2026-01-01T00:00:00.000Z" }),
-      key({ id: "k2", state: "active", createdAt: "2026-01-01T00:00:00.000Z", lastUsedAt: "2026-01-05T00:00:00.000Z" }),
+      key({
+        id: "k2",
+        state: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        lastUsedAt: "2026-01-05T00:00:00.000Z",
+      }),
     ];
     const summary = summarizeAdminApiKeys(keys);
     expect(summary.active).toBe(2);
@@ -55,10 +72,25 @@ describe("summarizeAdminApiKeys", () => {
 
   it("selects the most recently used key, ignoring unparseable/absent lastUsedAt", () => {
     const keys = [
-      key({ id: "k1", state: "active", createdAt: "2026-01-01T00:00:00.000Z", lastUsedAt: "not-a-date" }),
+      key({
+        id: "k1",
+        state: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        lastUsedAt: "not-a-date",
+      }),
       key({ id: "k2", state: "active", createdAt: "2026-01-01T00:00:00.000Z" }),
-      key({ id: "k3", state: "active", createdAt: "2026-01-01T00:00:00.000Z", lastUsedAt: "2026-01-03T00:00:00.000Z" }),
-      key({ id: "k4", state: "active", createdAt: "2026-01-01T00:00:00.000Z", lastUsedAt: "2026-01-05T00:00:00.000Z" }),
+      key({
+        id: "k3",
+        state: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        lastUsedAt: "2026-01-03T00:00:00.000Z",
+      }),
+      key({
+        id: "k4",
+        state: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        lastUsedAt: "2026-01-05T00:00:00.000Z",
+      }),
     ];
     const summary = summarizeAdminApiKeys(keys);
     expect(summary.mostRecentlyUsedKey?.id).toBe("k4");
@@ -67,7 +99,12 @@ describe("summarizeAdminApiKeys", () => {
   it("has no mostRecentlyUsedKey when no active key has a parseable lastUsedAt", () => {
     const keys = [
       key({ id: "k1", state: "active", createdAt: "2026-01-01T00:00:00.000Z" }),
-      key({ id: "k2", state: "active", createdAt: "2026-01-01T00:00:00.000Z", lastUsedAt: "garbage" }),
+      key({
+        id: "k2",
+        state: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        lastUsedAt: "garbage",
+      }),
     ];
     const summary = summarizeAdminApiKeys(keys);
     expect(summary.mostRecentlyUsedKey).toBeUndefined();
@@ -75,7 +112,12 @@ describe("summarizeAdminApiKeys", () => {
 
   it("classifies an unparseable lastUsedAt as unused: unknown usage must draw attention, not be trusted", () => {
     const keys = [
-      key({ id: "k1", state: "active", createdAt: "2026-01-01T00:00:00.000Z", lastUsedAt: "not-a-date" }),
+      key({
+        id: "k1",
+        state: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        lastUsedAt: "not-a-date",
+      }),
     ];
     const summary = summarizeAdminApiKeys(keys);
     expect(summary.unusedActive).toBe(1);
@@ -84,7 +126,12 @@ describe("summarizeAdminApiKeys", () => {
 
   it("resolves expiry via now: a key whose expiresAt passed counts as expired, not active", () => {
     const keys = [
-      key({ id: "k1", state: "active", createdAt: "2026-01-01T00:00:00.000Z", expiresAt: "2026-06-01T00:00:00.000Z" }),
+      key({
+        id: "k1",
+        state: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        expiresAt: "2026-06-01T00:00:00.000Z",
+      }),
     ];
     const summary = summarizeAdminApiKeys(keys, new Date("2026-07-01T00:00:00.000Z"));
     expect(summary.expired).toBe(1);
@@ -115,7 +162,12 @@ describe("deriveAdminApiKeysPosture", () => {
 
   it("is healthy/positive when all active keys have been used", () => {
     const summary = summarizeAdminApiKeys([
-      key({ id: "k1", state: "active", createdAt: "2026-01-01T00:00:00.000Z", lastUsedAt: "2026-01-05T00:00:00.000Z" }),
+      key({
+        id: "k1",
+        state: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        lastUsedAt: "2026-01-05T00:00:00.000Z",
+      }),
     ]);
     expect(deriveAdminApiKeysPosture(summary)).toEqual({ kind: "healthy", tone: "positive" });
   });
@@ -140,7 +192,12 @@ describe("deriveAdminApiKeysQueue", () => {
 
   it("queues confirm-owner with the most recently used key", () => {
     const keys = [
-      key({ id: "k1", state: "active", createdAt: "2026-01-01T00:00:00.000Z", lastUsedAt: "2026-01-05T00:00:00.000Z" }),
+      key({
+        id: "k1",
+        state: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        lastUsedAt: "2026-01-05T00:00:00.000Z",
+      }),
     ];
     const summary = summarizeAdminApiKeys(keys);
     const queue = deriveAdminApiKeysQueue(summary);
@@ -149,8 +206,18 @@ describe("deriveAdminApiKeysQueue", () => {
 
   it("queues audit-history when there are revoked keys", () => {
     const keys = [
-      key({ id: "k1", state: "active", createdAt: "2026-01-01T00:00:00.000Z", lastUsedAt: "2026-01-05T00:00:00.000Z" }),
-      key({ id: "k2", state: "revoked", createdAt: "2026-01-01T00:00:00.000Z", revokedAt: "2026-01-02T00:00:00.000Z" }),
+      key({
+        id: "k1",
+        state: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        lastUsedAt: "2026-01-05T00:00:00.000Z",
+      }),
+      key({
+        id: "k2",
+        state: "revoked",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        revokedAt: "2026-01-02T00:00:00.000Z",
+      }),
     ];
     const summary = summarizeAdminApiKeys(keys);
     expect(deriveAdminApiKeysQueue(summary)).toContainEqual({ kind: "audit-history" });
@@ -159,17 +226,36 @@ describe("deriveAdminApiKeysQueue", () => {
   it("orders items: create-first, review-unused, confirm-owner, audit-history", () => {
     const keys = [
       key({ id: "k1", state: "active", createdAt: "2026-01-01T00:00:00.000Z" }),
-      key({ id: "k2", state: "active", createdAt: "2026-01-01T00:00:00.000Z", lastUsedAt: "2026-01-05T00:00:00.000Z" }),
-      key({ id: "k3", state: "revoked", createdAt: "2026-01-01T00:00:00.000Z", revokedAt: "2026-01-02T00:00:00.000Z" }),
+      key({
+        id: "k2",
+        state: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        lastUsedAt: "2026-01-05T00:00:00.000Z",
+      }),
+      key({
+        id: "k3",
+        state: "revoked",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        revokedAt: "2026-01-02T00:00:00.000Z",
+      }),
     ];
     const summary = summarizeAdminApiKeys(keys);
     const queue = deriveAdminApiKeysQueue(summary);
-    expect(queue.map((item) => item.kind)).toEqual(["review-unused", "confirm-owner", "audit-history"]);
+    expect(queue.map((item) => item.kind)).toEqual([
+      "review-unused",
+      "confirm-owner",
+      "audit-history",
+    ]);
   });
 
   it("is empty and frozen when there is nothing to surface", () => {
     const keys = [
-      key({ id: "k1", state: "active", createdAt: "2026-01-01T00:00:00.000Z", lastUsedAt: "2026-01-05T00:00:00.000Z" }),
+      key({
+        id: "k1",
+        state: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        lastUsedAt: "2026-01-05T00:00:00.000Z",
+      }),
     ];
     const summary = summarizeAdminApiKeys(keys);
     const queue = deriveAdminApiKeysQueue(summary);

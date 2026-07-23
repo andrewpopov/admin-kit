@@ -66,7 +66,9 @@ const ADMIN_EVENT_OUTCOMES: readonly AdminEventOutcome[] = ["success", "failure"
 
 export function validateAdminEventsPage(page: AdminEventsPage): AdminEventsPage {
   if (!Number.isInteger(page.total) || page.total < page.items.length) {
-    throw new Error("Admin events page total must be an integer at least as large as the returned items.");
+    throw new Error(
+      "Admin events page total must be an integer at least as large as the returned items.",
+    );
   }
   if (!Number.isInteger(page.page) || page.page < 1) {
     throw new Error("Admin events page number must be a positive integer.");
@@ -96,12 +98,16 @@ export function validateAdminEventsPage(page: AdminEventsPage): AdminEventsPage 
   }
   return Object.freeze({
     ...page,
-    items: Object.freeze(page.items.map((event) => Object.freeze({
-      ...event,
-      actor: event.actor ? Object.freeze({ ...event.actor }) : undefined,
-      resource: event.resource ? Object.freeze({ ...event.resource }) : undefined,
-      metadata: event.metadata ? Object.freeze({ ...event.metadata }) : undefined,
-    }))),
+    items: Object.freeze(
+      page.items.map((event) =>
+        Object.freeze({
+          ...event,
+          actor: event.actor ? Object.freeze({ ...event.actor }) : undefined,
+          resource: event.resource ? Object.freeze({ ...event.resource }) : undefined,
+          metadata: event.metadata ? Object.freeze({ ...event.metadata }) : undefined,
+        }),
+      ),
+    ),
     source: page.source ? Object.freeze({ ...page.source }) : undefined,
   });
 }

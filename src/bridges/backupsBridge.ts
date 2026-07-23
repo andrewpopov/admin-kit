@@ -90,9 +90,7 @@ function mapEntry(entry: ForeignBackupEntry): AdminBackupSummary {
  * optional run/restore) seam. Pagination is computed in-memory since
  * db-backup returns its full listing in one call.
  */
-export function createBackupsAdapter(
-  options: CreateBackupsAdapterOptions,
-): AdminBackupsAdapter {
+export function createBackupsAdapter(options: CreateBackupsAdapterOptions): AdminBackupsAdapter {
   const adapter: AdminBackupsAdapter = {
     async list(query = {}) {
       const all = await options.listBackups();
@@ -111,7 +109,13 @@ export function createBackupsAdapter(
   return {
     ...adapter,
     ...(options.runBackup
-      ? { run: { execute: async () => { await options.runBackup!(); } } }
+      ? {
+          run: {
+            execute: async () => {
+              await options.runBackup!();
+            },
+          },
+        }
       : {}),
     ...(options.restoreBackup
       ? {
@@ -122,7 +126,7 @@ export function createBackupsAdapter(
               // Absence must refuse, not default to `'completed'`: a
               // missing entry could not have produced a restorable
               // artifact, so treat it distinctly from a known-completed one.
-              const state = entry ? entry.state ?? "completed" : "unknown";
+              const state = entry ? (entry.state ?? "completed") : "unknown";
               if (state !== "completed") {
                 throw new BackupNotRestorableError(input.backupId, state);
               }

@@ -67,7 +67,13 @@ function createBackupsAdapter(options) {
     return {
         ...adapter,
         ...(options.runBackup
-            ? { run: { execute: async () => { await options.runBackup(); } } }
+            ? {
+                run: {
+                    execute: async () => {
+                        await options.runBackup();
+                    },
+                },
+            }
             : {}),
         ...(options.restoreBackup
             ? {
@@ -78,7 +84,7 @@ function createBackupsAdapter(options) {
                         // Absence must refuse, not default to `'completed'`: a
                         // missing entry could not have produced a restorable
                         // artifact, so treat it distinctly from a known-completed one.
-                        const state = entry ? entry.state ?? "completed" : "unknown";
+                        const state = entry ? (entry.state ?? "completed") : "unknown";
                         if (state !== "completed") {
                             throw new BackupNotRestorableError(input.backupId, state);
                         }

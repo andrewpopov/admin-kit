@@ -7,8 +7,22 @@ import { SessionsPanel } from "../react";
 afterEach(cleanup);
 
 const sessions = [
-  { id: "current", label: "Ada", secondaryLabel: "Safari on macOS", createdAt: "2026-07-14T10:00:00.000Z", lastSeenAt: "2026-07-14T12:00:00.000Z", current: true, details: [{ label: "IP", value: "192.0.2.1" }] },
-  { id: "protected", label: "Grace", createdAt: "2026-07-13T10:00:00.000Z", expiresAt: "2026-08-13T10:00:00.000Z", permissions: { canRevoke: false } },
+  {
+    id: "current",
+    label: "Ada",
+    secondaryLabel: "Safari on macOS",
+    createdAt: "2026-07-14T10:00:00.000Z",
+    lastSeenAt: "2026-07-14T12:00:00.000Z",
+    current: true,
+    details: [{ label: "IP", value: "192.0.2.1" }],
+  },
+  {
+    id: "protected",
+    label: "Grace",
+    createdAt: "2026-07-13T10:00:00.000Z",
+    expiresAt: "2026-08-13T10:00:00.000Z",
+    permissions: { canRevoke: false },
+  },
 ];
 
 function adapter(overrides: Record<string, unknown> = {}) {
@@ -35,11 +49,18 @@ describe("active session contracts", () => {
 
   it("rejects duplicate sessions and invalid bulk-action language", () => {
     expect(() => validateAdminSessions([sessions[0]!, sessions[0]!])).toThrow(/duplicate/i);
-    expect(() => defineAdminSessionsAdapter({
-      scope: { id: "u1", label: "Ada", kind: "user" },
-      list: async () => [],
-      bulkRevoke: { label: " ", confirmTitle: "Confirm", confirmDescription: "Description", execute: async () => undefined },
-    })).toThrow(/label/i);
+    expect(() =>
+      defineAdminSessionsAdapter({
+        scope: { id: "u1", label: "Ada", kind: "user" },
+        list: async () => [],
+        bulkRevoke: {
+          label: " ",
+          confirmTitle: "Confirm",
+          confirmDescription: "Description",
+          execute: async () => undefined,
+        },
+      }),
+    ).toThrow(/label/i);
   });
 });
 
@@ -65,7 +86,18 @@ describe("SessionsPanel", () => {
 
   it("uses host-owned bulk semantics instead of assuming revoke-all behavior", async () => {
     const execute = vi.fn().mockResolvedValue(undefined);
-    render(<SessionsPanel adapter={adapter({ bulkRevoke: { label: "Revoke other sessions", confirmTitle: "Keep this device?", confirmDescription: "Other devices will sign out.", execute } })} />);
+    render(
+      <SessionsPanel
+        adapter={adapter({
+          bulkRevoke: {
+            label: "Revoke other sessions",
+            confirmTitle: "Keep this device?",
+            confirmDescription: "Other devices will sign out.",
+            execute,
+          },
+        })}
+      />,
+    );
     fireEvent.click(await screen.findByRole("button", { name: "Revoke other sessions" }));
     const dialog = screen.getByRole("dialog");
     expect(dialog.textContent).toContain("Keep this device?");
@@ -74,10 +106,18 @@ describe("SessionsPanel", () => {
   });
 
   it("reports a rejected revoke without discarding the session list", async () => {
-    render(<SessionsPanel adapter={adapter({ revoke: { execute: vi.fn().mockRejectedValue(new Error("Current session is protected")) } })} />);
+    render(
+      <SessionsPanel
+        adapter={adapter({
+          revoke: { execute: vi.fn().mockRejectedValue(new Error("Current session is protected")) },
+        })}
+      />,
+    );
     fireEvent.click((await screen.findAllByRole("button", { name: "Revoke" }))[0]!);
     fireEvent.click(screen.getByRole("button", { name: "Revoke session" }));
-    expect((await screen.findByRole("alert")).textContent).toContain("Current session is protected");
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "Current session is protected",
+    );
     expect(screen.getByText("Safari on macOS")).toBeTruthy();
     expect(screen.queryByRole("dialog")).toBeNull();
   });

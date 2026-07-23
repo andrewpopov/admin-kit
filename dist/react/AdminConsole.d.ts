@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import type { AdminSectionDefinition, AdminSectionId } from '../core/contracts';
+import type { ReactNode } from "react";
+import type { AdminSectionDefinition, AdminSectionId } from "../core/contracts";
 export interface AdminReactSection extends AdminSectionDefinition {
     render: () => ReactNode;
 }

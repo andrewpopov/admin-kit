@@ -61,8 +61,7 @@ export interface CreateFeatureFlagsAdapterOptions {
   setEnabled?: (input: { key: string; enabled: boolean }) => void | Promise<void>;
 }
 
-const UNAVAILABLE_DETAIL =
-  "The feature flag store is unavailable; showing last-known values.";
+const UNAVAILABLE_DETAIL = "The feature flag store is unavailable; showing last-known values.";
 
 function mapSnapshot(
   snapshot: ForeignFlagSnapshot,
@@ -131,12 +130,10 @@ export function createFeatureFlagsAdapter(
         if (!current) {
           throw new Error(`Unknown feature flag: ${input.key}`);
         }
-        if (current.source !== 'store') {
-          throw new Error(
-            `Feature flag ${input.key} is not mutable (source: ${current.source})`,
-          );
+        if (current.source !== "store") {
+          throw new Error(`Feature flag ${input.key} is not mutable (source: ${current.source})`);
         }
-        if (before.health !== 'ok') {
+        if (before.health !== "ok") {
           throw new Error(
             `Feature flag ${input.key} is not mutable (store health: ${before.health})`,
           );

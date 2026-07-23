@@ -1,18 +1,15 @@
-import type {
-  MouseEventHandler,
-  ReactNode,
-} from 'react';
+import type { MouseEventHandler, ReactNode } from "react";
 import type {
   AdminPortalSectionDefinition,
   AdminSectionGroupDefinition,
   AdminSectionId,
-} from '../core/contracts';
+} from "../core/contracts";
 
 export interface AdminPortalReactSection extends AdminPortalSectionDefinition {
   render: () => ReactNode;
 }
 
-export interface AdminPortalReactGroup extends Omit<AdminSectionGroupDefinition, 'sections'> {
+export interface AdminPortalReactGroup extends Omit<AdminSectionGroupDefinition, "sections"> {
   sections: readonly AdminPortalReactSection[];
 }
 
@@ -20,7 +17,7 @@ export interface AdminPortalNavigationItemProps {
   section: AdminPortalReactSection;
   active: boolean;
   className: string;
-  ariaCurrent?: 'page';
+  ariaCurrent?: "page";
   ariaDisabled?: true;
   tabIndex?: -1;
   onClick: MouseEventHandler<HTMLElement>;
@@ -36,19 +33,20 @@ interface AdminPortalBaseProps {
   inactiveSectionState?: (sectionId: AdminSectionId) => ReactNode;
 }
 
-export type AdminPortalProps = AdminPortalBaseProps & (
-  | {
-      /** Required when the portal renders its default controlled buttons. */
-      onSectionChange: (sectionId: AdminSectionId) => void;
-      renderNavigationItem?: (props: AdminPortalNavigationItemProps) => ReactNode;
-    }
-  | {
-      /** Render a Next.js Link, React Router NavLink, or another host-owned link. */
-      renderNavigationItem: (props: AdminPortalNavigationItemProps) => ReactNode;
-      /** Optional notification when the custom router link is selected. */
-      onSectionChange?: (sectionId: AdminSectionId) => void;
-    }
-);
+export type AdminPortalProps = AdminPortalBaseProps &
+  (
+    | {
+        /** Required when the portal renders its default controlled buttons. */
+        onSectionChange: (sectionId: AdminSectionId) => void;
+        renderNavigationItem?: (props: AdminPortalNavigationItemProps) => ReactNode;
+      }
+    | {
+        /** Render a Next.js Link, React Router NavLink, or another host-owned link. */
+        renderNavigationItem: (props: AdminPortalNavigationItemProps) => ReactNode;
+        /** Optional notification when the custom router link is selected. */
+        onSectionChange?: (sectionId: AdminSectionId) => void;
+      }
+  );
 
 /**
  * A grouped shell for routed administration areas. The host owns URLs,
@@ -60,13 +58,13 @@ export function AdminPortal({
   groups,
   onSectionChange,
   renderNavigationItem,
-  ariaLabel = 'Administration sections',
+  ariaLabel = "Administration sections",
   className,
-  emptyState = 'No administration sections are available.',
+  emptyState = "No administration sections are available.",
   inactiveSectionState,
 }: AdminPortalProps) {
   if (!renderNavigationItem && !onSectionChange) {
-    throw new Error('AdminPortal default navigation needs onSectionChange.');
+    throw new Error("AdminPortal default navigation needs onSectionChange.");
   }
 
   const visibleGroups = groups
@@ -81,14 +79,27 @@ export function AdminPortal({
 
   if (!active) {
     return (
-      <section className={['admin-kit', 'admin-kit--theme-core', 'admin-kit__portal-empty', className].filter(Boolean).join(' ')} data-admin-kit-theme="core">
-        {sections.length === 0 ? emptyState : inactiveSectionState?.(activeSection) ?? 'This administration section is unavailable.'}
+      <section
+        className={["admin-kit", "admin-kit--theme-core", "admin-kit__portal-empty", className]
+          .filter(Boolean)
+          .join(" ")}
+        data-admin-kit-theme="core"
+      >
+        {sections.length === 0
+          ? emptyState
+          : (inactiveSectionState?.(activeSection) ??
+            "This administration section is unavailable.")}
       </section>
     );
   }
 
   return (
-    <section className={['admin-kit', 'admin-kit--theme-core', 'admin-kit__portal', className].filter(Boolean).join(' ')} data-admin-kit-theme="core">
+    <section
+      className={["admin-kit", "admin-kit--theme-core", "admin-kit__portal", className]
+        .filter(Boolean)
+        .join(" ")}
+      data-admin-kit-theme="core"
+    >
       <nav aria-label={ariaLabel} className="admin-kit__portal-navigation">
         {visibleGroups.map((group) => (
           <section className="admin-kit__portal-group" key={group.id}>
@@ -109,8 +120,8 @@ export function AdminPortal({
                 const navigationProps: AdminPortalNavigationItemProps = {
                   section,
                   active: isActive,
-                  className: 'admin-kit__portal-link',
-                  ariaCurrent: isActive ? 'page' : undefined,
+                  className: "admin-kit__portal-link",
+                  ariaCurrent: isActive ? "page" : undefined,
                   ariaDisabled: section.disabled ? true : undefined,
                   tabIndex: section.disabled ? -1 : undefined,
                   onClick,

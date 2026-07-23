@@ -5,7 +5,8 @@
  * dates (e.g. `new Date("2")` is a valid date in year 2001), which would
  * silently mangle a host's own pre-formatted short value.
  */
-const ISO_8601_SHAPE = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
+const ISO_8601_SHAPE =
+  /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
 
 /** Matches a bare `YYYY-MM-DD` value with no time component. */
 const DATE_ONLY_SHAPE = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -19,10 +20,7 @@ const DATE_ONLY_SHAPE = /^(\d{4})-(\d{2})-(\d{2})$/;
  * may pass `format` to fully control presentation (e.g. to add a timezone
  * label or relative phrasing); the override always receives the raw value.
  */
-export function formatAdminTimestamp(
-  value: string,
-  format?: (iso: string) => string,
-): string {
+export function formatAdminTimestamp(value: string, format?: (iso: string) => string): string {
   if (format) return format(value);
   if (!ISO_8601_SHAPE.test(value)) return value;
 

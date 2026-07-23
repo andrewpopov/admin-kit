@@ -40,16 +40,16 @@ export interface AdminPortalDefinition {
  * than once under different local names.
  */
 export const ADMIN_CAPABILITIES = [
-  'users',
-  'sessions',
-  'logs',
-  'events',
-  'feature-flags',
-  'api-keys',
-  'memberships',
-  'backups',
-  'operational-jobs',
-  'settings',
+  "users",
+  "sessions",
+  "logs",
+  "events",
+  "feature-flags",
+  "api-keys",
+  "memberships",
+  "backups",
+  "operational-jobs",
+  "settings",
 ] as const;
 
 export type AdminKitCapability = (typeof ADMIN_CAPABILITIES)[number];
@@ -61,7 +61,7 @@ export interface AdminAppSectionDefinition extends AdminPortalSectionDefinition 
   capability: AdminCapability;
 }
 
-export interface AdminAppGroupDefinition extends Omit<AdminSectionGroupDefinition, 'sections'> {
+export interface AdminAppGroupDefinition extends Omit<AdminSectionGroupDefinition, "sections"> {
   sections: readonly AdminAppSectionDefinition[];
 }
 
@@ -76,12 +76,12 @@ export interface AdminAppDefinition {
  */
 export function defineAdminConsole(definition: AdminConsoleDefinition): AdminConsoleDefinition {
   if (definition.sections.length === 0) {
-    throw new Error('An admin console needs at least one section.');
+    throw new Error("An admin console needs at least one section.");
   }
 
   const ids = new Set<string>();
   for (const section of definition.sections) {
-    if (!section.id.trim()) throw new Error('Admin section IDs must not be empty.');
+    if (!section.id.trim()) throw new Error("Admin section IDs must not be empty.");
     if (!section.label.trim()) throw new Error(`Admin section ${section.id} needs a label.`);
     if (ids.has(section.id)) throw new Error(`Duplicate admin section ID: ${section.id}.`);
     ids.add(section.id);
@@ -98,13 +98,13 @@ export function defineAdminConsole(definition: AdminConsoleDefinition): AdminCon
  */
 export function defineAdminPortal(definition: AdminPortalDefinition): AdminPortalDefinition {
   if (definition.groups.length === 0) {
-    throw new Error('An admin portal needs at least one section group.');
+    throw new Error("An admin portal needs at least one section group.");
   }
 
   const groupIds = new Set<string>();
   const sectionIds = new Set<string>();
   const groups = definition.groups.map((group) => {
-    if (!group.id.trim()) throw new Error('Admin section group IDs must not be empty.');
+    if (!group.id.trim()) throw new Error("Admin section group IDs must not be empty.");
     if (!group.label.trim()) throw new Error(`Admin section group ${group.id} needs a label.`);
     if (groupIds.has(group.id)) throw new Error(`Duplicate admin section group ID: ${group.id}.`);
     if (group.sections.length === 0) {
@@ -113,7 +113,7 @@ export function defineAdminPortal(definition: AdminPortalDefinition): AdminPorta
     groupIds.add(group.id);
 
     const sections = group.sections.map((section) => {
-      if (!section.id.trim()) throw new Error('Admin section IDs must not be empty.');
+      if (!section.id.trim()) throw new Error("Admin section IDs must not be empty.");
       if (!section.label.trim()) throw new Error(`Admin section ${section.id} needs a label.`);
       if (sectionIds.has(section.id)) throw new Error(`Duplicate admin section ID: ${section.id}.`);
       sectionIds.add(section.id);
@@ -137,9 +137,13 @@ export function defineAdminApp(definition: AdminAppDefinition): AdminAppDefiniti
   const capabilities = new Set<AdminCapability>();
   for (const group of definition.groups) {
     for (const section of group.sections) {
-      const isCustomCapability = section.capability.startsWith('custom:')
-        && section.capability.slice('custom:'.length).trim().length > 0;
-      if (!isCustomCapability && !ADMIN_CAPABILITIES.includes(section.capability as AdminKitCapability)) {
+      const isCustomCapability =
+        section.capability.startsWith("custom:") &&
+        section.capability.slice("custom:".length).trim().length > 0;
+      if (
+        !isCustomCapability &&
+        !ADMIN_CAPABILITIES.includes(section.capability as AdminKitCapability)
+      ) {
         throw new Error(`Unknown admin capability: ${section.capability}.`);
       }
       if (capabilities.has(section.capability)) {
@@ -150,10 +154,14 @@ export function defineAdminApp(definition: AdminAppDefinition): AdminAppDefiniti
   }
 
   return Object.freeze({
-    groups: Object.freeze(definition.groups.map((group) => Object.freeze({
-      ...group,
-      sections: Object.freeze(group.sections.map((section) => Object.freeze({ ...section }))),
-    }))),
+    groups: Object.freeze(
+      definition.groups.map((group) =>
+        Object.freeze({
+          ...group,
+          sections: Object.freeze(group.sections.map((section) => Object.freeze({ ...section }))),
+        }),
+      ),
+    ),
   });
 }
 
@@ -189,17 +197,15 @@ export interface AdminAdapterFailure {
  */
 export function normalizeAdminFailure(error: unknown): AdminAdapterFailure {
   const message =
-    error instanceof Error && error.message
-      ? error.message
-      : 'The administration request failed.';
+    error instanceof Error && error.message ? error.message : "The administration request failed.";
 
   const retryable =
-    typeof (error as { retryable?: unknown })?.retryable === 'boolean'
+    typeof (error as { retryable?: unknown })?.retryable === "boolean"
       ? (error as { retryable: boolean }).retryable
       : false;
 
   const code =
-    typeof (error as { code?: unknown })?.code === 'string'
+    typeof (error as { code?: unknown })?.code === "string"
       ? (error as { code: string }).code
       : undefined;
 

@@ -1,60 +1,72 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AdminApp, AdminPortal } from '../react';
-import type { AdminPortalProps } from '../react';
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { AdminApp, AdminPortal } from "../react";
+import type { AdminPortalProps } from "../react";
 
 afterEach(cleanup);
 
 const groups = [
   {
-    id: 'core',
-    label: 'Core administration',
-    description: 'Shared operational controls',
+    id: "core",
+    label: "Core administration",
+    description: "Shared operational controls",
     sections: [
-      { id: 'users', label: 'Users', description: 'Manage accounts', render: () => <p>User content</p> },
-      { id: 'security', label: 'Security', visible: false, render: () => <p>Security content</p> },
+      {
+        id: "users",
+        label: "Users",
+        description: "Manage accounts",
+        render: () => <p>User content</p>,
+      },
+      { id: "security", label: "Security", visible: false, render: () => <p>Security content</p> },
     ],
   },
   {
-    id: 'application',
-    label: 'Application',
+    id: "application",
+    label: "Application",
     sections: [
-      { id: 'catalog', label: 'Catalog', render: () => <p>Catalog content</p> },
-      { id: 'integration', label: 'Integration', disabled: true, render: () => <p>Integration content</p> },
+      { id: "catalog", label: "Catalog", render: () => <p>Catalog content</p> },
+      {
+        id: "integration",
+        label: "Integration",
+        disabled: true,
+        render: () => <p>Integration content</p>,
+      },
     ],
   },
 ] as const;
 
-describe('AdminPortal', () => {
-  it('renders visible grouped navigation and the controlled routed section', () => {
+describe("AdminPortal", () => {
+  it("renders visible grouped navigation and the controlled routed section", () => {
     render(
       <AdminPortal activeSection="catalog" groups={groups} onSectionChange={() => undefined} />,
     );
 
-    expect(screen.queryByRole('heading', { name: 'Core administration' })).toBeNull();
-    expect(screen.queryByRole('heading', { name: 'Application' })).toBeNull();
-    expect(screen.getByText('Core administration').className).toContain('admin-kit__portal-group-label');
-    expect(screen.queryByText('Security')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Catalog' }).getAttribute('aria-current')).toBe('page');
-    expect(screen.getByText('Catalog content')).toBeTruthy();
-    expect(screen.queryByText('User content')).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Core administration" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Application" })).toBeNull();
+    expect(screen.getByText("Core administration").className).toContain(
+      "admin-kit__portal-group-label",
+    );
+    expect(screen.queryByText("Security")).toBeNull();
+    expect(screen.getByRole("button", { name: "Catalog" }).getAttribute("aria-current")).toBe(
+      "page",
+    );
+    expect(screen.getByText("Catalog content")).toBeTruthy();
+    expect(screen.queryByText("User content")).toBeNull();
   });
 
-  it('offers controlled selection and prevents disabled navigation', () => {
+  it("offers controlled selection and prevents disabled navigation", () => {
     const onSectionChange = vi.fn();
-    render(
-      <AdminPortal activeSection="users" groups={groups} onSectionChange={onSectionChange} />,
-    );
+    render(<AdminPortal activeSection="users" groups={groups} onSectionChange={onSectionChange} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Catalog' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Integration' }));
+    fireEvent.click(screen.getByRole("button", { name: "Catalog" }));
+    fireEvent.click(screen.getByRole("button", { name: "Integration" }));
 
     expect(onSectionChange).toHaveBeenCalledOnce();
-    expect(onSectionChange).toHaveBeenCalledWith('catalog');
+    expect(onSectionChange).toHaveBeenCalledWith("catalog");
   });
 
-  it('lets hosts render router links with package-owned navigation semantics', () => {
+  it("lets hosts render router links with package-owned navigation semantics", () => {
     const onSectionChange = vi.fn();
     render(
       <AdminPortal
@@ -86,19 +98,19 @@ describe('AdminPortal', () => {
       />,
     );
 
-    const catalog = screen.getByRole('link', { name: 'Catalog' });
-    expect(catalog.getAttribute('href')).toBe('/admin/catalog');
+    const catalog = screen.getByRole("link", { name: "Catalog" });
+    expect(catalog.getAttribute("href")).toBe("/admin/catalog");
     fireEvent.click(catalog);
-    expect(onSectionChange).toHaveBeenCalledWith('catalog');
+    expect(onSectionChange).toHaveBeenCalledWith("catalog");
 
-    const disabled = screen.getByRole('link', { name: 'Integration' });
-    expect(disabled.getAttribute('aria-disabled')).toBe('true');
-    expect(disabled.getAttribute('tabindex')).toBe('-1');
+    const disabled = screen.getByRole("link", { name: "Integration" });
+    expect(disabled.getAttribute("aria-disabled")).toBe("true");
+    expect(disabled.getAttribute("tabindex")).toBe("-1");
     fireEvent.click(disabled);
     expect(onSectionChange).toHaveBeenCalledOnce();
   });
 
-  it('renders an explicit empty state when capabilities hide every section', () => {
+  it("renders an explicit empty state when capabilities hide every section", () => {
     render(
       <AdminPortal
         activeSection="users"
@@ -108,11 +120,11 @@ describe('AdminPortal', () => {
       />,
     );
 
-    expect(screen.getByText('No access')).toBeTruthy();
-    expect(screen.queryByRole('navigation')).toBeNull();
+    expect(screen.getByText("No access")).toBeTruthy();
+    expect(screen.queryByRole("navigation")).toBeNull();
   });
 
-  it('does not substitute another section when the active route is unavailable', () => {
+  it("does not substitute another section when the active route is unavailable", () => {
     render(
       <AdminPortal
         activeSection="security"
@@ -122,51 +134,69 @@ describe('AdminPortal', () => {
       />,
     );
 
-    expect(screen.getByText('Unavailable: security')).toBeTruthy();
-    expect(screen.queryByText('User content')).toBeNull();
-    expect(screen.queryByText('Catalog content')).toBeNull();
+    expect(screen.getByText("Unavailable: security")).toBeTruthy();
+    expect(screen.queryByText("User content")).toBeNull();
+    expect(screen.queryByText("Catalog content")).toBeNull();
   });
 
-  it('rejects inert default navigation from untyped consumers', () => {
-    const invalid = { activeSection: 'users', groups } as unknown as AdminPortalProps;
+  it("rejects inert default navigation from untyped consumers", () => {
+    const invalid = { activeSection: "users", groups } as unknown as AdminPortalProps;
     expect(() => AdminPortal(invalid)).toThrow(/needs onSectionChange/i);
   });
 });
 
-describe('AdminApp', () => {
-  it('uses the portal interaction contract while preserving an explicit application frame', () => {
+describe("AdminApp", () => {
+  it("uses the portal interaction contract while preserving an explicit application frame", () => {
     render(
       <AdminApp
-        frame={{ title: 'Administration', description: 'Manage access and operations.' }}
+        frame={{ title: "Administration", description: "Manage access and operations." }}
         activeSection="users"
-        groups={[{
-          id: 'core',
-          label: 'Core administration',
-          sections: [{ id: 'users', label: 'Users', capability: 'users', render: () => <p>User content</p> }],
-        }]}
+        groups={[
+          {
+            id: "core",
+            label: "Core administration",
+            sections: [
+              {
+                id: "users",
+                label: "Users",
+                capability: "users",
+                render: () => <p>User content</p>,
+              },
+            ],
+          },
+        ]}
         onSectionChange={() => undefined}
       />,
     );
 
-    expect(screen.getByText('User content')).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Administration' })).toBeTruthy();
-    expect(screen.getByText('Manage access and operations.')).toBeTruthy();
+    expect(screen.getByText("User content")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Administration" })).toBeTruthy();
+    expect(screen.getByText("Manage access and operations.")).toBeTruthy();
   });
 
-  it('omits the application masthead when host chrome already supplies page identity', () => {
+  it("omits the application masthead when host chrome already supplies page identity", () => {
     const { container } = render(
       <AdminApp
         activeSection="users"
-        groups={[{
-          id: 'core',
-          label: 'Core administration',
-          sections: [{ id: 'users', label: 'Users', capability: 'users', render: () => <p>User content</p> }],
-        }]}
+        groups={[
+          {
+            id: "core",
+            label: "Core administration",
+            sections: [
+              {
+                id: "users",
+                label: "Users",
+                capability: "users",
+                render: () => <p>User content</p>,
+              },
+            ],
+          },
+        ]}
         onSectionChange={() => undefined}
       />,
     );
 
-    expect(screen.getByText('User content')).toBeTruthy();
-    expect(container.querySelector('.admin-kit__app-header')).toBeNull();
+    expect(screen.getByText("User content")).toBeTruthy();
+    expect(container.querySelector(".admin-kit__app-header")).toBeNull();
   });
 });

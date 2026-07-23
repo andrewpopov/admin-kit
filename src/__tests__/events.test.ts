@@ -40,12 +40,12 @@ describe("validateAdminEventsPage", () => {
   });
 
   it("rejects a non-positive page number or page size", () => {
-    expect(() =>
-      validateAdminEventsPage({ items: [], page: 0, pageSize: 25, total: 0 }),
-    ).toThrow(/page number must be a positive integer/i);
-    expect(() =>
-      validateAdminEventsPage({ items: [], page: 1, pageSize: 0, total: 0 }),
-    ).toThrow(/page size must be a positive integer/i);
+    expect(() => validateAdminEventsPage({ items: [], page: 0, pageSize: 25, total: 0 })).toThrow(
+      /page number must be a positive integer/i,
+    );
+    expect(() => validateAdminEventsPage({ items: [], page: 1, pageSize: 0, total: 0 })).toThrow(
+      /page size must be a positive integer/i,
+    );
   });
 
   it("rejects an event with an invalid severity", () => {

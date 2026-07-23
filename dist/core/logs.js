@@ -18,7 +18,8 @@ function validateOptions(options, name) {
 }
 function defineAdminLogsAdapter(adapter) {
     const lineLimits = adapter.lineLimits ?? [100, 200, 500, 1000];
-    if (lineLimits.length === 0 || lineLimits.some((limit) => !Number.isInteger(limit) || limit <= 0)) {
+    if (lineLimits.length === 0 ||
+        lineLimits.some((limit) => !Number.isInteger(limit) || limit <= 0)) {
         throw new Error("Runtime log line limits must be positive integers.");
     }
     if (new Set(lineLimits).size !== lineLimits.length) {
@@ -89,7 +90,11 @@ function validateAdminLogsSnapshot(snapshot) {
         ...snapshot,
         sources: Object.freeze(sources),
         entries: Object.freeze(entries),
-        levels: snapshot.levels ? Object.freeze(snapshot.levels.map((option) => Object.freeze({ ...option }))) : undefined,
-        categories: snapshot.categories ? Object.freeze(snapshot.categories.map((option) => Object.freeze({ ...option }))) : undefined,
+        levels: snapshot.levels
+            ? Object.freeze(snapshot.levels.map((option) => Object.freeze({ ...option })))
+            : undefined,
+        categories: snapshot.categories
+            ? Object.freeze(snapshot.categories.map((option) => Object.freeze({ ...option })))
+            : undefined,
     });
 }

@@ -40,8 +40,12 @@ describe("AdminScopePicker", () => {
     const value = ["library.read"];
     render(<AdminScopePicker groups={groups} value={value} onChange={vi.fn()} />);
 
-    expect((screen.getByRole("checkbox", { name: /Read catalog/ }) as HTMLInputElement).checked).toBe(true);
-    expect((screen.getByRole("checkbox", { name: /Manage catalog/ }) as HTMLInputElement).checked).toBe(false);
+    expect(
+      (screen.getByRole("checkbox", { name: /Read catalog/ }) as HTMLInputElement).checked,
+    ).toBe(true);
+    expect(
+      (screen.getByRole("checkbox", { name: /Manage catalog/ }) as HTMLInputElement).checked,
+    ).toBe(false);
     expect(value).toEqual(["library.read"]);
   });
 

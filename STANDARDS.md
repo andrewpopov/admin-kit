@@ -1,6 +1,6 @@
 # Shared package standards
 
-*Canonical standard for every `andrewpopov/*` package under `~/proj/packages/`. Each package repo carries a `STANDARDS.md` that must match this file — this is the source of truth; the per-repo copies are synchronized from it. Every engineering rule below cites the real defect that motivated it.*
+_Canonical standard for every `andrewpopov/*` package under `~/proj/packages/`. Each package repo carries a `STANDARDS.md` that must match this file — this is the source of truth; the per-repo copies are synchronized from it. Every engineering rule below cites the real defect that motivated it._
 
 The governing rule: **a shared package must be a superset of the best implementation across all of its consumers.** Consolidation is only a win if the shared version is more feature-rich and more reliable than the hand-rolled copy it replaces. See [`shared-packages-extraction.md`](shared-packages-extraction.md) for where the boundaries go and why.
 
@@ -10,11 +10,12 @@ Every `andrewpopov/*` package under `~/proj/packages/` is **Node/TypeScript**, c
 
 **`fidash` is EXCLUDED. It is Python / FastAPI and will never adopt these kits.** Do not put it on an adoption list, do not open "adopt <kit> in fidash" tickets, and do not treat it as a gap that a kit bump could close. fidash's security work — SSRF validation, rate limiting, client-IP resolution, admin guards — is implemented **natively in Python and stays there**. `zirkbot` (no HTTP server) and `budget` are likewise not HTTP-kit consumers; check `shared-packages-extraction.md` for the current stack table before assuming any repo is a target.
 
-**But excluded ≠ ignored.** fidash is still a legitimate *source* of design to port INTO a kit — its rate limiting and boot-time security preflight were the fleet's best when audited, and a Python implementation can still be the best implementation the superset rule points at. The direction is one-way: **read fidash, copy the idea into the kit, in the kit's own language.** Never the reverse.
+**But excluded ≠ ignored.** fidash is still a legitimate _source_ of design to port INTO a kit — its rate limiting and boot-time security preflight were the fleet's best when audited, and a Python implementation can still be the best implementation the superset rule points at. The direction is one-way: **read fidash, copy the idea into the kit, in the kit's own language.** Never the reverse.
 
 Two corollaries, both learned the hard way (2026-07-13):
-- **A cross-language comparison is not an adoption blocker.** An audit repeatedly flagged "the kit is worse than fidash" as if it blocked adoption. It never could — fidash cannot import a Node package. The finding was still *useful* (it named a real kit gap), but the recommended action was wrong.
-- **Excluded repos still get fixed, in their own language.** fidash held the fleet's only live leftmost-XFF bug. The fix was a Python change to `security/network.py`, made *at the same time as* porting the correct precedence into `express-security-kit` — one idea, two implementations, because there is no other option.
+
+- **A cross-language comparison is not an adoption blocker.** An audit repeatedly flagged "the kit is worse than fidash" as if it blocked adoption. It never could — fidash cannot import a Node package. The finding was still _useful_ (it named a real kit gap), but the recommended action was wrong.
+- **Excluded repos still get fixed, in their own language.** fidash held the fleet's only live leftmost-XFF bug. The fix was a Python change to `security/network.py`, made _at the same time as_ porting the correct precedence into `express-security-kit` — one idea, two implementations, because there is no other option.
 
 ---
 
@@ -31,6 +32,7 @@ Two corollaries, both learned the hard way (2026-07-13):
   npm update @andrewpopov/db-backup
   node -p "require('@andrewpopov/db-backup/package.json').version"   # must match the tag
   ```
+
 - The standalone repo is the **source of truth**. No vendored copies in app repos; delete them when the app switches to the `github:` dependency.
 - Keep runtime dependencies near zero (dotenv-class only). No framework deps in engine packages — frameworks are `peerDependencies`.
 
@@ -69,7 +71,7 @@ installed version**, then run the app's affected flow.
 
 The code that runs is the lockfile's. A `package.json` naming a newer tag is documentation nobody checks, and it hides real defects.
 
-> **Why:** `bewks` pinned `db-backup#v0.5.0` with **0.4.1** installed. `cairn`, `smarthome`, and `savoro` all pin `deploy-kit#v0.5.0` while their lockfiles resolve **0.3.1** — none has ever installed what it claims. Someone bumped the manifest, ran `npm install`, saw no error, and shipped. It is also why PTRY-226 stayed latent: savoro's config uses a key that was removed in the version it *claims* to pin but never installed, so the breakage waits for the next dependency refresh.
+> **Why:** `bewks` pinned `db-backup#v0.5.0` with **0.4.1** installed. `cairn`, `smarthome`, and `savoro` all pin `deploy-kit#v0.5.0` while their lockfiles resolve **0.3.1** — none has ever installed what it claims. Someone bumped the manifest, ran `npm install`, saw no error, and shipped. It is also why PTRY-226 stayed latent: savoro's config uses a key that was removed in the version it _claims_ to pin but never installed, so the breakage waits for the next dependency refresh.
 
 Audit it: compare each consumer's manifest spec against `package-lock.json`, and against `node_modules/<pkg>/package.json` — all three can disagree.
 
@@ -92,7 +94,7 @@ node -e "console.log(require('./node_modules/@andrewpopov/<pkg>/package.json').v
 grep -oE "<pkg>.git#[a-f0-9]{7}" package-lock.json | head -1
 ```
 
-> **Why:** during the 2026-07-10 fleet migration this trap fired in **five separate repos**. In two of them the manifest read `v1.2.1` while the installed package was still **v1.0.0** — so "I bumped it and the tests passed" was a *true statement about the wrong code*. One migration nearly shipped a "v0.1.1 SSRF fix" that was still running the vulnerable v0.1.0.
+> **Why:** during the 2026-07-10 fleet migration this trap fired in **five separate repos**. In two of them the manifest read `v1.2.1` while the installed package was still **v1.0.0** — so "I bumped it and the tests passed" was a _true statement about the wrong code_. One migration nearly shipped a "v0.1.1 SSRF fix" that was still running the vulnerable v0.1.0.
 >
 > Note for annotated tags: `git rev-parse v0.8.2` returns the **tag object**, not the commit. Use `git rev-parse v0.8.2^{commit}` when comparing against a lockfile SHA.
 
@@ -106,7 +108,7 @@ These are the reliability properties a package must hold before any consumer is 
 
 Before deleting a hand-rolled implementation, audit what it does **better** and fold that into the package. A hand-rolled copy usually encodes a hard-won fix the package lacks.
 
-> **Why:** savoro's hand-rolled SQLite restore ran `PRAGMA wal_checkpoint(TRUNCATE)`. `db-backup` never touched `-wal`/`-shm` at all and silently resurrected pre-restore rows (BWK-118). savoro's "duplicate code" was *safer than the package it was supposed to adopt.* Migrating first would have introduced data corruption.
+> **Why:** savoro's hand-rolled SQLite restore ran `PRAGMA wal_checkpoint(TRUNCATE)`. `db-backup` never touched `-wal`/`-shm` at all and silently resurrected pre-restore rows (BWK-118). savoro's "duplicate code" was _safer than the package it was supposed to adopt._ Migrating first would have introduced data corruption.
 
 Pin each folded-in protection with a regression test, and **verify the test fails against the unpatched package**. A test that passes before and after guards nothing.
 
@@ -114,7 +116,7 @@ Pin each folded-in protection with a regression test, and **verify the test fail
 
 Ship a **primitive/engine layer** and, optionally, an opinionated **job wrapper** on top. If only the wrapper is exported, a consumer that needs different naming, its own manifest, or no pruning side-effect will reimplement the engine right next to your import.
 
-> **Why:** `db-backup` exported `runBackupJob` (which owns env resolution, filenames, its own manifest, and prunes as a side effect) plus storage helpers — but `createSqliteBackup`, `verifySqliteBackupIntegrity`, and `restoreSqliteBackup` were defined and *not exported*. savoro imported the storage helpers and reimplemented the engine with five `execFileSync` calls.
+> **Why:** `db-backup` exported `runBackupJob` (which owns env resolution, filenames, its own manifest, and prunes as a side effect) plus storage helpers — but `createSqliteBackup`, `verifySqliteBackupIntegrity`, and `restoreSqliteBackup` were defined and _not exported_. savoro imported the storage helpers and reimplemented the engine with five `execFileSync` calls.
 
 A missing policy knob produces a reimplementation, not a PR against the package. Same for a missing seam.
 
@@ -124,25 +126,25 @@ No `execFileSync` / `execSync` / `spawnSync` without an explicit `timeout`. Expo
 
 **A timeout that defaults to off is not a bound.** Ship it enabled, with a default generous enough that nobody needs to disable it.
 
-> **Why:** `db-backup` and `prisma-tools` bounded *none* of their commands (db-backup's only `timeout` was sqlite's `.timeout 5000` *lock* pragma, not a process bound), so a hung `pg_dump` or `next build` blocked a nightly cron or a deploy forever. Both are fixed (v0.7.0, v0.4.0).
+> **Why:** `db-backup` and `prisma-tools` bounded _none_ of their commands (db-backup's only `timeout` was sqlite's `.timeout 5000` _lock_ pragma, not a process bound), so a hung `pg_dump` or `next build` blocked a nightly cron or a deploy forever. Both are fixed (v0.7.0, v0.4.0).
 >
-> `deploy-kit` is the cautionary case: `src/exec.js:51` applies a timeout only `if (config.stepTimeoutSeconds)`, and `src/config.js:53` defaults it to `null`. **None of its five consumers set it**, so every deploy step (`npm ci`, build, migrate, `pm2 restart`) runs unbounded on the Pi — directly under the code comment *"Kill a hung remote command instead of blocking the pipeline forever."* The capability shipped; the bound never did.
+> `deploy-kit` is the cautionary case: `src/exec.js:51` applies a timeout only `if (config.stepTimeoutSeconds)`, and `src/config.js:53` defaults it to `null`. **None of its five consumers set it**, so every deploy step (`npm ci`, build, migrate, `pm2 restart`) runs unbounded on the Pi — directly under the code comment _"Kill a hung remote command instead of blocking the pipeline forever."_ The capability shipped; the bound never did.
 >
 > `release-kit` is the reference: both of its `execFileSync` calls carry a timeout (10s, 5s).
 
-Genuinely long-running foreground processes are the exception — `deploy-kit`'s `tunnel.js` *is* the tunnel, and bounding it would kill the thing it launched. Say so in a comment.
+Genuinely long-running foreground processes are the exception — `deploy-kit`'s `tunnel.js` _is_ the tunnel, and bounding it would kill the thing it launched. Say so in a comment.
 
 ### 4. Destructive operations are atomic
 
-Write to a temp path, verify it there, then `rename` into place. Never overwrite a live file in place, and never validate *after* the swap.
+Write to a temp path, verify it there, then `rename` into place. Never overwrite a live file in place, and never validate _after_ the swap.
 
-> **Why:** `db-backup`'s restore does temp → verify → rename, so a corrupt backup can never destroy a good database. savoro's restore `copyFile`s straight over the live DB — an interrupted copy destroys it. Conversely db-backup's `assertSqliteIntegrity` ran on the temp file and therefore *missed* the sidecar corruption in BWK-118: verify the thing you will actually end up with.
+> **Why:** `db-backup`'s restore does temp → verify → rename, so a corrupt backup can never destroy a good database. savoro's restore `copyFile`s straight over the live DB — an interrupted copy destroys it. Conversely db-backup's `assertSqliteIntegrity` ran on the temp file and therefore _missed_ the sidecar corruption in BWK-118: verify the thing you will actually end up with.
 
 ### 5. Verify before you keep, and fail loud
 
 Never produce a silently-incomplete artifact. A loud failure beats a quiet bad result. If a capability is unavailable, refuse — do not degrade to a weaker mechanism and report success.
 
-> **Why:** `createSqliteBackup` falls back to `fs.copyFileSync` when `sqlite3` is absent, which in WAL mode omits committed transactions living in `-wal` (BWK-119). That is the exact defect the package exists to eliminate (smarthome's raw `cp`, SMH-113). The package's own comment already states the principle: *"A bad backup is worse than a loud failure."*
+> **Why:** `createSqliteBackup` falls back to `fs.copyFileSync` when `sqlite3` is absent, which in WAL mode omits committed transactions living in `-wal` (BWK-119). That is the exact defect the package exists to eliminate (smarthome's raw `cp`, SMH-113). The package's own comment already states the principle: _"A bad backup is worse than a loud failure."_
 
 Corollary: a success message and a green `integrity_check` are not proof. BWK-118 printed `Restore completed.` and `PRAGMA integrity_check` returned `ok` while serving resurrected rows.
 
@@ -176,12 +178,12 @@ Strict config validation must fail closed — but a key you delete will hard-thr
 
 Every package exposes `test` and `verify:pack`, plus a **type gate appropriate to its shape** — the two shapes check genuinely different things, so they are correctly named differently:
 
-| Package shape | Type gate | What it protects against |
-|---|---|---|
-| Plain JS + hand-written `index.d.ts` (`db-backup`, `prisma-tools`) | `verify:types` | The hand-written `.d.ts` drifting from the JS. Type-checks a **consumer-shaped file** against the declarations. |
-| TypeScript → committed `dist/` (`express-security-kit`, `release-kit`) | `typecheck` + `build` + a dist-freshness gate | The source not compiling, and the committed `dist/` going stale. The `.d.ts` is emitted by `tsc`, so it *cannot* drift. |
+| Package shape                                                          | Type gate                                     | What it protects against                                                                                                |
+| ---------------------------------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Plain JS + hand-written `index.d.ts` (`db-backup`, `prisma-tools`)     | `verify:types`                                | The hand-written `.d.ts` drifting from the JS. Type-checks a **consumer-shaped file** against the declarations.         |
+| TypeScript → committed `dist/` (`express-security-kit`, `release-kit`) | `typecheck` + `build` + a dist-freshness gate | The source not compiling, and the committed `dist/` going stale. The `.d.ts` is emitted by `tsc`, so it _cannot_ drift. |
 
-Do not rename `typecheck` to `verify:types` on a TS package: it would be cosmetic and would hide that the gates verify different properties. What must be uniform is the *coverage*, not the string.
+Do not rename `typecheck` to `verify:types` on a TS package: it would be cosmetic and would hide that the gates verify different properties. What must be uniform is the _coverage_, not the string.
 
 ---
 
@@ -200,9 +202,9 @@ Part 2 is what a package owes its consumers. This is what a consumer owes itself
 
 ### The governing rule: a package is not a superset just because it says it is
 
-Part 2 standard 1 says a package *must* be a superset. **Do not trust that it is.** Diff the behaviour yourself, before you delete anything.
+Part 2 standard 1 says a package _must_ be a superset. **Do not trust that it is.** Diff the behaviour yourself, before you delete anything.
 
-> **Why:** `url-guard` v0.1.0 was *designed* as a superset of four hand-rolled SSRF guards, *documented* as one, and had already been adopted by two repos on that basis. It still missed **TEST-NET-1** (`192.0.2.0/24`) and **`fec0::/10`**. Two independent adoption attempts, in different repos, found the same two gaps by diffing behaviour. Adopting blind would have *narrowed* savoro's SSRF protection — in a PR that deletes 208 lines and shows all-green tests. Fixed upstream as v0.1.1 rather than worked around locally.
+> **Why:** `url-guard` v0.1.0 was _designed_ as a superset of four hand-rolled SSRF guards, _documented_ as one, and had already been adopted by two repos on that basis. It still missed **TEST-NET-1** (`192.0.2.0/24`) and **`fec0::/10`**. Two independent adoption attempts, in different repos, found the same two gaps by diffing behaviour. Adopting blind would have _narrowed_ savoro's SSRF protection — in a PR that deletes 208 lines and shows all-green tests. Fixed upstream as v0.1.1 rather than worked around locally.
 
 So: **diff behaviour, not code.** Enumerate what the local copy blocks/handles/guards, and assert the package does each one. Where it doesn't, **stop and fix the package** — do not adopt over a regression, and do not paper it over with a local supplemental check (that just re-creates the drift you're deleting).
 
@@ -214,14 +216,14 @@ A local file usually mixes the package's concern with adjacent ones. Deleting th
 
 ### Credential-shaped changes: verify the OLD artifact against the NEW code
 
-The single most dangerous class. If a package changes how a **stored** value is derived, a test suite that creates *and* verifies with the new code passes perfectly while every existing user is locked out.
+The single most dangerous class. If a package changes how a **stored** value is derived, a test suite that creates _and_ verifies with the new code passes perfectly while every existing user is locked out.
 
 **`auth-kit`'s `preHash` is the canonical example**, and it cuts both ways:
 
-| Repo | Existing stored hashes | Correct setting | Get it backwards → |
-|---|---|---|---|
-| **sano-os** | SHA-256 pre-hash → bcrypt | `preHash: true` | every user locked out |
-| **savoro** | plain bcrypt | `preHash: false` | every user locked out |
+| Repo        | Existing stored hashes    | Correct setting  | Get it backwards →    |
+| ----------- | ------------------------- | ---------------- | --------------------- |
+| **sano-os** | SHA-256 pre-hash → bcrypt | `preHash: true`  | every user locked out |
+| **savoro**  | plain bcrypt              | `preHash: false` | every user locked out |
 
 The **only** test that catches this:
 
@@ -229,26 +231,26 @@ The **only** test that catches this:
 
 Both repos proved it in both directions before merging. Generalise this to any package that touches stored hashes, tokens, signatures, or encrypted-at-rest values.
 
-### Adopting a package can silently break test *mechanisms*
+### Adopting a package can silently break test _mechanisms_
 
 The tests may stop testing what you think they test.
 
-> **mailer-kit ships CommonJS.** Its internal `require('nodemailer')` is invisible to `vi.mock('nodemailer')` from an ESM test graph. The moment an app stopped depending on `nodemailer` *directly*, the existing mock **silently stopped intercepting** — and the specs began opening a **live SMTP connection to the real relay**. This hit **savoro and sano-os independently**. Fix: use the package's documented `transportFactory` seam (Part 2 standard 2 exists for exactly this). Any package that wraps a mockable module will do this to its adopters.
+> **mailer-kit ships CommonJS.** Its internal `require('nodemailer')` is invisible to `vi.mock('nodemailer')` from an ESM test graph. The moment an app stopped depending on `nodemailer` _directly_, the existing mock **silently stopped intercepting** — and the specs began opening a **live SMTP connection to the real relay**. This hit **savoro and sano-os independently**. Fix: use the package's documented `transportFactory` seam (Part 2 standard 2 exists for exactly this). Any package that wraps a mockable module will do this to its adopters.
 
 ### Coverage gates drop structurally on adoption — do not lower the threshold
 
 Adoption moves locally-counted lines into a dependency the coverage run doesn't measure. Coverage falls **by construction**, not because anything got worse.
 
-> smarthome deleted its ~110-loc SSRF guard and dropped from 70.02% to 69.94% — under its 70% gate. The threshold was **not** lowered. The margin was recovered with real tests of genuinely untested paths (the create/update *write* path, proving a rejected URL writes no DB row). Expect this on every adoption in a repo with a tight margin.
+> smarthome deleted its ~110-loc SSRF guard and dropped from 70.02% to 69.94% — under its 70% gate. The threshold was **not** lowered. The margin was recovered with real tests of genuinely untested paths (the create/update _write_ path, proving a rejected URL writes no DB row). Expect this on every adoption in a repo with a tight margin.
 
 ### Never run the authoritative suite next to a sub-agent's
 
 A concurrent run in the same worktree races over the same SQLite test DBs and module caches, and produces **phantom failures** you will waste time diagnosing.
 
-> A savoro run showed 3 mailer failures that vanished entirely once an orphaned `vitest` was killed and the suite ran alone: 170 files / 2,041 tests green. Kill orphan lanes first; wait for the sub-agent's *terminal* completion; then run.
+> A savoro run showed 3 mailer failures that vanished entirely once an orphaned `vitest` was killed and the suite ran alone: 170 files / 2,041 tests green. Kill orphan lanes first; wait for the sub-agent's _terminal_ completion; then run.
 
 ### Before calling a failure "pre-existing", install the deps
 
 A fresh worktree's gitignored build output is empty, and a stale primary checkout can fail for reasons unrelated to your change.
 
-> savoro's `check:generated-src` gate looked like it failed *differently* on master than in the worktree — because master's `node_modules` predated a merged PR and blew up on a missing package instead. After `npm install`, master failed with the **same** error on a clean tree, confirming the gate was genuinely pre-existing (PTRY-236). Run `prisma generate` / the package build in a fresh worktree before believing any failure.
+> savoro's `check:generated-src` gate looked like it failed _differently_ on master than in the worktree — because master's `node_modules` predated a merged PR and blew up on a missing package instead. After `npm install`, master failed with the **same** error on a clean tree, confirming the gate was genuinely pre-existing (PTRY-236). Run `prisma generate` / the package build in a fresh worktree before believing any failure.

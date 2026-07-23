@@ -57,10 +57,10 @@ function createFeatureFlagsAdapter(options) {
                 if (!current) {
                     throw new Error(`Unknown feature flag: ${input.key}`);
                 }
-                if (current.source !== 'store') {
+                if (current.source !== "store") {
                     throw new Error(`Feature flag ${input.key} is not mutable (source: ${current.source})`);
                 }
-                if (before.health !== 'ok') {
+                if (before.health !== "ok") {
                     throw new Error(`Feature flag ${input.key} is not mutable (store health: ${before.health})`);
                 }
                 await setEnabled(input);

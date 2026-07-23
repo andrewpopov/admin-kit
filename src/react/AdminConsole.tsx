@@ -1,6 +1,6 @@
-import type { KeyboardEvent, ReactNode } from 'react';
-import { useId, useRef } from 'react';
-import type { AdminSectionDefinition, AdminSectionId } from '../core/contracts';
+import type { KeyboardEvent, ReactNode } from "react";
+import { useId, useRef } from "react";
+import type { AdminSectionDefinition, AdminSectionId } from "../core/contracts";
 
 export interface AdminReactSection extends AdminSectionDefinition {
   render: () => ReactNode;
@@ -25,14 +25,14 @@ export function AdminConsole({
   activeSection,
   sections,
   onSectionChange,
-  ariaLabel = 'Administration sections',
+  ariaLabel = "Administration sections",
   className,
 }: AdminConsoleProps) {
   const idBase = useId();
   const active = sections.find((section) => section.id === activeSection) ?? sections[0];
 
   if (!active) {
-    throw new Error('AdminConsole needs at least one rendered section.');
+    throw new Error("AdminConsole needs at least one rendered section.");
   }
 
   const tabRefs = useRef(new Map<AdminSectionId, HTMLButtonElement>());
@@ -52,16 +52,17 @@ export function AdminConsole({
     const currentIndex = focusable.findIndex((section) => section.id === sectionId);
     let nextIndex: number | undefined;
     switch (event.key) {
-      case 'ArrowRight':
+      case "ArrowRight":
         nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % focusable.length;
         break;
-      case 'ArrowLeft':
-        nextIndex = currentIndex === -1 ? 0 : (currentIndex - 1 + focusable.length) % focusable.length;
+      case "ArrowLeft":
+        nextIndex =
+          currentIndex === -1 ? 0 : (currentIndex - 1 + focusable.length) % focusable.length;
         break;
-      case 'Home':
+      case "Home":
         nextIndex = 0;
         break;
-      case 'End':
+      case "End":
         nextIndex = focusable.length - 1;
         break;
       default:
@@ -75,7 +76,7 @@ export function AdminConsole({
   };
 
   return (
-    <section className={['admin-kit', className].filter(Boolean).join(' ')}>
+    <section className={["admin-kit", className].filter(Boolean).join(" ")}>
       <nav aria-label={ariaLabel} className="admin-kit__navigation">
         <div role="tablist" aria-orientation="horizontal" className="admin-kit__tabs">
           {sections.map((section) => {

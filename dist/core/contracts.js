@@ -11,16 +11,16 @@ exports.normalizeAdminFailure = normalizeAdminFailure;
  * than once under different local names.
  */
 exports.ADMIN_CAPABILITIES = [
-    'users',
-    'sessions',
-    'logs',
-    'events',
-    'feature-flags',
-    'api-keys',
-    'memberships',
-    'backups',
-    'operational-jobs',
-    'settings',
+    "users",
+    "sessions",
+    "logs",
+    "events",
+    "feature-flags",
+    "api-keys",
+    "memberships",
+    "backups",
+    "operational-jobs",
+    "settings",
 ];
 /**
  * Validates configuration at definition time so ambiguous navigation never
@@ -29,12 +29,12 @@ exports.ADMIN_CAPABILITIES = [
  */
 function defineAdminConsole(definition) {
     if (definition.sections.length === 0) {
-        throw new Error('An admin console needs at least one section.');
+        throw new Error("An admin console needs at least one section.");
     }
     const ids = new Set();
     for (const section of definition.sections) {
         if (!section.id.trim())
-            throw new Error('Admin section IDs must not be empty.');
+            throw new Error("Admin section IDs must not be empty.");
         if (!section.label.trim())
             throw new Error(`Admin section ${section.id} needs a label.`);
         if (ids.has(section.id))
@@ -51,13 +51,13 @@ function defineAdminConsole(definition) {
  */
 function defineAdminPortal(definition) {
     if (definition.groups.length === 0) {
-        throw new Error('An admin portal needs at least one section group.');
+        throw new Error("An admin portal needs at least one section group.");
     }
     const groupIds = new Set();
     const sectionIds = new Set();
     const groups = definition.groups.map((group) => {
         if (!group.id.trim())
-            throw new Error('Admin section group IDs must not be empty.');
+            throw new Error("Admin section group IDs must not be empty.");
         if (!group.label.trim())
             throw new Error(`Admin section group ${group.id} needs a label.`);
         if (groupIds.has(group.id))
@@ -68,7 +68,7 @@ function defineAdminPortal(definition) {
         groupIds.add(group.id);
         const sections = group.sections.map((section) => {
             if (!section.id.trim())
-                throw new Error('Admin section IDs must not be empty.');
+                throw new Error("Admin section IDs must not be empty.");
             if (!section.label.trim())
                 throw new Error(`Admin section ${section.id} needs a label.`);
             if (sectionIds.has(section.id))
@@ -90,9 +90,10 @@ function defineAdminApp(definition) {
     const capabilities = new Set();
     for (const group of definition.groups) {
         for (const section of group.sections) {
-            const isCustomCapability = section.capability.startsWith('custom:')
-                && section.capability.slice('custom:'.length).trim().length > 0;
-            if (!isCustomCapability && !exports.ADMIN_CAPABILITIES.includes(section.capability)) {
+            const isCustomCapability = section.capability.startsWith("custom:") &&
+                section.capability.slice("custom:".length).trim().length > 0;
+            if (!isCustomCapability &&
+                !exports.ADMIN_CAPABILITIES.includes(section.capability)) {
                 throw new Error(`Unknown admin capability: ${section.capability}.`);
             }
             if (capabilities.has(section.capability)) {
@@ -116,13 +117,11 @@ function defineAdminApp(definition) {
  * an unrecognized failure shape carries no evidence that retrying will help.
  */
 function normalizeAdminFailure(error) {
-    const message = error instanceof Error && error.message
-        ? error.message
-        : 'The administration request failed.';
-    const retryable = typeof error?.retryable === 'boolean'
+    const message = error instanceof Error && error.message ? error.message : "The administration request failed.";
+    const retryable = typeof error?.retryable === "boolean"
         ? error.retryable
         : false;
-    const code = typeof error?.code === 'string'
+    const code = typeof error?.code === "string"
         ? error.code
         : undefined;
     return { message, retryable, code };

@@ -1,14 +1,14 @@
-import type { ReactNode } from 'react';
-import { type AdminAppGroupDefinition, type AdminAppSectionDefinition } from '../core';
-import { type AdminPortalNavigationItemProps, type AdminPortalProps } from './AdminPortal';
-import { type AdminThemeName } from './AdminTheme';
+import type { ReactNode } from "react";
+import { type AdminAppGroupDefinition, type AdminAppSectionDefinition } from "../core";
+import { type AdminPortalNavigationItemProps, type AdminPortalProps } from "./AdminPortal";
+import { type AdminThemeName } from "./AdminTheme";
 export interface AdminAppReactSection extends AdminAppSectionDefinition {
     render: () => ReactNode;
 }
-export interface AdminAppReactGroup extends Omit<AdminAppGroupDefinition, 'sections'> {
+export interface AdminAppReactGroup extends Omit<AdminAppGroupDefinition, "sections"> {
     sections: readonly AdminAppReactSection[];
 }
-type WithAdminAppGroups<T> = T extends AdminPortalProps ? Omit<T, 'groups'> & {
+type WithAdminAppGroups<T> = T extends AdminPortalProps ? Omit<T, "groups"> & {
     groups: readonly AdminAppReactGroup[];
 } : never;
 export interface AdminAppFrame {

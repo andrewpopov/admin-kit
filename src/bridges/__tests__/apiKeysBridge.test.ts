@@ -9,7 +9,9 @@ interface TestCredential extends ForeignApiAccessCredential {
   name: string;
 }
 
-function makeStore(initial: TestCredential[]): ForeignApiAccessCredentialLifecycleStore<TestCredential> & {
+function makeStore(
+  initial: TestCredential[],
+): ForeignApiAccessCredentialLifecycleStore<TestCredential> & {
   all: () => TestCredential[];
 } {
   const rows = new Map(initial.map((c) => [c.id, c]));

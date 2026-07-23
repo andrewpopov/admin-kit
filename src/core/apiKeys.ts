@@ -97,15 +97,12 @@ export function defineAdminApiKeysAdapter<CreateInput = never, UpdateInput = nev
   return Object.freeze({ ...adapter });
 }
 
-export function validateAdminApiKeys(
-  keys: readonly AdminApiKey[],
-): readonly AdminApiKey[] {
+export function validateAdminApiKeys(keys: readonly AdminApiKey[]): readonly AdminApiKey[] {
   const ids = new Set<string>();
   for (const key of keys) {
     if (!key.id.trim()) throw new Error("API key IDs must not be empty.");
     if (!key.name.trim()) throw new Error(`API key ${key.id} needs a name.`);
-    if (!key.maskedKey.trim())
-      throw new Error(`API key ${key.id} needs masked display material.`);
+    if (!key.maskedKey.trim()) throw new Error(`API key ${key.id} needs masked display material.`);
     if (!["active", "revoked", "expired"].includes(key.state)) {
       throw new Error(`API key ${key.id} has an invalid lifecycle state.`);
     }
@@ -138,9 +135,7 @@ export function validateAdminApiKeys(
 }
 
 /** Validates the only response shape that may carry a raw one-time secret. */
-export function validateAdminApiKeyCreated(
-  created: AdminApiKeyCreated,
-): AdminApiKeyCreated {
+export function validateAdminApiKeyCreated(created: AdminApiKeyCreated): AdminApiKeyCreated {
   if (!created.secret.trim()) {
     throw new Error("A newly created API key must include a one-time secret.");
   }
@@ -156,10 +151,7 @@ export function validateAdminApiKeyCreated(
  * non-empty string, duplicates are dropped (order preserved), and the result
  * is frozen. Shared by the create and edit request validators.
  */
-function validateAdminApiKeyScopes(
-  scopes: readonly string[],
-  context: string,
-): readonly string[] {
+function validateAdminApiKeyScopes(scopes: readonly string[], context: string): readonly string[] {
   if (!Array.isArray(scopes)) {
     throw new Error(`${context} must be an array of scope strings.`);
   }
@@ -191,21 +183,14 @@ export function validateAdminApiKeyCreateRequest(
   if (
     expiresInDays !== undefined &&
     expiresInDays !== null &&
-    (typeof expiresInDays !== "number" ||
-      !Number.isInteger(expiresInDays) ||
-      expiresInDays <= 0)
+    (typeof expiresInDays !== "number" || !Number.isInteger(expiresInDays) || expiresInDays <= 0)
   ) {
-    throw new Error(
-      "API key expiry must be a positive whole number of days, or null.",
-    );
+    throw new Error("API key expiry must be a positive whole number of days, or null.");
   }
   return Object.freeze({
     name: request.name,
     expiresInDays: request.expiresInDays,
-    scopes: validateAdminApiKeyScopes(
-      request.scopes,
-      "API key create request scopes",
-    ),
+    scopes: validateAdminApiKeyScopes(request.scopes, "API key create request scopes"),
   });
 }
 
@@ -214,9 +199,6 @@ export function validateAdminApiKeyScopeUpdate(
   update: AdminApiKeyScopeUpdate,
 ): AdminApiKeyScopeUpdate {
   return Object.freeze({
-    scopes: validateAdminApiKeyScopes(
-      update.scopes,
-      "API key scope update scopes",
-    ),
+    scopes: validateAdminApiKeyScopes(update.scopes, "API key scope update scopes"),
   });
 }

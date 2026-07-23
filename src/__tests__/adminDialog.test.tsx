@@ -8,12 +8,24 @@ afterEach(cleanup);
 
 function Harness({ closeDisabled = false }: { closeDisabled?: boolean }) {
   const [open, setOpen] = useState(false);
-  return <>
-    <button onClick={() => setOpen(true)} type="button">Open invite</button>
-    <AdminDialog closeDisabled={closeDisabled} onClose={() => setOpen(false)} open={open} title="Invite user">
-      <label>Email<input type="email" /></label>
-    </AdminDialog>
-  </>;
+  return (
+    <>
+      <button onClick={() => setOpen(true)} type="button">
+        Open invite
+      </button>
+      <AdminDialog
+        closeDisabled={closeDisabled}
+        onClose={() => setOpen(false)}
+        open={open}
+        title="Invite user"
+      >
+        <label>
+          Email
+          <input type="email" />
+        </label>
+      </AdminDialog>
+    </>
+  );
 }
 
 describe("AdminDialog", () => {
@@ -46,6 +58,8 @@ describe("AdminDialog", () => {
     fireEvent.keyDown(document, { key: "Escape" });
     fireEvent.mouseDown(screen.getByRole("presentation"));
     expect(screen.getByRole("dialog")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Close dialog" }).hasAttribute("disabled")).toBe(true);
+    expect(screen.getByRole("button", { name: "Close dialog" }).hasAttribute("disabled")).toBe(
+      true,
+    );
   });
 });

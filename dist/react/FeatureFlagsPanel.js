@@ -12,7 +12,7 @@ const sourceLabel = {
     "store-error-policy": "Store unavailable policy",
 };
 /** A source-aware flag panel that never offers a misleading mutable control. */
-function FeatureFlagsPanel({ adapter, title = "Feature flags", className }) {
+function FeatureFlagsPanel({ adapter, title = "Feature flags", className, }) {
     const idBase = (0, react_1.useId)();
     const [snapshot, setSnapshot] = (0, react_1.useState)();
     const [loadError, setLoadError] = (0, react_1.useState)();
@@ -35,9 +35,7 @@ function FeatureFlagsPanel({ adapter, title = "Feature flags", className }) {
         }
         catch (reason) {
             if (loadId === latestLoadId.current) {
-                setLoadError(reason instanceof Error
-                    ? reason.message
-                    : "Unable to load feature flags.");
+                setLoadError(reason instanceof Error ? reason.message : "Unable to load feature flags.");
             }
         }
     };
@@ -51,7 +49,9 @@ function FeatureFlagsPanel({ adapter, title = "Feature flags", className }) {
         // in flight for the previous adapter can still resolve and pass the
         // `loadId === latestLoadId.current` check because the effect that would
         // have bumped it for the new adapter hasn't started yet.
-        return () => { latestLoadId.current += 1; };
+        return () => {
+            latestLoadId.current += 1;
+        };
     }, [adapter]);
     if (loadError && !snapshot)
         return ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() }, className: className }));
@@ -69,18 +69,14 @@ function FeatureFlagsPanel({ adapter, title = "Feature flags", className }) {
                 await load();
         }
         catch (reason) {
-            setActionError(reason instanceof Error
-                ? reason.message
-                : "Unable to update the feature flag.");
+            setActionError(reason instanceof Error ? reason.message : "Unable to update the feature flag.");
         }
         finally {
             setPendingKey(undefined);
         }
     };
-    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__flags", className].filter(Boolean).join(" "), "aria-label": title, children: [(0, jsx_runtime_1.jsxs)("header", { className: "admin-kit__flags-header", children: [(0, jsx_runtime_1.jsx)("h2", { children: title }), (0, jsx_runtime_1.jsxs)("p", { children: ["Store health: ", (0, jsx_runtime_1.jsx)("strong", { children: snapshot.storeHealth })] }), snapshot.storeHealthDetail ? ((0, jsx_runtime_1.jsx)("p", { role: "status", children: snapshot.storeHealthDetail })) : null] }), loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? (0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError }) : null, (0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__flags-list", children: snapshot.flags.map((flag) => {
-                    const canMutate = flag.mutable &&
-                        snapshot.storeHealth === "healthy" &&
-                        Boolean(adapter.setEnabled);
+    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__flags", className].filter(Boolean).join(" "), "aria-label": title, children: [(0, jsx_runtime_1.jsxs)("header", { className: "admin-kit__flags-header", children: [(0, jsx_runtime_1.jsx)("h2", { children: title }), (0, jsx_runtime_1.jsxs)("p", { children: ["Store health: ", (0, jsx_runtime_1.jsx)("strong", { children: snapshot.storeHealth })] }), snapshot.storeHealthDetail ? (0, jsx_runtime_1.jsx)("p", { role: "status", children: snapshot.storeHealthDetail }) : null] }), loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? ((0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError })) : null, (0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__flags-list", children: snapshot.flags.map((flag) => {
+                    const canMutate = flag.mutable && snapshot.storeHealth === "healthy" && Boolean(adapter.setEnabled);
                     const controlId = `${idBase}-flag-${flag.key}`;
                     return ((0, jsx_runtime_1.jsxs)("li", { className: "admin-kit__flag", children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { htmlFor: controlId, children: flag.label }), (0, jsx_runtime_1.jsx)("code", { children: flag.key }), flag.description ? (0, jsx_runtime_1.jsx)("p", { children: flag.description }) : null, (0, jsx_runtime_1.jsxs)("p", { className: "admin-kit__flag-source", children: ["Source: ", sourceLabel[flag.source]] })] }), (0, jsx_runtime_1.jsx)("input", { checked: flag.enabled, disabled: !canMutate || pendingKey === flag.key, id: controlId, onChange: (event) => void setEnabled(flag.key, event.target.checked), type: "checkbox" })] }, flag.key));
                 }) })] }));

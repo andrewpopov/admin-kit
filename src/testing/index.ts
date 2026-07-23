@@ -1,4 +1,4 @@
-import type { AdminPage } from '../core/contracts';
+import type { AdminPage } from "../core/contracts";
 
 /**
  * Builds a stable page fixture for adapter and consumer-shaped tests.
@@ -17,7 +17,7 @@ export function createAdminPageFixture<T>(
   total = items.length,
 ): AdminPage<T> {
   if (total < items.length) {
-    throw new Error('createAdminPageFixture: total cannot be smaller than the number of items.');
+    throw new Error("createAdminPageFixture: total cannot be smaller than the number of items.");
   }
   const priorItems = (page - 1) * pageSize;
   if (priorItems + items.length > total) {

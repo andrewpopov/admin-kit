@@ -29,9 +29,7 @@ export function AdminScopePicker({
   const toggle = (scope: string) => {
     if (disabled) return;
     onChange(
-      selected.has(scope)
-        ? value.filter((candidate) => candidate !== scope)
-        : [...value, scope],
+      selected.has(scope) ? value.filter((candidate) => candidate !== scope) : [...value, scope],
     );
   };
   return (
@@ -113,7 +111,13 @@ export function AdminScopePicker({
             {unmatchedScopes.map((scope) => (
               <li key={scope}>
                 <label className="admin-kit__scope-option" data-selected="true">
-                  <input checked disabled={disabled} type="checkbox" value={scope} onChange={() => toggle(scope)} />
+                  <input
+                    checked
+                    disabled={disabled}
+                    type="checkbox"
+                    value={scope}
+                    onChange={() => toggle(scope)}
+                  />
                   <span className="admin-kit__scope-option-copy">
                     <span className="admin-kit__scope-option-label">Existing scope</span>
                     <code className="admin-kit__scope-option-value">{scope}</code>

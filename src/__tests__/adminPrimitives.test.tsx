@@ -7,7 +7,13 @@ afterEach(cleanup);
 
 describe("Admin extension primitives", () => {
   it("renders a labelled full-row switch with explicit state", () => {
-    render(<AdminSwitch checked label="Public registration" description="Anyone can create an account." />);
+    render(
+      <AdminSwitch
+        checked
+        label="Public registration"
+        description="Anyone can create an account."
+      />,
+    );
 
     const control = screen.getByRole("switch", { name: /Public registration/ });
     expect(control.getAttribute("aria-checked")).toBe("true");
@@ -20,7 +26,9 @@ describe("Admin extension primitives", () => {
         <AdminCard title="Credential policy" description="Applied to newly created keys.">
           <AdminStack>
             <AdminField label="Expiry" hint="Choose a maximum lifetime.">
-              <select aria-label="Expiry"><option>30 days</option></select>
+              <select aria-label="Expiry">
+                <option>30 days</option>
+              </select>
             </AdminField>
           </AdminStack>
         </AdminCard>

@@ -13,7 +13,7 @@ exports.createAdminPageFixture = createAdminPageFixture;
  */
 function createAdminPageFixture(items, page = 1, pageSize = items.length, total = items.length) {
     if (total < items.length) {
-        throw new Error('createAdminPageFixture: total cannot be smaller than the number of items.');
+        throw new Error("createAdminPageFixture: total cannot be smaller than the number of items.");
     }
     const priorItems = (page - 1) * pageSize;
     if (priorItems + items.length > total) {

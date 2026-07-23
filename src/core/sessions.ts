@@ -44,9 +44,9 @@ function requireText(value: string, description: string): void {
   if (!value.trim()) throw new Error(`${description} must not be empty.`);
 }
 
-export function defineAdminSessionsAdapter<Session extends AdminSessionSummary = AdminSessionSummary>(
-  adapter: AdminSessionsAdapter<Session>,
-): AdminSessionsAdapter<Session> {
+export function defineAdminSessionsAdapter<
+  Session extends AdminSessionSummary = AdminSessionSummary,
+>(adapter: AdminSessionsAdapter<Session>): AdminSessionsAdapter<Session> {
   requireText(adapter.scope.id, "Session scope id");
   requireText(adapter.scope.label, "Session scope label");
   requireText(adapter.scope.kind, "Session scope kind");
@@ -62,21 +62,23 @@ export function validateAdminSessions<Session extends AdminSessionSummary>(
   sessions: readonly Session[],
 ): readonly Session[] {
   const ids = new Set<string>();
-  return Object.freeze(sessions.map((session) => {
-    requireText(session.id, "Session id");
-    requireText(session.label, `Session ${session.id} label`);
-    requireText(session.createdAt, `Session ${session.id} created timestamp`);
-    if (ids.has(session.id)) throw new Error(`Duplicate active session: ${session.id}.`);
-    ids.add(session.id);
-    const details = session.details?.map((detail) => {
-      requireText(detail.label, `Session ${session.id} detail label`);
-      requireText(detail.value, `Session ${session.id} detail ${detail.label}`);
-      return Object.freeze({ ...detail });
-    });
-    return Object.freeze({
-      ...session,
-      details: details ? Object.freeze(details) : undefined,
-      permissions: session.permissions ? Object.freeze({ ...session.permissions }) : undefined,
-    }) as Session;
-  }));
+  return Object.freeze(
+    sessions.map((session) => {
+      requireText(session.id, "Session id");
+      requireText(session.label, `Session ${session.id} label`);
+      requireText(session.createdAt, `Session ${session.id} created timestamp`);
+      if (ids.has(session.id)) throw new Error(`Duplicate active session: ${session.id}.`);
+      ids.add(session.id);
+      const details = session.details?.map((detail) => {
+        requireText(detail.label, `Session ${session.id} detail label`);
+        requireText(detail.value, `Session ${session.id} detail ${detail.label}`);
+        return Object.freeze({ ...detail });
+      });
+      return Object.freeze({
+        ...session,
+        details: details ? Object.freeze(details) : undefined,
+        permissions: session.permissions ? Object.freeze({ ...session.permissions }) : undefined,
+      }) as Session;
+    }),
+  );
 }

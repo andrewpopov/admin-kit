@@ -21,11 +21,7 @@ afterEach(cleanup);
 
 describe("FeatureFlagsPanel", () => {
   it("renders flags from a successful load", async () => {
-    render(
-      <FeatureFlagsPanel
-        adapter={{ list: vi.fn().mockResolvedValue(snapshot) }}
-      />,
-    );
+    render(<FeatureFlagsPanel adapter={{ list: vi.fn().mockResolvedValue(snapshot) }} />);
 
     await screen.findByText("New checkout");
     expect(screen.getByText("healthy")).toBeTruthy();
@@ -34,9 +30,7 @@ describe("FeatureFlagsPanel", () => {
   it("shows an inline error and keeps the flag list mounted after a rejected toggle", async () => {
     const setEnabled = vi.fn().mockRejectedValue(new Error("Toggle denied"));
     render(
-      <FeatureFlagsPanel
-        adapter={{ list: vi.fn().mockResolvedValue(snapshot), setEnabled }}
-      />,
+      <FeatureFlagsPanel adapter={{ list: vi.fn().mockResolvedValue(snapshot), setEnabled }} />,
     );
 
     await screen.findByText("New checkout");
@@ -74,16 +68,17 @@ describe("FeatureFlagsPanel", () => {
   it("ignores a stale list response that resolves after the adapter changes", async () => {
     let resolveStale: ((value: unknown) => void) | undefined;
     const staleList = vi.fn().mockImplementation(
-      () => new Promise((resolve) => { resolveStale = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveStale = resolve;
+        }),
     );
     const freshSnapshot = {
       ...snapshot,
       flags: [{ ...snapshot.flags[0]!, key: "fresh-flag", label: "Fresh flag" }],
     };
     const freshList = vi.fn().mockResolvedValue(freshSnapshot);
-    const { rerender } = render(
-      <FeatureFlagsPanel adapter={{ list: staleList }} />,
-    );
+    const { rerender } = render(<FeatureFlagsPanel adapter={{ list: staleList }} />);
     await waitFor(() => expect(staleList).toHaveBeenCalledOnce());
 
     rerender(<FeatureFlagsPanel adapter={{ list: freshList }} />);
@@ -97,7 +92,10 @@ describe("FeatureFlagsPanel", () => {
   it("drops a setEnabled reload that resolves after the adapter changes", async () => {
     let resolveSetEnabled: (() => void) | undefined;
     const staleSetEnabled = vi.fn().mockImplementation(
-      () => new Promise<void>((resolve) => { resolveSetEnabled = resolve; }),
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSetEnabled = resolve;
+        }),
     );
     const staleList = vi.fn().mockResolvedValue(snapshot);
     const freshSnapshot = {

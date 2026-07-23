@@ -15,19 +15,12 @@ export interface AdminThemeProps {
 }
 
 /** Applies the canonical Admin Kit visual system to a complete admin surface. */
-export function AdminTheme({
-  theme = "core",
-  as = "div",
-  className,
-  children,
-}: AdminThemeProps) {
+export function AdminTheme({ theme = "core", as = "div", className, children }: AdminThemeProps) {
   const Theme = as as ElementType;
 
   return (
     <Theme
-      className={["admin-kit", `admin-kit--theme-${theme}`, className]
-        .filter(Boolean)
-        .join(" ")}
+      className={["admin-kit", `admin-kit--theme-${theme}`, className].filter(Boolean).join(" ")}
       data-admin-kit-theme={theme}
     >
       {children}

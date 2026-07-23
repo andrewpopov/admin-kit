@@ -9,11 +9,11 @@ const react_1 = require("react");
  * and enforces every action on the server.
  */
 /** @deprecated Use AdminApp with grouped sections and a capability registry. */
-function AdminConsole({ activeSection, sections, onSectionChange, ariaLabel = 'Administration sections', className, }) {
+function AdminConsole({ activeSection, sections, onSectionChange, ariaLabel = "Administration sections", className, }) {
     const idBase = (0, react_1.useId)();
     const active = sections.find((section) => section.id === activeSection) ?? sections[0];
     if (!active) {
-        throw new Error('AdminConsole needs at least one rendered section.');
+        throw new Error("AdminConsole needs at least one rendered section.");
     }
     const tabRefs = (0, react_1.useRef)(new Map());
     const tabId = (sectionId) => `${idBase}-tab-${sectionId}`;
@@ -29,16 +29,17 @@ function AdminConsole({ activeSection, sections, onSectionChange, ariaLabel = 'A
         const currentIndex = focusable.findIndex((section) => section.id === sectionId);
         let nextIndex;
         switch (event.key) {
-            case 'ArrowRight':
+            case "ArrowRight":
                 nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % focusable.length;
                 break;
-            case 'ArrowLeft':
-                nextIndex = currentIndex === -1 ? 0 : (currentIndex - 1 + focusable.length) % focusable.length;
+            case "ArrowLeft":
+                nextIndex =
+                    currentIndex === -1 ? 0 : (currentIndex - 1 + focusable.length) % focusable.length;
                 break;
-            case 'Home':
+            case "Home":
                 nextIndex = 0;
                 break;
-            case 'End':
+            case "End":
                 nextIndex = focusable.length - 1;
                 break;
             default:
@@ -51,7 +52,7 @@ function AdminConsole({ activeSection, sections, onSectionChange, ariaLabel = 'A
         onSectionChange(nextSection.id);
         focusTab(nextSection.id);
     };
-    return ((0, jsx_runtime_1.jsxs)("section", { className: ['admin-kit', className].filter(Boolean).join(' '), children: [(0, jsx_runtime_1.jsx)("nav", { "aria-label": ariaLabel, className: "admin-kit__navigation", children: (0, jsx_runtime_1.jsx)("div", { role: "tablist", "aria-orientation": "horizontal", className: "admin-kit__tabs", children: sections.map((section) => {
+    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit", className].filter(Boolean).join(" "), children: [(0, jsx_runtime_1.jsx)("nav", { "aria-label": ariaLabel, className: "admin-kit__navigation", children: (0, jsx_runtime_1.jsx)("div", { role: "tablist", "aria-orientation": "horizontal", className: "admin-kit__tabs", children: sections.map((section) => {
                         const selected = section.id === active.id;
                         return ((0, jsx_runtime_1.jsx)("button", { "aria-controls": panelId(section.id), "aria-selected": selected, className: "admin-kit__tab", disabled: section.disabled, id: tabId(section.id), onClick: () => onSectionChange(section.id), onKeyDown: (event) => handleTabKeyDown(event, section.id), ref: (element) => {
                                 if (element)
