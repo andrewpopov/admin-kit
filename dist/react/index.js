@@ -1,10 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SettingsPanel = exports.OperationalJobsPanel = exports.BackupsPanel = exports.AdminStatusSummary = exports.SessionsPanel = exports.LogsPanel = exports.MembershipsPanel = exports.EventsPanel = exports.AdminApiKeyForm = exports.AdminScopePicker = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminSwitch = exports.AdminStack = exports.AdminField = exports.AdminCard = exports.AdminTheme = exports.AdminWorkspace = exports.AdminPanelHeader = exports.AdminPanelStateView = exports.AdminPortal = exports.AdminConsole = exports.AdminAppShell = exports.AdminApp = exports.AdminDialog = exports.AdminConfirmationDialog = exports.AdminActionButton = void 0;
+exports.SettingsPanel = exports.OperationalJobsPanel = exports.BackupsPanel = exports.AdminStatusSummary = exports.SessionsPanel = exports.LogsPanel = exports.MembershipsPanel = exports.EventsPanel = exports.AdminApiKeyForm = exports.AdminScopePicker = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminSwitch = exports.AdminStack = exports.AdminField = exports.AdminCard = exports.AdminTheme = exports.AdminWorkspace = exports.AdminPanelHeader = exports.AdminPanelStateView = exports.AdminPortal = exports.AdminConsole = exports.AdminAppShell = exports.AdminApp = exports.AdminDialog = exports.defaultAdminLabels = exports.useAdminLabels = exports.AdminLabelsProvider = exports.AdminConfirmationDialog = exports.AdminActionButton = void 0;
 var AdminActionButton_1 = require("./AdminActionButton");
 Object.defineProperty(exports, "AdminActionButton", { enumerable: true, get: function () { return AdminActionButton_1.AdminActionButton; } });
 var AdminConfirmationDialog_1 = require("./AdminConfirmationDialog");
 Object.defineProperty(exports, "AdminConfirmationDialog", { enumerable: true, get: function () { return AdminConfirmationDialog_1.AdminConfirmationDialog; } });
+var AdminLabels_1 = require("./AdminLabels");
+Object.defineProperty(exports, "AdminLabelsProvider", { enumerable: true, get: function () { return AdminLabels_1.AdminLabelsProvider; } });
+Object.defineProperty(exports, "useAdminLabels", { enumerable: true, get: function () { return AdminLabels_1.useAdminLabels; } });
+Object.defineProperty(exports, "defaultAdminLabels", { enumerable: true, get: function () { return AdminLabels_1.defaultAdminLabels; } });
 var AdminDialog_1 = require("./AdminDialog");
 Object.defineProperty(exports, "AdminDialog", { enumerable: true, get: function () { return AdminDialog_1.AdminDialog; } });
 var AdminApp_1 = require("./AdminApp");

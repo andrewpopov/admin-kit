@@ -7,6 +7,12 @@ export {
   AdminConfirmationDialog,
   type AdminConfirmationDialogProps,
 } from "./AdminConfirmationDialog";
+export {
+  AdminLabelsProvider,
+  useAdminLabels,
+  defaultAdminLabels,
+  type AdminLabels,
+} from "./AdminLabels";
 export { AdminDialog, type AdminDialogProps } from "./AdminDialog";
 export {
   AdminApp,

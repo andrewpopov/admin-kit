@@ -7,6 +7,7 @@ exports.SettingsPanel = SettingsPanel;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const core_1 = require("../core");
+const AdminLabels_1 = require("./AdminLabels");
 const AdminConfirmationDialog_1 = require("./AdminConfirmationDialog");
 const AdminPanelState_1 = require("./AdminPanelState");
 const AdminPrimitives_1 = require("./AdminPrimitives");
@@ -15,13 +16,16 @@ function AdminStatusSummary({ items }) {
 }
 /** Displays host-owned scheduled, import, and retention runs without mislabeling them as backups. */
 function OperationalJobsPanel({ adapter, title = "Operational jobs", runLabel = "Run now", pageSize = 25, className, formatTimestamp, emptyState = { title: "No operational runs yet." }, }) {
+    const labels = (0, AdminLabels_1.useAdminLabels)();
     const [result, setResult] = (0, react_1.useState)();
     const [page, setPage] = (0, react_1.useState)(1);
     const [error, setError] = (0, react_1.useState)();
     const [busy, setBusy] = (0, react_1.useState)(false);
+    const [isLoading, setIsLoading] = (0, react_1.useState)(false);
     const latestLoadId = (0, react_1.useRef)(0);
     const load = async () => {
         const loadId = ++latestLoadId.current;
+        setIsLoading(true);
         try {
             setError(undefined);
             const next = await adapter.list({ page, pageSize });
@@ -31,6 +35,10 @@ function OperationalJobsPanel({ adapter, title = "Operational jobs", runLabel = 
         catch (reason) {
             if (loadId === latestLoadId.current)
                 setError(reason instanceof Error ? reason.message : "Unable to load operational jobs.");
+        }
+        finally {
+            if (loadId === latestLoadId.current)
+                setIsLoading(false);
         }
     };
     (0, react_1.useEffect)(() => {
@@ -66,19 +74,22 @@ function OperationalJobsPanel({ adapter, title = "Operational jobs", runLabel = 
                             finally {
                                 setBusy(false);
                             }
-                        })(), children: runLabel })) : null] }), error ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: error, onRetry: () => void load() } })) : null, result.items.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: emptyState.title, detail: emptyState.detail } })) : ((0, jsx_runtime_1.jsx)("div", { className: "admin-kit__table-wrap admin-kit__operations-table-wrap", children: (0, jsx_runtime_1.jsxs)("table", { className: "admin-kit__table admin-kit__operations-table", "aria-busy": busy, children: [(0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { children: [(0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Job" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Started" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Finished" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Status" })] }) }), (0, jsx_runtime_1.jsx)("tbody", { children: result.items.map((item) => ((0, jsx_runtime_1.jsxs)("tr", { children: [(0, jsx_runtime_1.jsxs)("td", { children: [(0, jsx_runtime_1.jsx)("strong", { children: item.label }), item.detail ? (0, jsx_runtime_1.jsx)("small", { children: item.detail }) : null] }), (0, jsx_runtime_1.jsx)("td", { children: (0, core_1.formatAdminTimestamp)(item.startedAt, formatTimestamp) }), (0, jsx_runtime_1.jsx)("td", { children: item.finishedAt
+                        })(), children: runLabel })) : null] }), error ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: error, onRetry: () => void load() } })) : null, result.items.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: emptyState.title, detail: emptyState.detail } })) : ((0, jsx_runtime_1.jsx)("div", { className: "admin-kit__table-wrap admin-kit__operations-table-wrap", children: (0, jsx_runtime_1.jsxs)("table", { className: "admin-kit__table admin-kit__operations-table", "aria-busy": busy || isLoading, children: [(0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { children: [(0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Job" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Started" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Finished" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Status" })] }) }), (0, jsx_runtime_1.jsx)("tbody", { children: result.items.map((item) => ((0, jsx_runtime_1.jsxs)("tr", { children: [(0, jsx_runtime_1.jsxs)("td", { children: [(0, jsx_runtime_1.jsx)("strong", { children: item.label }), item.detail ? (0, jsx_runtime_1.jsx)("small", { children: item.detail }) : null] }), (0, jsx_runtime_1.jsx)("td", { children: (0, core_1.formatAdminTimestamp)(item.startedAt, formatTimestamp) }), (0, jsx_runtime_1.jsx)("td", { children: item.finishedAt
                                             ? (0, core_1.formatAdminTimestamp)(item.finishedAt, formatTimestamp)
-                                            : "In progress" }), (0, jsx_runtime_1.jsx)("td", { children: (0, jsx_runtime_1.jsx)("span", { className: `admin-kit__state-pill admin-kit__state-pill--${item.state}`, children: item.state }) })] }, item.id))) })] }) })), totalPages > 1 ? ((0, jsx_runtime_1.jsxs)("nav", { className: "admin-kit__pagination", "aria-label": "Operational jobs pagination", children: [(0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page <= 1, onClick: () => setPage(page - 1), children: "Previous" }), (0, jsx_runtime_1.jsxs)("span", { children: ["Page ", page, " of ", totalPages] }), (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page >= totalPages, onClick: () => setPage(page + 1), children: "Next" })] })) : null] }));
+                                            : "In progress" }), (0, jsx_runtime_1.jsx)("td", { children: (0, jsx_runtime_1.jsx)("span", { className: `admin-kit__state-pill admin-kit__state-pill--${item.state}`, children: item.state }) })] }, item.id))) })] }) })), totalPages > 1 ? ((0, jsx_runtime_1.jsxs)("nav", { className: "admin-kit__pagination", "aria-label": "Operational jobs pagination", children: [(0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page <= 1, onClick: () => setPage(page - 1), children: labels.previousPage }), (0, jsx_runtime_1.jsx)("span", { children: labels.pageStatus(page, totalPages) }), (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page >= totalPages, onClick: () => setPage(page + 1), children: labels.nextPage })] })) : null] }));
 }
 function BackupsPanel({ adapter, title = "Backups", runLabel = "Run backup", pageSize = 25, className, formatTimestamp, }) {
+    const labels = (0, AdminLabels_1.useAdminLabels)();
     const [result, setResult] = (0, react_1.useState)();
     const [page, setPage] = (0, react_1.useState)(1);
     const [error, setError] = (0, react_1.useState)();
     const [busy, setBusy] = (0, react_1.useState)(false);
+    const [isLoading, setIsLoading] = (0, react_1.useState)(false);
     const [restoreTarget, setRestoreTarget] = (0, react_1.useState)();
     const latestLoadId = (0, react_1.useRef)(0);
     const load = async () => {
         const loadId = ++latestLoadId.current;
+        setIsLoading(true);
         try {
             setError(undefined);
             const next = await adapter.list({ page, pageSize });
@@ -88,6 +99,10 @@ function BackupsPanel({ adapter, title = "Backups", runLabel = "Run backup", pag
         catch (reason) {
             if (loadId === latestLoadId.current)
                 setError(reason instanceof Error ? reason.message : "Unable to load backups.");
+        }
+        finally {
+            if (loadId === latestLoadId.current)
+                setIsLoading(false);
         }
     };
     const run = async () => {
@@ -146,7 +161,7 @@ function BackupsPanel({ adapter, title = "Backups", runLabel = "Run backup", pag
         return ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "loading", label: "Loading backups…" }, className: className }));
     const totalPages = Math.max(1, Math.ceil(result.total / pageSize));
     const columnCount = adapter.restore ? 5 : 4;
-    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__operations", className].filter(Boolean).join(" "), "aria-label": title, children: [(0, jsx_runtime_1.jsxs)("header", { children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("h2", { children: title }), (0, jsx_runtime_1.jsxs)("p", { children: [result.total, " recent recovery points"] })] }), adapter.run ? ((0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button admin-kit__button--primary", disabled: busy, type: "button", onClick: () => void run(), children: runLabel })) : null] }), error ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: error, onRetry: () => void load() } })) : null, (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__table-wrap admin-kit__operations-table-wrap", children: (0, jsx_runtime_1.jsxs)("table", { className: "admin-kit__table admin-kit__operations-table", "aria-busy": busy, children: [(0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { children: [(0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Backup" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Created" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Size" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Status" }), adapter.restore ? (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Actions" }) : null] }) }), (0, jsx_runtime_1.jsx)("tbody", { children: result.items.length === 0 ? ((0, jsx_runtime_1.jsx)("tr", { children: (0, jsx_runtime_1.jsx)("td", { className: "admin-kit__operations-empty", colSpan: columnCount, children: "No backups yet. Run a backup to create your first recovery point." }) })) : (result.items.map((item) => ((0, jsx_runtime_1.jsxs)("tr", { children: [(0, jsx_runtime_1.jsxs)("td", { children: [(0, jsx_runtime_1.jsx)("strong", { children: item.label }), item.detail ? (0, jsx_runtime_1.jsx)("small", { children: item.detail }) : null] }), (0, jsx_runtime_1.jsx)("td", { children: (0, core_1.formatAdminTimestamp)(item.createdAt, formatTimestamp) }), (0, jsx_runtime_1.jsx)("td", { children: item.size ?? "—" }), (0, jsx_runtime_1.jsx)("td", { children: (0, jsx_runtime_1.jsx)("span", { className: `admin-kit__state-pill admin-kit__state-pill--${item.state}`, children: item.state }) }), adapter.restore ? ((0, jsx_runtime_1.jsx)("td", { children: (0, jsx_runtime_1.jsx)("button", { disabled: busy || item.state !== "completed", type: "button", onClick: () => setRestoreTarget(item), children: "Restore" }) })) : null] }, item.id)))) })] }) }), totalPages > 1 ? ((0, jsx_runtime_1.jsxs)("nav", { className: "admin-kit__pagination", "aria-label": "Backups pagination", children: [(0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page <= 1, onClick: () => setPage(page - 1), children: "Previous" }), (0, jsx_runtime_1.jsxs)("span", { children: ["Page ", page, " of ", totalPages] }), (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page >= totalPages, onClick: () => setPage(page + 1), children: "Next" })] })) : null, adapter.restore ? ((0, jsx_runtime_1.jsx)(AdminConfirmationDialog_1.AdminConfirmationDialog, { open: Boolean(restoreTarget), title: "Restore backup", description: restoreTarget
+    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__operations", className].filter(Boolean).join(" "), "aria-label": title, children: [(0, jsx_runtime_1.jsxs)("header", { children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("h2", { children: title }), (0, jsx_runtime_1.jsxs)("p", { children: [result.total, " recent recovery points"] })] }), adapter.run ? ((0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button admin-kit__button--primary", disabled: busy, type: "button", onClick: () => void run(), children: runLabel })) : null] }), error ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: error, onRetry: () => void load() } })) : null, (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__table-wrap admin-kit__operations-table-wrap", children: (0, jsx_runtime_1.jsxs)("table", { className: "admin-kit__table admin-kit__operations-table", "aria-busy": busy || isLoading, children: [(0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { children: [(0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Backup" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Created" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Size" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Status" }), adapter.restore ? (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Actions" }) : null] }) }), (0, jsx_runtime_1.jsx)("tbody", { children: result.items.length === 0 ? ((0, jsx_runtime_1.jsx)("tr", { children: (0, jsx_runtime_1.jsx)("td", { className: "admin-kit__operations-empty", colSpan: columnCount, children: "No backups yet. Run a backup to create your first recovery point." }) })) : (result.items.map((item) => ((0, jsx_runtime_1.jsxs)("tr", { children: [(0, jsx_runtime_1.jsxs)("td", { children: [(0, jsx_runtime_1.jsx)("strong", { children: item.label }), item.detail ? (0, jsx_runtime_1.jsx)("small", { children: item.detail }) : null] }), (0, jsx_runtime_1.jsx)("td", { children: (0, core_1.formatAdminTimestamp)(item.createdAt, formatTimestamp) }), (0, jsx_runtime_1.jsx)("td", { children: item.size ?? "—" }), (0, jsx_runtime_1.jsx)("td", { children: (0, jsx_runtime_1.jsx)("span", { className: `admin-kit__state-pill admin-kit__state-pill--${item.state}`, children: item.state }) }), adapter.restore ? ((0, jsx_runtime_1.jsx)("td", { children: (0, jsx_runtime_1.jsx)("button", { disabled: busy || item.state !== "completed", type: "button", onClick: () => setRestoreTarget(item), children: "Restore" }) })) : null] }, item.id)))) })] }) }), totalPages > 1 ? ((0, jsx_runtime_1.jsxs)("nav", { className: "admin-kit__pagination", "aria-label": "Backups pagination", children: [(0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page <= 1, onClick: () => setPage(page - 1), children: labels.previousPage }), (0, jsx_runtime_1.jsx)("span", { children: labels.pageStatus(page, totalPages) }), (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page >= totalPages, onClick: () => setPage(page + 1), children: labels.nextPage })] })) : null, adapter.restore ? ((0, jsx_runtime_1.jsx)(AdminConfirmationDialog_1.AdminConfirmationDialog, { open: Boolean(restoreTarget), title: "Restore backup", description: restoreTarget
                     ? `This will overwrite the current database with the recovery point "${restoreTarget.label}". This action is destructive and cannot be reversed.`
                     : "", confirmLabel: "Restore backup", danger: true, pending: busy, onCancel: () => setRestoreTarget(undefined), onConfirm: () => restoreTarget && void restore(restoreTarget.id) })) : null] }));
 }

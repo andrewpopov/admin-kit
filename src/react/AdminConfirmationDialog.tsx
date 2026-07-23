@@ -1,11 +1,14 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useAdminLabels } from "./AdminLabels";
 
 export interface AdminConfirmationDialogProps {
   open: boolean;
   title: string;
   description: string;
   confirmLabel: string;
+  /** Overrides the shared Admin Kit "Cancel" label for this dialog. */
+  cancelLabel?: string;
   onCancel: () => void;
   onConfirm: () => void;
   danger?: boolean;
@@ -29,12 +32,14 @@ export function AdminConfirmationDialog({
   title,
   description,
   confirmLabel,
+  cancelLabel,
   onCancel,
   onConfirm,
   danger = false,
   pending = false,
   className,
 }: AdminConfirmationDialogProps) {
+  const labels = useAdminLabels();
   const cancelRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLElement>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
@@ -123,7 +128,7 @@ export function AdminConfirmationDialog({
         <p id={descriptionId}>{description}</p>
         <div className="admin-kit__dialog-actions">
           <button ref={cancelRef} type="button" disabled={pending} onClick={onCancel}>
-            Cancel
+            {cancelLabel ?? labels.cancel}
           </button>
           <button
             className={danger ? "admin-kit__button--danger" : undefined}

@@ -6,6 +6,7 @@ import {
   formatAdminTimestamp,
   validateAdminEventsPage,
 } from "../core";
+import { useAdminLabels } from "./AdminLabels";
 import { AdminPanelHeader, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
 
@@ -37,6 +38,7 @@ export function EventsPanel({
   className,
   formatTimestamp,
 }: EventsPanelProps) {
+  const labels = useAdminLabels();
   const [query, setQuery] = useState<AdminEventsQuery>({ page: 1, pageSize });
   const [searchInput, setSearchInput] = useState(query.search ?? "");
   const [result, setResult] = useState<AdminEventsPage>();
@@ -231,7 +233,7 @@ export function EventsPanel({
         <AdminPanelStateView state={{ kind: "empty", title: "No administrative events found." }} />
       ) : presentation === "table" ? (
         <div className="admin-kit__table-wrap admin-kit__events-table-wrap">
-          <table className="admin-kit__table admin-kit__events-table">
+          <table className="admin-kit__table admin-kit__events-table" aria-busy={loading}>
             <thead>
               <tr>
                 <th scope="col">Occurred</th>
@@ -285,7 +287,7 @@ export function EventsPanel({
           </table>
         </div>
       ) : (
-        <ol className="admin-kit__events-list">
+        <ol className="admin-kit__events-list" aria-busy={loading}>
           {result.items.map((event) => (
             <li key={event.id}>
               <div>
@@ -317,21 +319,21 @@ export function EventsPanel({
       )}
       <footer className="admin-kit__events-pagination">
         <span>
-          Page {result.page} of {pages} · {result.total} events
+          {labels.pageStatus(result.page, pages)} · {result.total} events
         </span>
         <button
           type="button"
           disabled={loading || result.page <= 1}
           onClick={() => setQuery((current) => ({ ...current, page: (current.page ?? 1) - 1 }))}
         >
-          Previous
+          {labels.previousPage}
         </button>
         <button
           type="button"
           disabled={loading || result.page >= pages}
           onClick={() => setQuery((current) => ({ ...current, page: (current.page ?? 1) + 1 }))}
         >
-          Next
+          {labels.nextPage}
         </button>
       </footer>
     </section>

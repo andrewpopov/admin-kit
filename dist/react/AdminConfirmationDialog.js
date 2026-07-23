@@ -4,6 +4,7 @@ exports.AdminConfirmationDialog = AdminConfirmationDialog;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const react_dom_1 = require("react-dom");
+const AdminLabels_1 = require("./AdminLabels");
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 /**
  * Host applications supply the impact language and server-side semantics;
@@ -11,7 +12,8 @@ const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disab
  * Renders via a portal into `document.body` so ancestor `overflow` or
  * `transform` styles in a host layout cannot clip or mis-layer it.
  */
-function AdminConfirmationDialog({ open, title, description, confirmLabel, onCancel, onConfirm, danger = false, pending = false, className, }) {
+function AdminConfirmationDialog({ open, title, description, confirmLabel, cancelLabel, onCancel, onConfirm, danger = false, pending = false, className, }) {
+    const labels = (0, AdminLabels_1.useAdminLabels)();
     const cancelRef = (0, react_1.useRef)(null);
     const dialogRef = (0, react_1.useRef)(null);
     const previouslyFocusedRef = (0, react_1.useRef)(null);
@@ -82,7 +84,7 @@ function AdminConfirmationDialog({ open, title, description, confirmLabel, onCan
     }, [open, onCancel, pending]);
     if (!open)
         return null;
-    const surface = ((0, jsx_runtime_1.jsx)("div", { className: "admin-kit__dialog-backdrop", role: "presentation", children: (0, jsx_runtime_1.jsxs)("section", { ref: dialogRef, "aria-describedby": descriptionId, "aria-labelledby": titleId, "aria-modal": "true", className: ["admin-kit__dialog", className].filter(Boolean).join(" "), role: "dialog", tabIndex: -1, children: [(0, jsx_runtime_1.jsx)("h2", { id: titleId, children: title }), (0, jsx_runtime_1.jsx)("p", { id: descriptionId, children: description }), (0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__dialog-actions", children: [(0, jsx_runtime_1.jsx)("button", { ref: cancelRef, type: "button", disabled: pending, onClick: onCancel, children: "Cancel" }), (0, jsx_runtime_1.jsx)("button", { className: danger ? "admin-kit__button--danger" : undefined, type: "button", disabled: pending, onClick: onConfirm, children: confirmLabel })] })] }) }));
+    const surface = ((0, jsx_runtime_1.jsx)("div", { className: "admin-kit__dialog-backdrop", role: "presentation", children: (0, jsx_runtime_1.jsxs)("section", { ref: dialogRef, "aria-describedby": descriptionId, "aria-labelledby": titleId, "aria-modal": "true", className: ["admin-kit__dialog", className].filter(Boolean).join(" "), role: "dialog", tabIndex: -1, children: [(0, jsx_runtime_1.jsx)("h2", { id: titleId, children: title }), (0, jsx_runtime_1.jsx)("p", { id: descriptionId, children: description }), (0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__dialog-actions", children: [(0, jsx_runtime_1.jsx)("button", { ref: cancelRef, type: "button", disabled: pending, onClick: onCancel, children: cancelLabel ?? labels.cancel }), (0, jsx_runtime_1.jsx)("button", { className: danger ? "admin-kit__button--danger" : undefined, type: "button", disabled: pending, onClick: onConfirm, children: confirmLabel })] })] }) }));
     // The server renderer cannot render portals, and effects never run there, so
     // `mounted` stays false through SSR and the dialog falls back to inline
     // markup. Hosts drive `open` from client state, so by the time a dialog can

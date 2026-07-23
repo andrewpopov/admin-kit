@@ -3,6 +3,8 @@ export interface AdminConfirmationDialogProps {
     title: string;
     description: string;
     confirmLabel: string;
+    /** Overrides the shared Admin Kit "Cancel" label for this dialog. */
+    cancelLabel?: string;
     onCancel: () => void;
     onConfirm: () => void;
     danger?: boolean;
@@ -17,4 +19,4 @@ export interface AdminConfirmationDialogProps {
  * Renders via a portal into `document.body` so ancestor `overflow` or
  * `transform` styles in a host layout cannot clip or mis-layer it.
  */
-export declare function AdminConfirmationDialog({ open, title, description, confirmLabel, onCancel, onConfirm, danger, pending, className, }: AdminConfirmationDialogProps): import("react").JSX.Element | null;
+export declare function AdminConfirmationDialog({ open, title, description, confirmLabel, cancelLabel, onCancel, onConfirm, danger, pending, className, }: AdminConfirmationDialogProps): import("react").JSX.Element | null;
