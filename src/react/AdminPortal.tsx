@@ -1,3 +1,4 @@
+"use client";
 import type { MouseEventHandler, ReactNode } from "react";
 import type {
   AdminPortalSectionDefinition,

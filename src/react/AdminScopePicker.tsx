@@ -1,3 +1,4 @@
+"use client";
 import type { AdminScopeGroup } from "../core";
 
 export interface AdminScopePickerProps {

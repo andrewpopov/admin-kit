@@ -1,3 +1,4 @@
+"use client";
 import { useId, useState, type ReactNode } from "react";
 import { AdminTheme, type AdminThemeName } from "./AdminTheme";
 import type { AdminAppFrame } from "./AdminApp";
