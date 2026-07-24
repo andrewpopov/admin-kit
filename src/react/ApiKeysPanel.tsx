@@ -1,3 +1,4 @@
+"use client";
 import { Fragment, useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import {
   type AdminApiKey,

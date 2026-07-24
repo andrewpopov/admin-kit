@@ -1,3 +1,4 @@
+"use client";
 import type { KeyboardEvent, ReactNode } from "react";
 import { useId, useRef } from "react";
 import type { AdminSectionDefinition, AdminSectionId } from "../core/contracts";

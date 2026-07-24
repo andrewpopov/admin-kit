@@ -1,4 +1,5 @@
 "use strict";
+"use client";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultAdminLabels = void 0;
 exports.AdminLabelsProvider = AdminLabelsProvider;
