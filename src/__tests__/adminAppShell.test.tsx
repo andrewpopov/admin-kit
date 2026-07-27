@@ -69,13 +69,38 @@ describe("AdminAppShell", () => {
     expect(screen.getByRole("button", { name: "Browse administration" })).toBeTruthy();
   });
 
-  it("omits the mobile toggle and mobile nav when mobileNavigation is false", () => {
+  it("omits the mobile toggle when mobileNavigation is false", () => {
     render(
       <AdminAppShell renderNavigation={() => <a href="/admin">Home</a>} mobileNavigation={false}>
         <p>Content</p>
       </AdminAppShell>,
     );
     expect(screen.queryByRole("button", { name: "Browse administration" })).toBeNull();
+  });
+
+  // The mobile <nav> needs its own guard, not just the toggle's: a host can flip
+  // mobileNavigation to false while the nav is already open, and without that
+  // guard the menu would stay on screen with no control left to dismiss it.
+  it("tears down an already-open mobile nav when mobileNavigation becomes false", () => {
+    const renderNavigation = () => <a href="/admin">Home</a>;
+    const { rerender } = render(
+      <AdminAppShell renderNavigation={renderNavigation}>
+        <p>Content</p>
+      </AdminAppShell>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Browse administration" }));
+    expect(screen.getAllByRole("navigation", { name: "Administration sections" })).toHaveLength(2);
+
+    rerender(
+      <AdminAppShell renderNavigation={renderNavigation} mobileNavigation={false}>
+        <p>Content</p>
+      </AdminAppShell>,
+    );
+
+    expect(screen.queryByRole("button", { name: "Browse administration" })).toBeNull();
+    // Only the desktop sidebar nav survives.
+    expect(screen.getAllByRole("navigation", { name: "Administration sections" })).toHaveLength(1);
   });
 
   it("still renders the desktop navigation and children when mobileNavigation is false", () => {
