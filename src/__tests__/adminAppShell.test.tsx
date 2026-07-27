@@ -1,6 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { AdminAppShell } from "../react";
+
+afterEach(cleanup);
 
 describe("AdminAppShell", () => {
   it("renders route-owned navigation in desktop and dismissible mobile landmarks", () => {
@@ -56,5 +58,33 @@ describe("AdminAppShell", () => {
     expect(toggles[0]?.getAttribute("aria-controls")).not.toBe(
       toggles[1]?.getAttribute("aria-controls"),
     );
+  });
+
+  it("renders the mobile toggle by default when mobileNavigation is omitted", () => {
+    render(
+      <AdminAppShell renderNavigation={() => <a href="/admin">Home</a>}>
+        <p>Content</p>
+      </AdminAppShell>,
+    );
+    expect(screen.getByRole("button", { name: "Browse administration" })).toBeTruthy();
+  });
+
+  it("omits the mobile toggle and mobile nav when mobileNavigation is false", () => {
+    render(
+      <AdminAppShell renderNavigation={() => <a href="/admin">Home</a>} mobileNavigation={false}>
+        <p>Content</p>
+      </AdminAppShell>,
+    );
+    expect(screen.queryByRole("button", { name: "Browse administration" })).toBeNull();
+  });
+
+  it("still renders the desktop navigation and children when mobileNavigation is false", () => {
+    render(
+      <AdminAppShell renderNavigation={() => <a href="/admin">Home</a>} mobileNavigation={false}>
+        <p>Content</p>
+      </AdminAppShell>,
+    );
+    expect(screen.getByRole("navigation", { name: "Administration sections" })).toBeTruthy();
+    expect(screen.getByRole("main").textContent).toContain("Content");
   });
 });
