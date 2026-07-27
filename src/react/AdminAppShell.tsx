@@ -16,6 +16,12 @@ export interface AdminAppShellProps {
   children: ReactNode;
   ariaLabel?: string;
   mobileNavigationLabel?: string;
+  /**
+   * Set to `false` when the host already owns its own mobile navigation
+   * chrome, so consumers don't end up with two competing hamburgers below
+   * the mobile breakpoint. Defaults to `true` (shell renders its own toggle).
+   */
+  mobileNavigation?: boolean;
   theme?: AdminThemeName;
   className?: string;
 }
@@ -30,6 +36,7 @@ export function AdminAppShell({
   children,
   ariaLabel = "Administration sections",
   mobileNavigationLabel = "Browse administration",
+  mobileNavigation = true,
   theme,
   className,
 }: AdminAppShellProps) {
@@ -52,16 +59,18 @@ export function AdminAppShell({
           {frame.actions ? <div className="admin-kit__app-actions">{frame.actions}</div> : null}
         </header>
       ) : null}
-      <button
-        aria-controls={mobileNavigationId}
-        aria-expanded={mobileNavigationOpen}
-        className="admin-kit__app-shell-mobile-toggle"
-        onClick={() => setMobileNavigationOpen((open) => !open)}
-        type="button"
-      >
-        {mobileNavigationLabel}
-      </button>
-      {mobileNavigationOpen ? (
+      {mobileNavigation ? (
+        <button
+          aria-controls={mobileNavigationId}
+          aria-expanded={mobileNavigationOpen}
+          className="admin-kit__app-shell-mobile-toggle"
+          onClick={() => setMobileNavigationOpen((open) => !open)}
+          type="button"
+        >
+          {mobileNavigationLabel}
+        </button>
+      ) : null}
+      {mobileNavigation && mobileNavigationOpen ? (
         <nav
           aria-label={ariaLabel}
           className="admin-kit__app-shell-mobile-navigation"

@@ -13,6 +13,12 @@ export interface AdminAppShellProps {
     children: ReactNode;
     ariaLabel?: string;
     mobileNavigationLabel?: string;
+    /**
+     * Set to `false` when the host already owns its own mobile navigation
+     * chrome, so consumers don't end up with two competing hamburgers below
+     * the mobile breakpoint. Defaults to `true` (shell renders its own toggle).
+     */
+    mobileNavigation?: boolean;
     theme?: AdminThemeName;
     className?: string;
 }
@@ -20,4 +26,4 @@ export interface AdminAppShellProps {
  * Responsive shell for URL-owning hosts. It deliberately accepts rendered
  * navigation rather than section content so frameworks retain route ownership.
  */
-export declare function AdminAppShell({ frame, renderNavigation, children, ariaLabel, mobileNavigationLabel, theme, className, }: AdminAppShellProps): import("react").JSX.Element;
+export declare function AdminAppShell({ frame, renderNavigation, children, ariaLabel, mobileNavigationLabel, mobileNavigation, theme, className, }: AdminAppShellProps): import("react").JSX.Element;
