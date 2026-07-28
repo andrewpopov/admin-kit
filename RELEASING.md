@@ -14,14 +14,16 @@ format.
 
    ```bash
    npm ci
-   npm run typecheck
-   npm run test
-   npm run test:browser
-   npm run build
-   npm run verify:dist-fresh
-   npm run verify:pack
-   npm audit --audit-level=high
+   npm run verify
    ```
+
+   `verify` chains the whole battery — `lint`, `typecheck`, `test`,
+   `test:browser`, `build`, `verify:dist-fresh`, `verify:pack`, and
+   `npm audit --audit-level=high` — and stops at the first failure. Run it as
+   one command rather than the individual steps: a hand-copied list silently
+   drops whichever step you skip, which is how `lint` stayed unrunnable for a
+   whole release cycle (PKG-87) without anyone noticing `eslint` was missing
+   from `node_modules`.
 
 3. **Cut the release:** `npm run release:cut` compiles the unreleased
    fragments into a new `## <version>` section at the top of `CHANGELOG.md`,
