@@ -63,6 +63,7 @@
     "test:browser": "npm run build && node scripts/render-browser-fixture.mjs && playwright test",
     "verify:pack": "node scripts/verify-pack.mjs",
     "verify:dist-fresh": "node scripts/verify-dist-fresh.mjs",
+    "verify": "npm run lint && npm run typecheck && npm test && npm run test:browser && npm run build && npm run verify:dist-fresh && npm run verify:pack && npm audit --audit-level=high",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
