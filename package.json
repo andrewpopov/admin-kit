@@ -63,7 +63,7 @@
     "test:browser": "npm run build && node scripts/render-browser-fixture.mjs && playwright test",
     "verify:pack": "node scripts/verify-pack.mjs",
     "verify:dist-fresh": "node scripts/verify-dist-fresh.mjs",
-    "verify": "npm run lint && npm run typecheck && npm test && npm run test:browser && npm run build && npm run verify:dist-fresh && npm run verify:pack && npm audit --audit-level=high",
+    "verify": "npm run lint && npm run typecheck && npm test && npm run test:browser && npm run build && npm run verify:dist-fresh && npm run verify:pack && npm run verify:bins && npm audit --audit-level=high",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -72,14 +72,15 @@
     "release:bump": "release-kit bump",
     "release:cut": "release-kit cut",
     "release:check": "release-kit check",
-    "release:hygiene": "release-kit hygiene"
+    "release:hygiene": "release-kit hygiene",
+    "verify:bins": "release-kit verify-bins"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@andrewpopov/release-kit": "github:andrewpopov/release-kit#v0.2.0",
+    "@andrewpopov/release-kit": "github:andrewpopov/release-kit#v0.3.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.55.0",
     "@testing-library/react": "^16.3.2",
