@@ -4,7 +4,17 @@ import { join, relative } from 'node:path';
 
 const root = process.cwd();
 const packageVersion = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
-const ignored = new Set(['node_modules', 'dist', '.git', '.next', '.worktree', 'coverage', 'test-results']);
+const ignored = new Set([
+  'node_modules',
+  'dist',
+  '.git',
+  '.next',
+  '.worktree',
+  '.worktrees',
+  '.claude',
+  'coverage',
+  'test-results',
+]);
 const PUBLIC_THEME_TOKENS = new Set([
   'accent',
   'accent-strong',
@@ -23,6 +33,12 @@ function walk(directory) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     if (ignored.has(entry.name)) continue;
     const path = join(directory, entry.name);
+    // A nested directory carrying its own .git is a separate checkout (an agent
+    // worktree, a vendored clone). Its manifests pin whatever version that tree
+    // was cut at, which says nothing about THIS repo's conformance. Detecting the
+    // .git marker covers every nesting convention rather than chasing directory
+    // names as new ones appear.
+    if (entry.isDirectory() && existsSync(join(path, '.git'))) continue;
     if (entry.isDirectory()) walk(path);
     else if (entry.name === 'package.json') packageManifests.push(path);
     else if (/\.(?:[cm]?[jt]sx?|css)$/.test(entry.name)) sourceFiles.push(path);
