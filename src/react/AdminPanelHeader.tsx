@@ -1,6 +1,16 @@
 import type { ElementType, ReactNode } from "react";
 
-export type AdminPanelHeaderPresentation = "section" | "page";
+/**
+ * `"section"` renders an `h2` title band; `"page"` renders an `h1` title band
+ * for panel-led routes. `"none"` means the HOST owns the entire band — title,
+ * actions AND toolbar — because `AdminPanelHeader` renders nothing at all.
+ * A host that passes `actions` or `toolbar` alongside `presentation="none"`
+ * will not see them: the band that would render them doesn't exist. The host
+ * is responsible for rendering its own title, actions, and toolbar, and for
+ * naming the panel's section (e.g. `aria-label={title}`) since no heading is
+ * rendered.
+ */
+export type AdminPanelHeaderPresentation = "section" | "page" | "none";
 
 export interface AdminPanelHeaderProps {
   title: string;
@@ -12,7 +22,11 @@ export interface AdminPanelHeaderProps {
   className?: string;
 }
 
-/** One title/action band shared by standalone panels and panel-led pages. */
+/**
+ * One title/action band shared by standalone panels and panel-led pages.
+ * Renders nothing when `presentation="none"` — see the contract documented
+ * on {@link AdminPanelHeaderPresentation}.
+ */
 export function AdminPanelHeader({
   title,
   presentation = "section",
@@ -21,6 +35,8 @@ export function AdminPanelHeader({
   toolbar,
   className,
 }: AdminPanelHeaderProps) {
+  if (presentation === "none") return null;
+
   const Heading = (presentation === "page" ? "h1" : "h2") as ElementType;
 
   return (
