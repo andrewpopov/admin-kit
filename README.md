@@ -518,6 +518,22 @@ clipboard copy action with visible success or failure feedback; it never
 persists the secret. A failed metadata refresh after a successful create or
 rotation leaves the one-time secret visible and shows a retryable inline error.
 
+`AdminApiKey.scopes` is the credential's operation-scope list — exact strings
+the host's API layer checks before performing an operation category (for
+example `requests.write`). A scope never grants access to a particular
+organization, project, or resource by itself; that authorization principal is
+a separate concept a host may track independently (in `api-access-kit`, an
+`ApiAccessPrincipalBinding`, distinct from `ownerId`, which is only the
+accountable issuer, not the resource the credential acts for). `ApiKeysPanel`
+deliberately never renders or edits a principal binding as if it were a
+scope: the scope chip list and the built-in scope editor only ever read and
+write `AdminApiKey.scopes`. If a host wants a binding's organization, project,
+or resource identity visible, it belongs in `AdminApiKey.details` as a
+labeled fact (`{ label: "Project", value: "acme/infra" }`), never merged into
+`scopes` — conflating the two would let a resource identity read as if it
+were a permission grant, or a permission grant read as if it implied resource
+access, either of which is the exact bug this boundary exists to prevent.
+
 Use `renderCreate` when the host needs a product-specific input form (for
 example, name, expiry, scopes, or an audit reason). The callback receives the
 package-owned create operation and pending state; its promise resolves to
@@ -681,6 +697,101 @@ Use `AdminSwitch` for consequential binary settings whose label, current state,
 and impact should form one large target. It owns presentation and accessible
 switch semantics while the host owns persistence and authorization.
 
+### Delivery operations composition
+
+admin-kit ships no dedicated "deliveries" panel or adapter, and none is
+justified yet — see the extraction threshold below. A delivery surface (for
+example Cairn's webhook/notification integrations, sending an event to a
+consumer's endpoint) composes entirely from panels that already exist:
+`EventsPanel` for delivery history, `OperationalJobsPanel` for delivery-worker
+health, `SettingsPanel` for non-secret delivery policy, and a host-owned
+`AdminActionButton` for a one-off test delivery. This composition is
+admin-kit's first Cairn integration.
+
+```tsx
+const deliveryHistory = defineAdminEventsAdapter({
+  list: (query) => api.listIntegrationDeliveries(integration.id, query),
+  categories: [
+    { value: "webhook", label: "Webhook" },
+    { value: "notification", label: "Notification" },
+  ],
+  outcomes: [
+    { value: "success", label: "Delivered" },
+    { value: "failure", label: "Failed" },
+  ],
+});
+
+const deliveryWorkerHealth: AdminOperationalJobsAdapter = {
+  list: (query) => api.listDeliveryWorkerRuns(integration.id, query),
+};
+
+const deliveryPolicy: AdminSettingsAdapter = {
+  load: () => api.loadDeliveryPolicy(integration.id),
+  save: { execute: ({ values }) => api.saveDeliveryPolicy(integration.id, values) },
+};
+
+<AdminWorkspace
+  as="section"
+  title="Delivery"
+  actions={
+    <AdminActionButton
+      tone="primary"
+      disabled={sendingTest}
+      onClick={() => void api.sendTestDelivery(integration.id)}
+    >
+      Send test delivery
+    </AdminActionButton>
+  }
+>
+  <EventsPanel adapter={deliveryHistory} presentation="table" />
+  <OperationalJobsPanel adapter={deliveryWorkerHealth} title="Delivery workers" />
+  <SettingsPanel adapter={deliveryPolicy} title="Delivery policy" />
+</AdminWorkspace>;
+```
+
+`api.loadDeliveryPolicy` returns only non-secret fields as `AdminSettingField[]`
+(retry count, timeout, backoff, an enabled toggle) — the delivery target URL
+and any signing secret never enter this shape; see secret redaction in
+"Extraction threshold" below. `api.sendTestDelivery` is a host route that owns
+its own authorization and the delivery attempt; the button supplies only
+presentation, exactly like every other `AdminActionButton` use in this
+document. **Release editing — cutting a release, its changelog, its version —
+is unrelated and stays entirely host/product owned; admin-kit renders no
+release UI at all**, the same way it renders no deliveries UI beyond this
+composition.
+
+### Extraction threshold: a dedicated deliveries capability
+
+A dedicated `AdminDeliveriesAdapter`/`DeliveriesPanel` is justified only when
+every item below is true, evaluated against real fleet usage rather than
+anticipated design. Until then, delivery operations stay host composition of
+`EventsPanel`, `OperationalJobsPanel`, `SettingsPanel`, and a host action, as
+shown above — adding a deliveries subsystem before this evidence exists
+recreates the union-of-every-product-page anti-pattern the users/sessions/
+memberships boundary below already rejects.
+
+1. **N ≥ 3 independent consumers** implement the same delivery-history +
+   worker-health + policy composition using the existing panels, with no
+   product-specific escape hatch (a custom `renderKeys`/`renderPosture`, or a
+   bespoke column) required to make it fit. Fewer than three is still
+   product-specific evidence, not fleet evidence.
+2. **No secret material crosses the adapter boundary** for any of them: the
+   delivery target URL (and any credential embedded in it, such as
+   `https://user:pass@host/...` or a `?token=` query parameter), signing
+   secret, or webhook shared secret never appears in adapter-visible
+   metadata — only safe, list-worthy delivery outcomes do, exactly like
+   `AdminApiKey` never carrying a raw secret.
+3. **No host-authorization dependency** in the capability itself: "run a test
+   delivery," "list delivery history," and "read worker health" can be
+   expressed as a package-owned adapter over a structural foreign contract
+   (the way `createApiKeysAdapter` wraps `api-access-kit`), without the
+   bridge encoding any one host's authorization model.
+4. **One reference shape** across the N consumers, not three consumers each
+   bent into a different pretend-common interface through escape hatches.
+
+Any one of these failing keeps delivery operations as composition, not a new
+adapter contract.
+
 ## Reference bridges
 
 The `./bridges` subpath ships adapter factories that translate three common
@@ -803,6 +914,7 @@ union of every product page.
 | Administrative events                                | Bewks, Cairn, Savoro, Smarthome                       | Normalized records, declared filters, source context, paging                                                 |
 | Settings and operations                              | Bewks, Cairn, Savoro                                  | Typed fields, status summaries, backups, jobs, retry and confirmation behavior                               |
 | Runtime log tails                                    | Bewks, Savoro, Smarthome                              | Sources, bounded snapshots, level/category/search controls, refresh/polling, copy, stale-response safety     |
+| Delivery operations (webhook/notification delivery)  | Cairn (first integration)                             | None — host composes `EventsPanel` + `OperationalJobsPanel` + `SettingsPanel` + a host action; below the extraction threshold |
 | Imports, catalogs, integrations, security enrollment | Product-specific                                      | Host pages composed inside `AdminPortal`; do not generalize their domain policy                              |
 
 ## Release requirements
