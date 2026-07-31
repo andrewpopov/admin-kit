@@ -2,8 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminPanelHeader = AdminPanelHeader;
 const jsx_runtime_1 = require("react/jsx-runtime");
-/** One title/action band shared by standalone panels and panel-led pages. */
+/**
+ * One title/action band shared by standalone panels and panel-led pages.
+ * Renders nothing when `presentation="none"` — see the contract documented
+ * on {@link AdminPanelHeaderPresentation}.
+ */
 function AdminPanelHeader({ title, presentation = "section", detail, actions, toolbar, className, }) {
+    if (presentation === "none")
+        return null;
     const Heading = (presentation === "page" ? "h1" : "h2");
     return ((0, jsx_runtime_1.jsxs)("header", { className: [
             "admin-kit__panel-header",
