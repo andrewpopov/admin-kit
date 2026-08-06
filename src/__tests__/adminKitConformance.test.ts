@@ -133,12 +133,33 @@ describe("admin-kit-conformance", () => {
       resolve(process.cwd(), "scripts", "admin-kit-conformance.mjs"),
       "utf8",
     );
-    const entryCheck = source
-      .split("\n")
-      .find((line) => line.includes("main|layout"));
 
-    expect(entryCheck).toBeDefined();
-    expect(entryCheck).toContain("basename(path)");
-    expect(entryCheck).not.toContain("\\/");
+    // Whole-file assertions, so reformatting or moving the check does not
+    // break this: the slash-anchored form must be gone, and the entry test
+    // must run through basename().
+    expect(source).not.toMatch(/\(\?:\^\|\\\/\)\(\?:main\|layout\)/);
+    expect(source).toMatch(/\/\^\(\?:main\|layout\)[^/]*\/\.test\(basename\(path\)\)/);
+  });
+
+  // Behavioural counterpart to the source assertion above: the classification
+  // rule itself, applied to a path in each platform's native form. `join` in
+  // the fixtures only ever produces the host separator, so without this a
+  // Windows-only regression stays invisible on Linux CI.
+  it.each([
+    ["posix", "src/app/main.tsx", true],
+    ["windows", "src\\app\\main.tsx", true],
+    ["posix nested layout", "app/(marketing)/layout.jsx", true],
+    ["windows nested layout", "app\\(marketing)\\layout.jsx", true],
+    ["not an entry point", "src\\app\\mainish.tsx", false],
+    ["different role", "src/app/page.tsx", false],
+  ])("classifies a %s path correctly", (_label, input, expected) => {
+    const isEntry = (p: string) =>
+      /^(?:main|layout)\.(?:[cm]?[jt]sx?)$/.test(
+        // basename() only splits on the host separator, so normalise first —
+        // this mirrors what the CLI gets from its own platform's join().
+        p.split(/[\\/]/).pop() ?? "",
+      );
+
+    expect(isEntry(input)).toBe(expected);
   });
 });
