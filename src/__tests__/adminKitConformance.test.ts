@@ -122,4 +122,23 @@ describe("admin-kit-conformance", () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("[admin-kit-conformance] PASS");
   });
+
+  // The fixtures above build real paths with `join`, so they only exercise the
+  // native separator: on Linux CI a '/'-anchored entry regex passes them while
+  // every Windows consumer is told to add a styles.css import it already has.
+  // Pin the separator-independent form so the regression cannot return on the
+  // platform CI happens to run.
+  it("detects entry files by basename, not a slash-anchored path regex", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "scripts", "admin-kit-conformance.mjs"),
+      "utf8",
+    );
+    const entryCheck = source
+      .split("\n")
+      .find((line) => line.includes("main|layout"));
+
+    expect(entryCheck).toBeDefined();
+    expect(entryCheck).toContain("basename(path)");
+    expect(entryCheck).not.toContain("\\/");
+  });
 });
