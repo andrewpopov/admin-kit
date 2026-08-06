@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { basename, join, relative, sep } from 'node:path';
 
 const root = process.cwd();
 const packageVersion = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
@@ -45,6 +45,11 @@ function walk(directory) {
   }
 }
 
+// Paths quoted back to the user are part of this tool's output contract, so
+// they stay POSIX-style on every platform. `relative` yields 'src\app.css' on
+// Windows, which would make the same violation read differently per OS.
+const relativePosix = (path) => relative(root, path).split(sep).join('/');
+
 function fail(messages) {
   console.error('[admin-kit-conformance] FAIL');
   for (const message of messages) console.error(`- ${message}`);
@@ -67,16 +72,20 @@ if (!adminKitSpecs.length) {
 }
 for (const { path, specifier } of adminKitSpecs) {
   if (!String(specifier).includes(`v${packageVersion}`)) {
-    errors.push(`${relative(root, path)}: pin @andrewpopov/admin-kit to v${packageVersion}.`);
+    errors.push(`${relativePosix(path)}: pin @andrewpopov/admin-kit to v${packageVersion}.`);
   }
 }
-const entryFiles = files.filter(({ path }) => /(?:^|\/)(?:main|layout)\.(?:[cm]?[jt]sx?)$/.test(path));
+// Match on the basename rather than the full path. The previous regex
+// anchored the segment boundary on a literal '/', but `join` emits '\' on
+// Windows, so `src\main.tsx` never matched and every consumer on Windows was
+// told to add a styles.css import it already had.
+const entryFiles = files.filter(({ path }) => /^(?:main|layout)\.(?:[cm]?[jt]sx?)$/.test(basename(path)));
 if (!entryFiles.some(({ text }) => /['"]@andrewpopov\/admin-kit\/styles\.css['"]/.test(text))) {
   errors.push('Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.');
 }
 for (const { path, text } of files) {
   if (!/\.css$/.test(path)) continue;
-  const rel = relative(root, path);
+  const rel = relativePosix(path);
   for (const match of text.matchAll(/--admin-kit-([a-z0-9-]+)\s*:/g)) {
     const name = match[1];
     if (!PUBLIC_THEME_TOKENS.has(name)) {
