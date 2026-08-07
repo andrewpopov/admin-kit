@@ -12,8 +12,9 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { JSDOM } from "jsdom";
+import { fileURLToPath } from 'node:url';
 
-const packageRoot = resolve(new URL("..", import.meta.url).pathname);
+const packageRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const fixturePath = resolve(packageRoot, "tests/browser/admin-shell.html");
 
 const dom = new JSDOM("<!doctype html><html><body><div id=\"root\"></div></body></html>", {
