@@ -172,6 +172,57 @@ describe("createApiKeysAdapter", () => {
     await expect(adapter.rotate!({ keyId: "missing" })).rejects.toThrow(/not found/i);
   });
 
+  it("create() never persists the credential when the issued secret fails validation", async () => {
+    const store = makeStore([]);
+    // An empty secret is the shape `validateAdminApiKeyCreated` rejects: a
+    // "newly created" key must include a one-time secret.
+    const issuedCredential = credential({ id: "new_1" });
+
+    const adapter = createApiKeysAdapter({
+      store,
+      listCredentials: () => store.all(),
+      issue: async () => ({ credential: issuedCredential, secret: "" }),
+      issueReplacement: async () => {
+        throw new Error("unused");
+      },
+      prefix: "test_",
+      peppers: [PEPPER],
+      nameOf: (c) => c.name,
+      now: () => NOW,
+    });
+
+    await expect(adapter.create(undefined as never)).rejects.toThrow(/one-time secret/i);
+    // The invalid credential must never reach the store: a create that fails
+    // validation must not leave an unusable persisted row behind.
+    expect(await store.findById("new_1")).toBeNull();
+  });
+
+  it("rotate() never revokes the previous credential when the issued replacement secret fails validation", async () => {
+    const store = makeStore([credential({ id: "old_1" })]);
+    const replacement = credential({ id: "new_1" });
+
+    const adapter = createApiKeysAdapter({
+      store,
+      listCredentials: () => store.all(),
+      issue: async () => {
+        throw new Error("unused");
+      },
+      // An empty secret is the shape `validateAdminApiKeyCreated` rejects.
+      issueReplacement: async () => ({ credential: replacement, secret: "" }),
+      prefix: "test_",
+      peppers: [PEPPER],
+      nameOf: (c) => c.name,
+      now: () => NOW,
+    });
+
+    await expect(adapter.rotate!({ keyId: "old_1" })).rejects.toThrow(/one-time secret/i);
+    // The old credential must still be active: a rotation that fails
+    // validation must not revoke it, since that would lock the operator out
+    // without ever having returned a valid replacement secret.
+    expect((await store.findById("old_1"))!.revokedAt).toBeUndefined();
+    expect(await store.findById("new_1")).toBeNull();
+  });
+
   it("revoke() calls store.revokeActive", async () => {
     const store = makeStore([credential({ id: "cred_1" })]);
     const adapter = createApiKeysAdapter({

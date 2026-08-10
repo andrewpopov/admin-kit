@@ -121,4 +121,76 @@ describe("MembershipsPanel", () => {
     expect(screen.queryByRole("combobox", { name: "Role for Ada" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Remove" })).toBeNull();
   });
+
+  it("clears the previous scope's rows and label instead of showing them next to the new scope while its load is pending", async () => {
+    const adapterA = adapter();
+    let resolveB: ((value: unknown) => void) | undefined;
+    const listB = vi.fn().mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveB = resolve;
+        }),
+    );
+    const adapterB = adapter({
+      scope: { id: "workspace-2", label: "Widgets workspace", kind: "workspace" },
+      list: listB,
+    });
+
+    const { rerender } = render(<MembershipsPanel adapter={adapterA} />);
+    expect(await screen.findByText("Ada")).toBeTruthy();
+
+    rerender(<MembershipsPanel adapter={adapterB} />);
+    await waitFor(() => expect(listB).toHaveBeenCalledTimes(1));
+
+    // adapter B's list is still pending: the panel must not show adapter A's
+    // rows (an operator could act on a row believing it belongs to the scope
+    // named on screen), nor adapter A's scope label/count paired with them.
+    expect(screen.queryByText("Ada")).toBeNull();
+    expect(screen.queryByText(/Acme workspace/)).toBeNull();
+    expect(await screen.findByText("Loading members…")).toBeTruthy();
+
+    resolveB?.([]);
+    expect(await screen.findByText(/Widgets workspace/)).toBeTruthy();
+    expect(screen.queryByText("Ada")).toBeNull();
+  });
+
+  it("does not let a stale in-flight remove's reload overwrite a newer adapter's members", async () => {
+    let resolveRemove: (() => void) | undefined;
+    const removeA = vi.fn().mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRemove = () => resolve(undefined);
+        }),
+    );
+    const listA = vi.fn().mockResolvedValue(members);
+    const adapterA = adapter({ list: listA, remove: { execute: removeA } });
+
+    const membersB = [
+      { memberId: "bob", label: "Bob", role: "member", source: "explicit" as const, mutable: true },
+    ];
+    const adapterB = adapter({
+      scope: { id: "workspace-2", label: "Widgets workspace", kind: "workspace" },
+      list: vi.fn().mockResolvedValue(membersB),
+    });
+
+    const { rerender } = render(<MembershipsPanel adapter={adapterA} />);
+    fireEvent.click((await screen.findAllByRole("button", { name: "Remove" }))[0]!);
+    fireEvent.click(screen.getByRole("button", { name: "Remove member" }));
+    await waitFor(() => expect(removeA).toHaveBeenCalledTimes(1));
+    expect(listA).toHaveBeenCalledTimes(1);
+
+    rerender(<MembershipsPanel adapter={adapterB} />);
+    expect(await screen.findByText("Bob")).toBeTruthy();
+
+    resolveRemove?.();
+
+    // The stale remove (issued under adapter A) resolves after adapter B is
+    // mounted. Its own reload must never fire against adapter A, and it must
+    // never overwrite adapter B's members with adapter A's stale rows.
+    await expect(
+      waitFor(() => expect(listA).toHaveBeenCalledTimes(2), { timeout: 300 }),
+    ).rejects.toThrow();
+    expect(screen.getByText("Bob")).toBeTruthy();
+    expect(screen.queryByText("Ada")).toBeNull();
+  });
 });

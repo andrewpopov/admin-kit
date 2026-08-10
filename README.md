@@ -358,11 +358,17 @@ adapter and consumer-shaped tests.
 ### Users adapter
 
 `AdminUsersAdapter` exposes only the user operations an application actually
-supports. It deliberately takes presentation data (`label`, optional role and
-status values), not an ORM-shaped `User`. A Savoro adapter can provide its
-owner/status vocabulary and a token-confirmed purge input; a Sano OS adapter
-can derive `disabledAt` into a status and expose password-reset instead. The
-host owns the transport and every policy decision.
+supports: paged listing plus the shared role and status mutations. It
+deliberately takes presentation data (`label`, optional role and status
+values), not an ORM-shaped `User`. Product-specific create, invite,
+credential-reset, and delete flows are not adapter members — `UsersPanel`
+never consumes them, so declaring one on the adapter would be a no-op.
+Compose those flows through `renderHeaderActions` and `renderUserActions`
+instead (see below): a Savoro adapter can provide its own owner/status
+vocabulary while composing a token-confirmed purge flow through
+`renderUserActions`; a Sano OS adapter can derive `disabledAt` into a status
+and expose password-reset the same way. The host owns the transport and
+every policy decision.
 
 ```ts
 import { defineAdminUsersAdapter } from "@andrewpopov/admin-kit/core";

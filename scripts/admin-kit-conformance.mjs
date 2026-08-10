@@ -50,6 +50,44 @@ function walk(directory) {
 // Windows, which would make the same violation read differently per OS.
 const relativePosix = (path) => relative(root, path).split(sep).join('/');
 
+// A raw-text regex over the whole file would match the stylesheet path
+// sitting inside a `//` or `/* */` comment, or an unrelated string literal
+// that merely mentions it, and treat that as satisfying the import
+// requirement. Strip comments (while preserving string contents, so the
+// import check below still sees a genuine string) before testing so only
+// real code can satisfy the gate.
+function stripComments(text) {
+  let out = '';
+  for (let i = 0; i < text.length; ) {
+    const two = text.slice(i, i + 2);
+    if (two === '//') {
+      const end = text.indexOf('\n', i);
+      i = end === -1 ? text.length : end;
+      continue;
+    }
+    if (two === '/*') {
+      const end = text.indexOf('*/', i + 2);
+      i = end === -1 ? text.length : end + 2;
+      continue;
+    }
+    const ch = text[i];
+    if (ch === '"' || ch === "'" || ch === '`') {
+      let j = i + 1;
+      while (j < text.length && text[j] !== ch) {
+        if (text[j] === '\\') j += 1;
+        j += 1;
+      }
+      j = Math.min(j + 1, text.length);
+      out += text.slice(i, j);
+      i = j;
+      continue;
+    }
+    out += ch;
+    i += 1;
+  }
+  return out;
+}
+
 function fail(messages) {
   console.error('[admin-kit-conformance] FAIL');
   for (const message of messages) console.error(`- ${message}`);
@@ -80,7 +118,11 @@ for (const { path, specifier } of adminKitSpecs) {
 // Windows, so `src\main.tsx` never matched and every consumer on Windows was
 // told to add a styles.css import it already had.
 const entryFiles = files.filter(({ path }) => /^(?:main|layout)\.(?:[cm]?[jt]sx?)$/.test(basename(path)));
-if (!entryFiles.some(({ text }) => /['"]@andrewpopov\/admin-kit\/styles\.css['"]/.test(text))) {
+if (
+  !entryFiles.some(({ text }) =>
+    /['"]@andrewpopov\/admin-kit\/styles\.css['"]/.test(stripComments(text)),
+  )
+) {
   errors.push('Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.');
 }
 for (const { path, text } of files) {

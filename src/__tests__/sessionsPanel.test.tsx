@@ -121,4 +121,37 @@ describe("SessionsPanel", () => {
     expect(screen.getByText("Safari on macOS")).toBeTruthy();
     expect(screen.queryByRole("dialog")).toBeNull();
   });
+
+  it("clears the previous scope's rows and label instead of showing them next to the new scope while its load is pending", async () => {
+    const adapterA = adapter();
+    let resolveB: ((value: unknown) => void) | undefined;
+    const listB = vi.fn().mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveB = resolve;
+        }),
+    );
+    const adapterB = adapter({
+      scope: { id: "workspace-2", label: "Widgets workspace", kind: "workspace" },
+      list: listB,
+    });
+
+    const { rerender } = render(<SessionsPanel adapter={adapterA} />);
+    expect(await screen.findByText("Safari on macOS")).toBeTruthy();
+
+    rerender(<SessionsPanel adapter={adapterB} />);
+    await waitFor(() => expect(listB).toHaveBeenCalledTimes(1));
+
+    // adapter B's list is still pending: the panel must not show adapter A's
+    // rows (an operator could revoke a session believing it belongs to the
+    // scope named on screen), nor adapter A's scope label/count paired
+    // with them.
+    expect(screen.queryByText("Safari on macOS")).toBeNull();
+    expect(screen.queryByText(/All accounts/)).toBeNull();
+    expect(await screen.findByText("Loading active sessions…")).toBeTruthy();
+
+    resolveB?.([]);
+    expect(await screen.findByText(/Widgets workspace/)).toBeTruthy();
+    expect(screen.queryByText("Safari on macOS")).toBeNull();
+  });
 });

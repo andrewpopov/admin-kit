@@ -27,6 +27,22 @@ function createConsumerFixture(): string {
   return root;
 }
 
+/** Same as `createConsumerFixture`, minus the pre-seeded genuine stylesheet import. */
+function createBareConsumerFixture(): string {
+  const root = mkdtempSync(join(tmpdir(), "admin-kit-conformance-"));
+  fixtureRoots.push(root);
+  mkdirSync(join(root, "src", "app"), { recursive: true });
+  writeFileSync(
+    join(root, "package.json"),
+    JSON.stringify({
+      dependencies: {
+        "@andrewpopov/admin-kit": `github:andrewpopov/admin-kit#v${packageVersion}`,
+      },
+    }),
+  );
+  return root;
+}
+
 function runConformance(root: string) {
   return spawnSync(
     process.execPath,
@@ -50,6 +66,40 @@ describe("admin-kit-conformance", () => {
     const generated = join(root, ".next", "static", "css");
     mkdirSync(generated, { recursive: true });
     writeFileSync(join(generated, "app.css"), ":root { --admin-kit-accent: red; }");
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("[admin-kit-conformance] PASS");
+  });
+
+  it("rejects an entry file whose only mention of the stylesheet import is inside a comment", () => {
+    const root = createBareConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app", "main.tsx"),
+      [
+        '// import "@andrewpopov/admin-kit/styles.css";',
+        "/*",
+        ' * import "@andrewpopov/admin-kit/styles.css";',
+        " */",
+        "export default function Main() { return null; }",
+      ].join("\n"),
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.",
+    );
+  });
+
+  it("still accepts a genuine stylesheet import", () => {
+    const root = createBareConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app", "main.tsx"),
+      '// import "@andrewpopov/admin-kit/styles.css"; (a decoy comment, not the real import)\nimport "@andrewpopov/admin-kit/styles.css";\nexport default function Main() { return null; }',
+    );
 
     const result = runConformance(root);
 

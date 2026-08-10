@@ -178,25 +178,30 @@ function SettingsPanel({ adapter, title = "Settings", className }) {
     const [saved, setSaved] = (0, react_1.useState)(false);
     const [error, setError] = (0, react_1.useState)();
     const latestLoadId = (0, react_1.useRef)(0);
-    (0, react_1.useEffect)(() => {
+    const load = async () => {
         const loadId = ++latestLoadId.current;
         // A failed load under the new adapter must not fall through to
-        // displaying the previous adapter's fields.
+        // displaying the previous adapter's fields, and a retried or
+        // newly-successful load must not leave a stale error behind.
         setFields(undefined);
-        void adapter
-            .load()
-            .then((next) => {
+        setError(undefined);
+        try {
+            const next = await adapter.load();
             if (loadId !== latestLoadId.current)
                 return;
             const loaded = Object.fromEntries(next.map((field) => [field.id, field.value]));
             setFields(next);
             setValues(loaded);
             setInitialValues(loaded);
-        })
-            .catch((reason) => {
-            if (loadId === latestLoadId.current)
+        }
+        catch (reason) {
+            if (loadId === latestLoadId.current) {
                 setError(reason instanceof Error ? reason.message : "Unable to load settings.");
-        });
+            }
+        }
+    };
+    (0, react_1.useEffect)(() => {
+        void load();
         // Invalidate synchronously with the transition: without this, a request
         // in flight for the previous adapter can still resolve and pass the
         // `loadId === latestLoadId.current` check because the effect that would
@@ -206,7 +211,7 @@ function SettingsPanel({ adapter, title = "Settings", className }) {
         };
     }, [adapter]);
     if (error && !fields)
-        return (0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: error }, className: className });
+        return ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: error, onRetry: () => void load() }, className: className }));
     if (!fields)
         return ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "loading", label: "Loading settings…" }, className: className }));
     const dirty = Object.keys(values).some((key) => values[key] !== initialValues[key]);

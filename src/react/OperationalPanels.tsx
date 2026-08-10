@@ -441,24 +441,28 @@ export function SettingsPanel({ adapter, title = "Settings", className }: Settin
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string>();
   const latestLoadId = useRef(0);
-  useEffect(() => {
+  const load = async () => {
     const loadId = ++latestLoadId.current;
     // A failed load under the new adapter must not fall through to
-    // displaying the previous adapter's fields.
+    // displaying the previous adapter's fields, and a retried or
+    // newly-successful load must not leave a stale error behind.
     setFields(undefined);
-    void adapter
-      .load()
-      .then((next) => {
-        if (loadId !== latestLoadId.current) return;
-        const loaded = Object.fromEntries(next.map((field) => [field.id, field.value]));
-        setFields(next);
-        setValues(loaded);
-        setInitialValues(loaded);
-      })
-      .catch((reason) => {
-        if (loadId === latestLoadId.current)
-          setError(reason instanceof Error ? reason.message : "Unable to load settings.");
-      });
+    setError(undefined);
+    try {
+      const next = await adapter.load();
+      if (loadId !== latestLoadId.current) return;
+      const loaded = Object.fromEntries(next.map((field) => [field.id, field.value]));
+      setFields(next);
+      setValues(loaded);
+      setInitialValues(loaded);
+    } catch (reason) {
+      if (loadId === latestLoadId.current) {
+        setError(reason instanceof Error ? reason.message : "Unable to load settings.");
+      }
+    }
+  };
+  useEffect(() => {
+    void load();
     // Invalidate synchronously with the transition: without this, a request
     // in flight for the previous adapter can still resolve and pass the
     // `loadId === latestLoadId.current` check because the effect that would
@@ -468,7 +472,12 @@ export function SettingsPanel({ adapter, title = "Settings", className }: Settin
     };
   }, [adapter]);
   if (error && !fields)
-    return <AdminPanelStateView state={{ kind: "error", detail: error }} className={className} />;
+    return (
+      <AdminPanelStateView
+        state={{ kind: "error", detail: error, onRetry: () => void load() }}
+        className={className}
+      />
+    );
   if (!fields)
     return (
       <AdminPanelStateView

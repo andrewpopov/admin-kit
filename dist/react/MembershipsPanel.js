@@ -19,21 +19,38 @@ function MembershipsPanel({ adapter, title = "Members", renderAddMember, renderM
     const [isAdding, setIsAdding] = (0, react_1.useState)(false);
     const [removeTarget, setRemoveTarget] = (0, react_1.useState)();
     const latestLoadId = (0, react_1.useRef)(0);
+    // The adapter identity a load or mutation is currently authoritative for.
+    // Compared against on every state write that lands after an `await`, so a
+    // stale in-flight load or mutation — queued under a previous scope's
+    // adapter — can never write into a newer scope's state.
+    const currentAdapter = (0, react_1.useRef)(adapter);
     const load = async () => {
         const loadId = ++latestLoadId.current;
+        const forAdapter = adapter;
         setLoadError(undefined);
         try {
-            const next = (0, core_1.validateAdminMemberships)(await adapter.list(), adapter.roles);
-            if (loadId === latestLoadId.current)
+            const next = (0, core_1.validateAdminMemberships)(await forAdapter.list(), forAdapter.roles);
+            if (loadId === latestLoadId.current && currentAdapter.current === forAdapter) {
                 setMembers(next);
+            }
         }
         catch (reason) {
-            if (loadId === latestLoadId.current) {
+            if (loadId === latestLoadId.current && currentAdapter.current === forAdapter) {
                 setLoadError(reason instanceof Error ? reason.message : "Unable to load members.");
             }
         }
     };
     (0, react_1.useEffect)(() => {
+        // A new adapter is a new scope: drop the previous scope's rows, dialogs,
+        // and pending state immediately instead of showing them next to the new
+        // scope's label while the new load is pending (or forever, if it fails).
+        currentAdapter.current = adapter;
+        setMembers(undefined);
+        setLoadError(undefined);
+        setActionError(undefined);
+        setPendingMemberId(undefined);
+        setIsAdding(false);
+        setRemoveTarget(undefined);
         void load();
         return () => {
             latestLoadId.current += 1;
@@ -42,53 +59,71 @@ function MembershipsPanel({ adapter, title = "Members", renderAddMember, renderM
     const submitInvite = async (input) => {
         if (!adapter.invite)
             return false;
+        const forAdapter = adapter;
         setIsAdding(true);
         setActionError(undefined);
         try {
             await adapter.invite.execute(input);
+            if (currentAdapter.current !== forAdapter)
+                return true;
             await load();
             return true;
         }
         catch (reason) {
-            setActionError(reason instanceof Error ? reason.message : "Unable to add the member.");
+            if (currentAdapter.current === forAdapter) {
+                setActionError(reason instanceof Error ? reason.message : "Unable to add the member.");
+            }
             return false;
         }
         finally {
-            setIsAdding(false);
+            if (currentAdapter.current === forAdapter)
+                setIsAdding(false);
         }
     };
     const updateRole = async (memberId, role) => {
         if (!adapter.setRole)
             return;
+        const forAdapter = adapter;
         setPendingMemberId(memberId);
         setActionError(undefined);
         try {
             await adapter.setRole.execute({ memberId, role });
+            if (currentAdapter.current !== forAdapter)
+                return;
             await load();
         }
         catch (reason) {
-            setActionError(reason instanceof Error ? reason.message : "Unable to update the member role.");
+            if (currentAdapter.current === forAdapter) {
+                setActionError(reason instanceof Error ? reason.message : "Unable to update the member role.");
+            }
         }
         finally {
-            setPendingMemberId(undefined);
+            if (currentAdapter.current === forAdapter)
+                setPendingMemberId(undefined);
         }
     };
     const remove = async (memberId) => {
         if (!adapter.remove)
             return;
+        const forAdapter = adapter;
         setPendingMemberId(memberId);
         setActionError(undefined);
         try {
             await adapter.remove.execute({ memberId });
+            if (currentAdapter.current !== forAdapter)
+                return;
             await load();
             setRemoveTarget(undefined);
         }
         catch (reason) {
-            setActionError(reason instanceof Error ? reason.message : "Unable to remove the member.");
-            setRemoveTarget(undefined);
+            if (currentAdapter.current === forAdapter) {
+                setActionError(reason instanceof Error ? reason.message : "Unable to remove the member.");
+                setRemoveTarget(undefined);
+            }
         }
         finally {
-            setPendingMemberId(undefined);
+            if (currentAdapter.current === forAdapter)
+                setPendingMemberId(undefined);
         }
     };
     if (loadError && !members) {

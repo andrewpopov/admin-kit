@@ -39,21 +39,39 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
   const [revokeTarget, setRevokeTarget] = useState<Session>();
   const [confirmBulk, setConfirmBulk] = useState(false);
   const latestLoadId = useRef(0);
+  // The adapter identity a load or mutation is currently authoritative for.
+  // Compared against on every state write that lands after an `await`, so a
+  // stale in-flight load or mutation — queued under a previous scope's
+  // adapter — can never write into a newer scope's state.
+  const currentAdapter = useRef(adapter);
 
   const load = async () => {
     const loadId = ++latestLoadId.current;
+    const forAdapter = adapter;
     setLoadError(undefined);
     try {
-      const next = validateAdminSessions(await adapter.list());
-      if (loadId === latestLoadId.current) setSessions(next);
+      const next = validateAdminSessions(await forAdapter.list());
+      if (loadId === latestLoadId.current && currentAdapter.current === forAdapter) {
+        setSessions(next);
+      }
     } catch (reason) {
-      if (loadId === latestLoadId.current) {
+      if (loadId === latestLoadId.current && currentAdapter.current === forAdapter) {
         setLoadError(reason instanceof Error ? reason.message : "Unable to load active sessions.");
       }
     }
   };
 
   useEffect(() => {
+    // A new adapter is a new scope: drop the previous scope's rows, dialogs,
+    // and pending state immediately instead of showing them next to the new
+    // scope's label while the new load is pending (or forever, if it fails).
+    currentAdapter.current = adapter;
+    setSessions(undefined);
+    setLoadError(undefined);
+    setActionError(undefined);
+    setPendingId(undefined);
+    setRevokeTarget(undefined);
+    setConfirmBulk(false);
     void load();
     return () => {
       latestLoadId.current += 1;
@@ -62,33 +80,41 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
 
   const revoke = async (sessionId: string) => {
     if (!adapter.revoke) return;
+    const forAdapter = adapter;
     setPendingId(sessionId);
     setActionError(undefined);
     try {
       await adapter.revoke.execute({ sessionId });
+      if (currentAdapter.current !== forAdapter) return;
       await load();
       setRevokeTarget(undefined);
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Unable to revoke the session.");
-      setRevokeTarget(undefined);
+      if (currentAdapter.current === forAdapter) {
+        setActionError(reason instanceof Error ? reason.message : "Unable to revoke the session.");
+        setRevokeTarget(undefined);
+      }
     } finally {
-      setPendingId(undefined);
+      if (currentAdapter.current === forAdapter) setPendingId(undefined);
     }
   };
 
   const bulkRevoke = async () => {
     if (!adapter.bulkRevoke) return;
+    const forAdapter = adapter;
     setPendingId("__bulk__");
     setActionError(undefined);
     try {
       await adapter.bulkRevoke.execute();
+      if (currentAdapter.current !== forAdapter) return;
       await load();
       setConfirmBulk(false);
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Unable to revoke sessions.");
-      setConfirmBulk(false);
+      if (currentAdapter.current === forAdapter) {
+        setActionError(reason instanceof Error ? reason.message : "Unable to revoke sessions.");
+        setConfirmBulk(false);
+      }
     } finally {
-      setPendingId(undefined);
+      if (currentAdapter.current === forAdapter) setPendingId(undefined);
     }
   };
 
