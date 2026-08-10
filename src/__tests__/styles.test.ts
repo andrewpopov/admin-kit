@@ -137,6 +137,16 @@ describe("Admin Kit styles", () => {
     );
   });
 
+  it("keeps shared form and action controls at the 44px mobile comfort target", () => {
+    expect(styles).toContain(".admin-kit__button {");
+    expect(styles).toMatch(/\.admin-kit__button \{[^}]*min-block-size: 2\.75rem;/);
+    expect(styles).toMatch(/\.admin-kit__users-table select \{[^}]*min-block-size: 2\.75rem;/);
+    expect(styles).toMatch(
+      /\.admin-kit__logs-filters input, \.admin-kit__logs-filters select \{[^}]*min-block-size: 2\.75rem;/,
+    );
+    expect(styles).toMatch(/\.admin-kit__scope-group-toggle \{[^}]*min-block-size: 2\.75rem;/);
+  });
+
   it("keeps routed portal navigation independently sized and sticky", () => {
     expect(styles).toContain("--admin-kit-sticky-top: 1rem;");
     expect(styles).toContain(".admin-kit__app-shell-navigation, .admin-kit__portal-navigation");
