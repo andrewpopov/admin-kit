@@ -669,6 +669,19 @@
   .admin-kit__events-header > button, .admin-kit__users-header > :last-child, .admin-kit__memberships-header > :last-child, .admin-kit__key-actions > button, .admin-kit__dialog-actions > button { width: 100%; }
   .admin-kit__events-filters label { flex: 1 1 12rem; }
   .admin-kit__user-controls { align-items: stretch; }
+  /* Recovery points are action-oriented too. Keep the semantic table for
+     desktop and assistive technology, but present each row as a labeled card
+     on phones so restore never depends on horizontal panning. */
+  .admin-kit__backups-table-wrap { overflow-x: visible; }
+  .admin-kit__backups-table { display: block; min-width: 0; }
+  .admin-kit__backups-table thead { clip: rect(0 0 0 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
+  .admin-kit__backups-table tbody { display: grid; gap: 0.75rem; }
+  .admin-kit__backups-table tr { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius-sm); display: grid; overflow: hidden; }
+  .admin-kit__backups-table td { align-items: start; display: grid; gap: 0.75rem; grid-template-columns: minmax(5.5rem, 0.35fr) minmax(0, 1fr); min-width: 0; white-space: normal; width: auto; }
+  .admin-kit__backups-table td:last-child { border-bottom: 0; }
+  .admin-kit__backups-table .admin-kit__mobile-cell-label { color: var(--admin-kit-muted); display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .admin-kit__backups-table td > :last-child { max-width: 100%; overflow-wrap: anywhere; }
+  .admin-kit__backups-table td > button { justify-self: stretch; width: 100%; }
   /* User management is action-oriented. At phone widths each semantic table
      row becomes a card so lifecycle controls never require horizontal
      discovery. The DOM remains one table, preserving its headers and focus
