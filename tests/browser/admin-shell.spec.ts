@@ -17,6 +17,24 @@ test("keeps routed navigation intrinsic and collection overflow inside their pan
   expect(rail?.height).toBeLessThan(content?.height ?? 0);
 
   await page.setViewportSize({ width: 320, height: 844 });
+  const usersPanel = page.getByRole("region", { name: "Users" });
+  const usersTableWrap = usersPanel.locator(".admin-kit__users-table-wrap");
+  const resetPassword = usersPanel.getByRole("button", {
+    name: "Reset password for avery.long.email.address@example.test",
+  });
+  await expect(resetPassword).toBeVisible();
+  expect(
+    await usersTableWrap.evaluate((node) => node.scrollWidth <= node.clientWidth),
+    "UsersPanel actions must not require horizontal scrolling at 320px",
+  ).toBe(true);
+  const [usersBounds, resetBounds] = await Promise.all([
+    usersTableWrap.boundingBox(),
+    resetPassword.boundingBox(),
+  ]);
+  expect(resetBounds?.x).toBeGreaterThanOrEqual(usersBounds?.x ?? 0);
+  expect((resetBounds?.x ?? 0) + (resetBounds?.width ?? 0)).toBeLessThanOrEqual(
+    (usersBounds?.x ?? 0) + (usersBounds?.width ?? 0),
+  );
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   await expect(page.locator(".admin-kit__key-cards")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Server logs", level: 2 })).toBeVisible();

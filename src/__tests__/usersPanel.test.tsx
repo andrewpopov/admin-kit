@@ -78,7 +78,7 @@ describe("UsersPanel", () => {
 
   it("renders an opt-in host table schema without the default columns", async () => {
     const list = vi.fn().mockResolvedValue({ items: users, page: 1, pageSize: 25, total: 1 });
-    render(
+    const { container } = render(
       <UsersPanel
         adapter={{ list }}
         columns={[
@@ -90,6 +90,7 @@ describe("UsersPanel", () => {
     await screen.findByText("ada@example.test");
     expect(screen.getByRole("columnheader", { name: "Email" })).toBeTruthy();
     expect(screen.queryByRole("columnheader", { name: "Role" })).toBeNull();
+    expect(container.querySelectorAll(".admin-kit__mobile-cell-label")).toHaveLength(2);
   });
 
   it("applies typed responsive column hints to both the heading and cells", async () => {
