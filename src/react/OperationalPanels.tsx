@@ -14,6 +14,7 @@ import { useAdminLabels } from "./AdminLabels";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
 import { AdminPanelStateView } from "./AdminPanelState";
 import { AdminSwitch } from "./AdminPrimitives";
+import { AdminMobileCellLabel } from "./AdminTablePrimitives";
 
 export interface AdminStatusSummaryProps {
   items: readonly AdminOperationalStatus[];
@@ -301,7 +302,6 @@ export function BackupsPanel({
       />
     );
   const totalPages = Math.max(1, Math.ceil(result.total / pageSize));
-  const columnCount = adapter.restore ? 5 : 4;
   return (
     <section
       className={["admin-kit__operations", className].filter(Boolean).join(" ")}
@@ -326,43 +326,60 @@ export function BackupsPanel({
       {error ? (
         <AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} />
       ) : null}
-      <div className="admin-kit__table-wrap admin-kit__operations-table-wrap">
-        <table
-          className="admin-kit__table admin-kit__operations-table"
-          aria-busy={busy || isLoading}
-        >
-          <thead>
-            <tr>
-              <th scope="col">Backup</th>
-              <th scope="col">Created</th>
-              <th scope="col">Size</th>
-              <th scope="col">Status</th>
-              {adapter.restore ? <th scope="col">Actions</th> : null}
-            </tr>
-          </thead>
-          <tbody>
-            {result.items.length === 0 ? (
+      {result.items.length === 0 ? (
+        <AdminPanelStateView
+          state={{
+            kind: "empty",
+            title: "No backups yet",
+            detail: "Run a backup to create your first recovery point.",
+          }}
+        />
+      ) : (
+        <div className="admin-kit__table-wrap admin-kit__operations-table-wrap admin-kit__backups-table-wrap">
+          <table
+            className="admin-kit__table admin-kit__operations-table admin-kit__backups-table"
+            aria-busy={busy || isLoading}
+          >
+            <thead>
               <tr>
-                <td className="admin-kit__operations-empty" colSpan={columnCount}>
-                  No backups yet. Run a backup to create your first recovery point.
-                </td>
+                <th scope="col">Backup</th>
+                <th scope="col">Created</th>
+                <th scope="col">Size</th>
+                <th scope="col">Status</th>
+                {adapter.restore ? <th scope="col">Actions</th> : null}
               </tr>
-            ) : (
-              result.items.map((item) => (
+            </thead>
+            <tbody>
+              {result.items.map((item) => (
                 <tr key={item.id}>
                   <td>
-                    <strong>{item.label}</strong>
-                    {item.detail ? <small>{item.detail}</small> : null}
+                    <AdminMobileCellLabel>Backup</AdminMobileCellLabel>
+                    <span>
+                      <strong>{item.label}</strong>
+                      {item.detail ? <small>{item.detail}</small> : null}
+                    </span>
                   </td>
-                  <td>{formatAdminTimestamp(item.createdAt, formatTimestamp)}</td>
-                  <td>{item.size ?? "—"}</td>
                   <td>
-                    <span className={`admin-kit__state-pill admin-kit__state-pill--${item.state}`}>
-                      {item.state}
+                    <AdminMobileCellLabel>Created</AdminMobileCellLabel>
+                    <span>{formatAdminTimestamp(item.createdAt, formatTimestamp)}</span>
+                  </td>
+                  <td>
+                    <AdminMobileCellLabel>Size</AdminMobileCellLabel>
+                    <span>{item.size ?? "—"}</span>
+                  </td>
+                  <td>
+                    <AdminMobileCellLabel>Status</AdminMobileCellLabel>
+                    <span>
+                      <span
+                        className={`admin-kit__state-pill admin-kit__state-pill--${item.state}`}
+                      >
+                        {item.state}
+                      </span>
                     </span>
                   </td>
                   {adapter.restore ? (
                     <td>
+                      <AdminMobileCellLabel>Actions</AdminMobileCellLabel>
                       <button
                         disabled={busy || item.state !== "completed"}
                         type="button"
@@ -373,11 +390,11 @@ export function BackupsPanel({
                     </td>
                   ) : null}
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {totalPages > 1 ? (
         <nav className="admin-kit__pagination" aria-label="Backups pagination">
           <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>

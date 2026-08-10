@@ -10,6 +10,7 @@ import {
 import { useAdminLabels } from "./AdminLabels";
 import { AdminPanelHeader, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
+import { AdminMobileCellLabel } from "./AdminTablePrimitives";
 
 export interface UsersPanelProps<User extends AdminUserSummary> {
   adapter: AdminUsersAdapter<User>;
@@ -58,10 +59,6 @@ export interface AdminUserTableCellContext {
   isPending: boolean;
   setRole: (role: string) => Promise<void>;
   setStatus: (status: string) => Promise<void>;
-}
-
-function MobileCellLabel({ children }: { children: ReactNode }) {
-  return <span className="admin-kit__mobile-cell-label">{children}</span>;
 }
 
 /**
@@ -324,7 +321,7 @@ export function UsersPanel<User extends AdminUserSummary>({
                                   }
                                   key={column.id}
                                 >
-                                  <MobileCellLabel>{column.label}</MobileCellLabel>
+                                  <AdminMobileCellLabel>{column.label}</AdminMobileCellLabel>
                                   {column.render(user, {
                                     reload: load,
                                     isPending: pendingUserId === user.id,
@@ -360,7 +357,7 @@ export function UsersPanel<User extends AdminUserSummary>({
                         {result.items.map((user) => (
                           <tr key={user.id} aria-busy={pendingUserId === user.id}>
                             <td>
-                              <MobileCellLabel>User</MobileCellLabel>
+                              <AdminMobileCellLabel>User</AdminMobileCellLabel>
                               <div className="admin-kit__user-identity">
                                 <strong>{user.label}</strong>
                                 {user.secondaryLabel ? <span>{user.secondaryLabel}</span> : null}
@@ -371,7 +368,7 @@ export function UsersPanel<User extends AdminUserSummary>({
                             </td>
                             {hasDetails ? (
                               <td>
-                                <MobileCellLabel>Details</MobileCellLabel>
+                                <AdminMobileCellLabel>Details</AdminMobileCellLabel>
                                 {user.details?.length ? (
                                   <dl className="admin-kit__user-details">
                                     {user.details.map((detail) => (
@@ -387,7 +384,7 @@ export function UsersPanel<User extends AdminUserSummary>({
                               </td>
                             ) : null}
                             <td>
-                              <MobileCellLabel>Role</MobileCellLabel>
+                              <AdminMobileCellLabel>Role</AdminMobileCellLabel>
                               {adapter.roles?.length &&
                               adapter.setRole &&
                               user.role &&
@@ -409,7 +406,7 @@ export function UsersPanel<User extends AdminUserSummary>({
                               ) : null}
                             </td>
                             <td>
-                              <MobileCellLabel>Status</MobileCellLabel>
+                              <AdminMobileCellLabel>Status</AdminMobileCellLabel>
                               {adapter.statuses?.length &&
                               adapter.setStatus &&
                               user.status &&
@@ -434,7 +431,7 @@ export function UsersPanel<User extends AdminUserSummary>({
                             </td>
                             {hasActions ? (
                               <td>
-                                <MobileCellLabel>Actions</MobileCellLabel>
+                                <AdminMobileCellLabel>Actions</AdminMobileCellLabel>
                                 <div className="admin-kit__user-controls">
                                   {renderUserActions
                                     ? renderUserActions(user, {

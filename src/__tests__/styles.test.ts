@@ -128,6 +128,15 @@ describe("Admin Kit styles", () => {
     expect(viewport36rem).toBeNull();
   });
 
+  it("turns backup rows into labeled cards without horizontal panning on mobile", () => {
+    expect(styles).toContain(".admin-kit__backups-table-wrap { overflow-x: visible; }");
+    expect(styles).toContain(".admin-kit__backups-table { display: block; min-width: 0; }");
+    expect(styles).toContain(".admin-kit__backups-table .admin-kit__mobile-cell-label");
+    expect(styles).toContain(
+      ".admin-kit__backups-table td > button { justify-self: stretch; width: 100%; }",
+    );
+  });
+
   it("keeps routed portal navigation independently sized and sticky", () => {
     expect(styles).toContain("--admin-kit-sticky-top: 1rem;");
     expect(styles).toContain(".admin-kit__app-shell-navigation, .admin-kit__portal-navigation");

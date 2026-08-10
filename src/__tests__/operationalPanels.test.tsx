@@ -37,9 +37,9 @@ describe("operational panels", () => {
         runLabel="Run backup now"
       />,
     );
-    expect(
-      await screen.findByText("No backups yet. Run a backup to create your first recovery point."),
-    ).toBeTruthy();
+    expect(await screen.findByText("No backups yet")).toBeTruthy();
+    expect(screen.getByText("Run a backup to create your first recovery point.")).toBeTruthy();
+    expect(screen.queryByRole("table")).toBeNull();
     expect(
       screen
         .getByRole("button", { name: "Run backup now" })
@@ -72,6 +72,40 @@ describe("operational panels", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Restore backup" }));
     await waitFor(() => expect(restore).toHaveBeenCalledWith({ backupId: "b1" }));
+  });
+
+  it("labels every recovery-point field for the mobile card presentation", async () => {
+    const { container } = render(
+      <BackupsPanel
+        adapter={{
+          list: vi.fn().mockResolvedValue({
+            items: [
+              {
+                id: "b1",
+                label: "Daily",
+                detail: "Encrypted",
+                createdAt: "Today",
+                size: "12 MB",
+                state: "completed",
+              },
+            ],
+            page: 1,
+            pageSize: 25,
+            total: 1,
+          }),
+          restore: { execute: vi.fn() },
+        }}
+      />,
+    );
+
+    const table = await screen.findByRole("table");
+    expect(table.classList.contains("admin-kit__backups-table")).toBe(true);
+    expect(
+      Array.from(container.querySelectorAll(".admin-kit__mobile-cell-label")).map(
+        (label) => label.textContent,
+      ),
+    ).toEqual(["Backup", "Created", "Size", "Status", "Actions"]);
+    expect(screen.getByRole("button", { name: "Restore" })).toBeTruthy();
   });
 
   it("renders settings fields through a host-owned adapter", async () => {
