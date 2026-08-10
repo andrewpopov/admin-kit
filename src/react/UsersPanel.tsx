@@ -60,6 +60,10 @@ export interface AdminUserTableCellContext {
   setStatus: (status: string) => Promise<void>;
 }
 
+function MobileCellLabel({ children }: { children: ReactNode }) {
+  return <span className="admin-kit__mobile-cell-label">{children}</span>;
+}
+
 /**
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
@@ -320,6 +324,7 @@ export function UsersPanel<User extends AdminUserSummary>({
                                   }
                                   key={column.id}
                                 >
+                                  <MobileCellLabel>{column.label}</MobileCellLabel>
                                   {column.render(user, {
                                     reload: load,
                                     isPending: pendingUserId === user.id,
@@ -355,6 +360,7 @@ export function UsersPanel<User extends AdminUserSummary>({
                         {result.items.map((user) => (
                           <tr key={user.id} aria-busy={pendingUserId === user.id}>
                             <td>
+                              <MobileCellLabel>User</MobileCellLabel>
                               <div className="admin-kit__user-identity">
                                 <strong>{user.label}</strong>
                                 {user.secondaryLabel ? <span>{user.secondaryLabel}</span> : null}
@@ -365,6 +371,7 @@ export function UsersPanel<User extends AdminUserSummary>({
                             </td>
                             {hasDetails ? (
                               <td>
+                                <MobileCellLabel>Details</MobileCellLabel>
                                 {user.details?.length ? (
                                   <dl className="admin-kit__user-details">
                                     {user.details.map((detail) => (
@@ -380,6 +387,7 @@ export function UsersPanel<User extends AdminUserSummary>({
                               </td>
                             ) : null}
                             <td>
+                              <MobileCellLabel>Role</MobileCellLabel>
                               {adapter.roles?.length &&
                               adapter.setRole &&
                               user.role &&
@@ -401,6 +409,7 @@ export function UsersPanel<User extends AdminUserSummary>({
                               ) : null}
                             </td>
                             <td>
+                              <MobileCellLabel>Status</MobileCellLabel>
                               {adapter.statuses?.length &&
                               adapter.setStatus &&
                               user.status &&
@@ -425,6 +434,7 @@ export function UsersPanel<User extends AdminUserSummary>({
                             </td>
                             {hasActions ? (
                               <td>
+                                <MobileCellLabel>Actions</MobileCellLabel>
                                 <div className="admin-kit__user-controls">
                                   {renderUserActions
                                     ? renderUserActions(user, {

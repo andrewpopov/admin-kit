@@ -132,7 +132,24 @@ const tree = React.createElement(
               React.createElement(AdminActionButton, null, "Export"),
             ),
           },
-          React.createElement(UsersPanel, { adapter: usersAdapter, search: false }),
+          React.createElement(UsersPanel, {
+            adapter: usersAdapter,
+            search: false,
+            renderUserActions: (user) => React.createElement(
+              React.Fragment,
+              null,
+              React.createElement(
+                "button",
+                { "aria-label": `Edit ${user.label}`, type: "button" },
+                "Edit",
+              ),
+              React.createElement(
+                "button",
+                { "aria-label": `Reset password for ${user.label}`, type: "button" },
+                "Reset password",
+              ),
+            ),
+          }),
         ),
       }],
     }],
