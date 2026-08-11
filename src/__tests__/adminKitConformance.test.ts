@@ -27,6 +27,22 @@ function createConsumerFixture(): string {
   return root;
 }
 
+/** Same as `createConsumerFixture`, minus the pre-seeded genuine stylesheet import. */
+function createBareConsumerFixture(): string {
+  const root = mkdtempSync(join(tmpdir(), "admin-kit-conformance-"));
+  fixtureRoots.push(root);
+  mkdirSync(join(root, "src", "app"), { recursive: true });
+  writeFileSync(
+    join(root, "package.json"),
+    JSON.stringify({
+      dependencies: {
+        "@andrewpopov/admin-kit": `github:andrewpopov/admin-kit#v${packageVersion}`,
+      },
+    }),
+  );
+  return root;
+}
+
 function runConformance(root: string) {
   return spawnSync(
     process.execPath,
@@ -55,6 +71,173 @@ describe("admin-kit-conformance", () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("[admin-kit-conformance] PASS");
+  });
+
+  // Canary for the conformance gate itself: build one fixture per case Codex
+  // named (an under-matched first pass shipped once already) and assert the
+  // verdict, so a future regression that starts pattern-matching text again
+  // fails a test by name instead of silently reopening the bypass.
+  it("rejects a bare string literal that merely contains the stylesheet path", () => {
+    const root = createBareConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app", "main.tsx"),
+      'const documentation = "@andrewpopov/admin-kit/styles.css";\nexport default function Main() { return null; }',
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.",
+    );
+  });
+
+  it("rejects a template literal containing import-looking text", () => {
+    const root = createBareConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app", "main.tsx"),
+      'const example = `import "@andrewpopov/admin-kit/styles.css"`;\nexport default function Main() { return null; }',
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.",
+    );
+  });
+
+  it("rejects an entry file whose only mention of the stylesheet import is inside a line comment", () => {
+    const root = createBareConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app", "main.tsx"),
+      '// import "@andrewpopov/admin-kit/styles.css";\nexport default function Main() { return null; }',
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.",
+    );
+  });
+
+  it("rejects an entry file whose only mention of the stylesheet import is inside a block comment", () => {
+    const root = createBareConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app", "main.tsx"),
+      ["/*", ' * import "@andrewpopov/admin-kit/styles.css";', " */", "export default function Main() { return null; }"].join(
+        "\n",
+      ),
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.",
+    );
+  });
+
+  it("rejects an entry file with no mention of the stylesheet at all", () => {
+    const root = createBareConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app", "main.tsx"),
+      "export default function Main() { return null; }",
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.",
+    );
+  });
+
+  it("still accepts a genuine stylesheet import", () => {
+    const root = createBareConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app", "main.tsx"),
+      '// import "@andrewpopov/admin-kit/styles.css"; (a decoy comment, not the real import)\nimport "@andrewpopov/admin-kit/styles.css";\nexport default function Main() { return null; }',
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("[admin-kit-conformance] PASS");
+  });
+
+  it("accepts a genuine require() call from a CommonJS entry point", () => {
+    const root = createBareConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app", "main.js"),
+      'require("@andrewpopov/admin-kit/styles.css");\nmodule.exports = function Main() { return null; };',
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("[admin-kit-conformance] PASS");
+  });
+
+  it("rejects a string that merely looks like a require() call", () => {
+    const root = createBareConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app", "main.js"),
+      'const decoy = "require(\\"@andrewpopov/admin-kit/styles.css\\")";\nmodule.exports = function Main() { return null; };',
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.",
+    );
+  });
+
+  it("does not let a quote inside a regex literal desynchronize comment detection", () => {
+    const root = createBareConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app", "main.tsx"),
+      [
+        'const pattern = /don\\u0027t match "quote"/;',
+        '// import "@andrewpopov/admin-kit/styles.css";',
+        "export default function Main() { return null; }",
+      ].join("\n"),
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.",
+    );
+  });
+
+  it("declares `typescript` as an OPTIONAL peer, never a runtime dependency — admin-kit ships with no runtime dependencies and must not drag the compiler into every consumer to support a CI-only gate", () => {
+    const manifest = JSON.parse(readFileSync(resolve(process.cwd(), "package.json"), "utf8")) as {
+      dependencies?: Record<string, string>;
+      peerDependencies?: Record<string, string>;
+      peerDependenciesMeta?: Record<string, { optional?: boolean }>;
+    };
+
+    expect(manifest.dependencies).toBeUndefined();
+    expect(manifest.peerDependencies?.typescript).toBeTruthy();
+    expect(manifest.peerDependenciesMeta?.typescript?.optional).toBe(true);
+  });
+
+  it("FAILS CLOSED when `typescript` cannot be resolved, rather than skipping the check — a gate that reports success when it could not run is the same defect this file's stylesheet check just fixed", () => {
+    const root = createConsumerFixture();
+    // Resolution from the script's own location is what matters, so point the
+    // whole process at a tree with no typescript rather than editing the fixture.
+    const isolated = mkdtempSync(join(tmpdir(), "admin-kit-no-ts-"));
+    const script = join(isolated, "admin-kit-conformance.mjs");
+    writeFileSync(script, readFileSync(resolve(process.cwd(), "scripts/admin-kit-conformance.mjs"), "utf8"));
+
+    const result = spawnSync(process.execPath, [script], { cwd: root, encoding: "utf8" });
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('"typescript" package could not be resolved');
   });
 
   it("still rejects a source-level internal token override", () => {

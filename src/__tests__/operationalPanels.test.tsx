@@ -645,6 +645,45 @@ describe("operational panels", () => {
     expect(screen.queryByDisplayValue("1")).toBeNull();
   });
 
+  it("lets an operator retry after an initial settings load failure", async () => {
+    const load = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Settings host unavailable"))
+      .mockResolvedValueOnce([{ id: "retention", label: "Retention", value: "30" }]);
+    render(<SettingsPanel adapter={{ load, save: { execute: vi.fn() } }} />);
+
+    await screen.findByText("Settings host unavailable");
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+
+    expect(await screen.findByDisplayValue("30")).toBeTruthy();
+    expect(screen.queryByText("Settings host unavailable")).toBeNull();
+    expect(load).toHaveBeenCalledTimes(2);
+  });
+
+  it("clears a stale load error once a replacement adapter's load succeeds", async () => {
+    const { rerender } = render(
+      <SettingsPanel
+        adapter={{
+          load: vi.fn().mockRejectedValue(new Error("Settings host unavailable")),
+          save: { execute: vi.fn() },
+        }}
+      />,
+    );
+    await screen.findByText("Settings host unavailable");
+
+    rerender(
+      <SettingsPanel
+        adapter={{
+          load: vi.fn().mockResolvedValue([{ id: "retention", label: "Retention", value: "30" }]),
+          save: { execute: vi.fn() },
+        }}
+      />,
+    );
+
+    expect(await screen.findByDisplayValue("30")).toBeTruthy();
+    expect(screen.queryByText("Settings host unavailable")).toBeNull();
+  });
+
   it("clears stale fields when the adapter changes and the new adapter's load fails", async () => {
     const { rerender } = render(
       <SettingsPanel

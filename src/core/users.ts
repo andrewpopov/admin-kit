@@ -52,30 +52,21 @@ export interface AdminUserStatusChange {
   status: string;
 }
 
-export interface AdminUserActionTarget {
-  userId: string;
-}
-
 /**
- * Capability-based adapter for a users panel. The host maps its API envelopes,
- * role/status vocabulary, and destructive-flow confirmation into this shape.
- * Missing mutations are intentionally unavailable in the rendered UI.
+ * Capability-based adapter for a users panel. The host maps its API envelopes
+ * and role/status vocabulary into this shape. Missing mutations are
+ * intentionally unavailable in the rendered UI. Product-specific create,
+ * invite, credential-reset, and delete flows are not adapter members — `UsersPanel`
+ * never consumes them, so declaring one would be a no-op. Compose those flows
+ * through `renderHeaderActions` and `renderUserActions` instead, where each
+ * host keeps its own confirmation, token, and transport semantics.
  */
-export interface AdminUsersAdapter<
-  User extends AdminUserSummary = AdminUserSummary,
-  CreateInput = never,
-  InviteInput = never,
-  DeleteInput extends AdminUserActionTarget = AdminUserActionTarget,
-> {
+export interface AdminUsersAdapter<User extends AdminUserSummary = AdminUserSummary> {
   list(query: AdminPageQuery): Promise<AdminPage<User>>;
   roles?: readonly AdminUserValue[];
   statuses?: readonly AdminUserValue[];
-  create?: AdminUserMutation<CreateInput, User>;
-  invite?: AdminUserMutation<InviteInput, User>;
   setRole?: AdminUserMutation<AdminUserRoleChange, User>;
   setStatus?: AdminUserMutation<AdminUserStatusChange, User>;
-  resetCredentials?: AdminUserMutation<AdminUserActionTarget, void>;
-  delete?: AdminUserMutation<DeleteInput, void>;
 }
 
 function validateValues(name: string, values: readonly AdminUserValue[] | undefined): void {
@@ -91,14 +82,9 @@ function validateValues(name: string, values: readonly AdminUserValue[] | undefi
 }
 
 /** Validates declarative options while preserving host-owned mutation implementations. */
-export function defineAdminUsersAdapter<
-  User extends AdminUserSummary,
-  CreateInput = never,
-  InviteInput = never,
-  DeleteInput extends AdminUserActionTarget = AdminUserActionTarget,
->(
-  adapter: AdminUsersAdapter<User, CreateInput, InviteInput, DeleteInput>,
-): AdminUsersAdapter<User, CreateInput, InviteInput, DeleteInput> {
+export function defineAdminUsersAdapter<User extends AdminUserSummary>(
+  adapter: AdminUsersAdapter<User>,
+): AdminUsersAdapter<User> {
   validateValues("Role", adapter.roles);
   validateValues("Status", adapter.statuses);
 

@@ -63,11 +63,15 @@ function createApiKeysAdapter(options) {
         },
         async create(input) {
             const issued = await options.issue(input);
-            await options.store.create(issued.credential);
-            return (0, apiKeys_1.validateAdminApiKeyCreated)({
+            // Validate the one-time secret BEFORE persisting: a rejected credential
+            // must never reach the store, since that would leave an unusable
+            // persisted row with no valid secret ever returned to the caller.
+            const created = (0, apiKeys_1.validateAdminApiKeyCreated)({
                 key: mapCredential(issued.credential, options),
                 secret: issued.secret,
             });
+            await options.store.create(issued.credential);
+            return created;
         },
         async revoke({ keyId }) {
             const result = await options.store.revokeActive({
@@ -83,6 +87,14 @@ function createApiKeysAdapter(options) {
             if (!existing)
                 throw new Error(`API credential not found: ${keyId}`);
             const issued = await options.issueReplacement({ credential: existing });
+            // Validate the one-time secret BEFORE replaceActive revokes the old
+            // credential: if validation fails after the swap, the operator is
+            // locked out — the old credential is gone and no valid replacement
+            // secret was ever returned.
+            const created = (0, apiKeys_1.validateAdminApiKeyCreated)({
+                key: mapCredential(issued.credential, options),
+                secret: issued.secret,
+            });
             const result = await options.store.replaceActive({
                 previousCredentialId: keyId,
                 replacement: issued.credential,
@@ -91,10 +103,7 @@ function createApiKeysAdapter(options) {
             if (!result.applied) {
                 throw new Error(`API credential rotation failed for ${keyId}: ${result.reason}`);
             }
-            return (0, apiKeys_1.validateAdminApiKeyCreated)({
-                key: mapCredential(issued.credential, options),
-                secret: issued.secret,
-            });
+            return created;
         },
     };
 }

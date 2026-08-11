@@ -77,7 +77,8 @@
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0"
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "typescript": ">=5.0.0"
   },
   "devDependencies": {
     "@andrewpopov/release-kit": "github:andrewpopov/release-kit#v0.3.1",
@@ -97,5 +98,10 @@
     "typescript": "^5.5.0",
     "typescript-eslint": "^8.65.0",
     "vitest": "^4.1.10"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
   }
 }

@@ -16,16 +16,62 @@ function SessionsPanel({ adapter, title = "Active sessions", renderSessionAction
     const [revokeTarget, setRevokeTarget] = (0, react_1.useState)();
     const [confirmBulk, setConfirmBulk] = (0, react_1.useState)(false);
     const latestLoadId = (0, react_1.useRef)(0);
+    // Scope epoch: a MONOTONIC COUNTER bumped whenever `adapter` changes
+    // identity — never an identity comparison by itself. Identity alone is not
+    // a real epoch: an A -> B -> back-to-the-same-A-object transition would let
+    // a call queued during the FIRST A epoch pass an identity check again once
+    // the SAME object becomes current a second time.
+    //
+    // Detected and applied during RENDER — React's sanctioned "adjust state
+    // when a prop changes" pattern — rather than inside a `useEffect`. Passive
+    // effects run AFTER commit, so a request from the old scope that resolves
+    // in the gap between commit and the effect firing would still pass an
+    // effect-based guard and write stale rows while the rendered scope label
+    // already belongs to the new adapter. Resetting here lands the clear in
+    // the SAME commit as the adapter swap, so a stale scope's rows, dialogs,
+    // and mutation controls are never shown next to the new scope's label.
+    const [epoch, setEpoch] = (0, react_1.useState)(0);
+    const [prevAdapter, setPrevAdapter] = (0, react_1.useState)(adapter);
+    // Mirrors `epoch` for reads from async continuations. A closure captured
+    // during render only ever sees that render's `epoch` value, so an async
+    // continuation needs a mutable cell that is genuinely current when it
+    // reads it after an `await` — never the frozen `epoch` binding from
+    // whichever render created the closure. Written ONLY here, synchronously
+    // during render (never in an effect), so it is authoritative before this
+    // render commits.
+    const epochRef = (0, react_1.useRef)(0);
+    if (prevAdapter !== adapter) {
+        setPrevAdapter(adapter);
+        const nextEpoch = epoch + 1;
+        setEpoch(nextEpoch);
+        epochRef.current = nextEpoch;
+        setSessions(undefined);
+        setLoadError(undefined);
+        setActionError(undefined);
+        setPendingId(undefined);
+        setRevokeTarget(undefined);
+        setConfirmBulk(false);
+    }
     const load = async () => {
+        // A retained `reload` callback (handed to `renderSessionActions`) can be
+        // called long after its scope changed. Check authority BEFORE touching
+        // any shared state: incrementing `latestLoadId` or clearing `loadError`
+        // for a stale scope would corrupt the CURRENT scope's own pending load
+        // or wipe its error.
+        const forAdapter = adapter;
+        const forEpoch = epoch;
+        if (forEpoch !== epochRef.current)
+            return;
         const loadId = ++latestLoadId.current;
         setLoadError(undefined);
         try {
-            const next = (0, core_1.validateAdminSessions)(await adapter.list());
-            if (loadId === latestLoadId.current)
+            const next = (0, core_1.validateAdminSessions)(await forAdapter.list());
+            if (loadId === latestLoadId.current && forEpoch === epochRef.current) {
                 setSessions(next);
+            }
         }
         catch (reason) {
-            if (loadId === latestLoadId.current) {
+            if (loadId === latestLoadId.current && forEpoch === epochRef.current) {
                 setLoadError(reason instanceof Error ? reason.message : "Unable to load active sessions.");
             }
         }
@@ -35,41 +81,60 @@ function SessionsPanel({ adapter, title = "Active sessions", renderSessionAction
         return () => {
             latestLoadId.current += 1;
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [adapter]);
     const revoke = async (sessionId) => {
         if (!adapter.revoke)
+            return;
+        const forEpoch = epoch;
+        if (forEpoch !== epochRef.current)
             return;
         setPendingId(sessionId);
         setActionError(undefined);
         try {
             await adapter.revoke.execute({ sessionId });
+            if (forEpoch !== epochRef.current)
+                return;
             await load();
-            setRevokeTarget(undefined);
+            if (forEpoch === epochRef.current)
+                setRevokeTarget(undefined);
         }
         catch (reason) {
-            setActionError(reason instanceof Error ? reason.message : "Unable to revoke the session.");
-            setRevokeTarget(undefined);
+            if (forEpoch === epochRef.current) {
+                setActionError(reason instanceof Error ? reason.message : "Unable to revoke the session.");
+                setRevokeTarget(undefined);
+            }
         }
         finally {
-            setPendingId(undefined);
+            if (forEpoch === epochRef.current)
+                setPendingId(undefined);
         }
     };
     const bulkRevoke = async () => {
         if (!adapter.bulkRevoke)
             return;
+        const forEpoch = epoch;
+        if (forEpoch !== epochRef.current)
+            return;
         setPendingId("__bulk__");
         setActionError(undefined);
         try {
             await adapter.bulkRevoke.execute();
+            if (forEpoch !== epochRef.current)
+                return;
             await load();
-            setConfirmBulk(false);
+            if (forEpoch === epochRef.current)
+                setConfirmBulk(false);
         }
         catch (reason) {
-            setActionError(reason instanceof Error ? reason.message : "Unable to revoke sessions.");
-            setConfirmBulk(false);
+            if (forEpoch === epochRef.current) {
+                setActionError(reason instanceof Error ? reason.message : "Unable to revoke sessions.");
+                setConfirmBulk(false);
+            }
         }
         finally {
-            setPendingId(undefined);
+            if (forEpoch === epochRef.current)
+                setPendingId(undefined);
         }
     };
     if (loadError && !sessions) {

@@ -216,7 +216,12 @@ describe("feature flag snapshots", () => {
 });
 
 describe("defineAdminUsersAdapter", () => {
-  it("models Bewks invitations and Savoro account facts without a shared database user type", async () => {
+  it("models Bewks and Savoro account facts without a shared database user type", async () => {
+    // Product-specific create, invite, credential-reset, and delete flows are
+    // not adapter members (UsersPanel never consumes them); hosts compose
+    // those through `renderHeaderActions`/`renderUserActions` instead, so the
+    // adapter itself only ever carries `list` plus the shared role/status
+    // mutations.
     const savoro = defineAdminUsersAdapter<AdminUserSummary>({
       list: async () => ({
         items: [
@@ -247,55 +252,42 @@ describe("defineAdminUsersAdapter", () => {
           status: { value: status, label: status },
         }),
       },
-      delete: {
-        execute: async ({
-          userId: _userId,
-          confirmToken: _confirmToken,
-        }: {
-          userId: string;
-          confirmToken: string;
-        }) => undefined,
+    });
+    const bewks = defineAdminUsersAdapter<AdminUserSummary>({
+      list: async () => ({
+        items: [
+          {
+            id: "u2",
+            label: "ada@example.com",
+            secondaryLabel: "Ada",
+            role: { value: "member", label: "Member" },
+            status: { value: "disabled", label: "Disabled" },
+            details: [{ label: "Invited", value: "Jul 13, 2026" }],
+          },
+        ],
+        page: 1,
+        pageSize: 25,
+        total: 1,
+      }),
+      roles: [
+        { value: "member", label: "Member" },
+        { value: "guest", label: "Guest" },
+      ],
+      setRole: {
+        execute: async ({ userId, role }) => ({
+          id: userId,
+          label: "ada@example.com",
+          role: { value: role, label: role },
+        }),
       },
     });
-    const bewks = defineAdminUsersAdapter<AdminUserSummary, never, { email: string; role: string }>(
-      {
-        list: async () => ({
-          items: [
-            {
-              id: "u2",
-              label: "ada@example.com",
-              secondaryLabel: "Ada",
-              role: { value: "member", label: "Member" },
-              status: { value: "disabled", label: "Disabled" },
-              details: [{ label: "Invited", value: "Jul 13, 2026" }],
-            },
-          ],
-          page: 1,
-          pageSize: 25,
-          total: 1,
-        }),
-        roles: [
-          { value: "member", label: "Member" },
-          { value: "guest", label: "Guest" },
-        ],
-        setRole: {
-          execute: async ({ userId, role }) => ({
-            id: userId,
-            label: "ada@example.com",
-            role: { value: role, label: role },
-          }),
-        },
-        resetCredentials: { execute: async () => undefined },
-        invite: { execute: async () => ({ id: "u3", label: "new@example.test" }) },
-      },
-    );
 
     expect((await savoro.list({ page: 1, pageSize: 25 })).items[0]?.status?.value).toBe("active");
     expect((await bewks.list({ page: 1, pageSize: 25 })).items[0]?.secondaryLabel).toBe("Ada");
     expect((await savoro.list({ page: 1, pageSize: 25 })).items[0]?.details?.[0]?.value).toBe(
       "Never",
     );
-    expect(bewks.invite).toBeDefined();
+    expect(bewks.setRole).toBeDefined();
     expect(bewks.statuses).toBeUndefined();
   });
 

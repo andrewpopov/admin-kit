@@ -172,11 +172,15 @@ export function createApiKeysAdapter<
 
     async create(input: CreateInput) {
       const issued = await options.issue(input);
-      await options.store.create(issued.credential);
-      return validateAdminApiKeyCreated({
+      // Validate the one-time secret BEFORE persisting: a rejected credential
+      // must never reach the store, since that would leave an unusable
+      // persisted row with no valid secret ever returned to the caller.
+      const created = validateAdminApiKeyCreated({
         key: mapCredential(issued.credential, options),
         secret: issued.secret,
       });
+      await options.store.create(issued.credential);
+      return created;
     },
 
     async revoke({ keyId }) {
@@ -194,6 +198,14 @@ export function createApiKeysAdapter<
       if (!existing) throw new Error(`API credential not found: ${keyId}`);
 
       const issued = await options.issueReplacement({ credential: existing });
+      // Validate the one-time secret BEFORE replaceActive revokes the old
+      // credential: if validation fails after the swap, the operator is
+      // locked out — the old credential is gone and no valid replacement
+      // secret was ever returned.
+      const created = validateAdminApiKeyCreated({
+        key: mapCredential(issued.credential, options),
+        secret: issued.secret,
+      });
       const result = await options.store.replaceActive({
         previousCredentialId: keyId,
         replacement: issued.credential,
@@ -203,10 +215,7 @@ export function createApiKeysAdapter<
         throw new Error(`API credential rotation failed for ${keyId}: ${result.reason}`);
       }
 
-      return validateAdminApiKeyCreated({
-        key: mapCredential(issued.credential, options),
-        secret: issued.secret,
-      });
+      return created;
     },
   };
 }

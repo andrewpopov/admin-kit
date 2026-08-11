@@ -23,7 +23,6 @@ export {
 } from "./contracts";
 export {
   defineAdminUsersAdapter,
-  type AdminUserActionTarget,
   type AdminUserDetail,
   type AdminUserMutation,
   type AdminUserRoleChange,
