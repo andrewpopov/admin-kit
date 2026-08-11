@@ -53,102 +53,135 @@ export function MembershipsPanel<
   const [isAdding, setIsAdding] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<Member>();
   const latestLoadId = useRef(0);
-  // The adapter identity a load or mutation is currently authoritative for.
-  // Compared against on every state write that lands after an `await`, so a
-  // stale in-flight load or mutation — queued under a previous scope's
-  // adapter — can never write into a newer scope's state.
-  const currentAdapter = useRef(adapter);
 
-  const load = async () => {
-    const loadId = ++latestLoadId.current;
-    const forAdapter = adapter;
-    setLoadError(undefined);
-    try {
-      const next = validateAdminMemberships(await forAdapter.list(), forAdapter.roles);
-      if (loadId === latestLoadId.current && currentAdapter.current === forAdapter) {
-        setMembers(next);
-      }
-    } catch (reason) {
-      if (loadId === latestLoadId.current && currentAdapter.current === forAdapter) {
-        setLoadError(reason instanceof Error ? reason.message : "Unable to load members.");
-      }
-    }
-  };
-
-  useEffect(() => {
-    // A new adapter is a new scope: drop the previous scope's rows, dialogs,
-    // and pending state immediately instead of showing them next to the new
-    // scope's label while the new load is pending (or forever, if it fails).
-    currentAdapter.current = adapter;
+  // Scope epoch: a MONOTONIC COUNTER bumped whenever `adapter` changes
+  // identity — never an identity comparison by itself. Identity alone is not
+  // a real epoch: an A -> B -> back-to-the-same-A-object transition would let
+  // a call queued during the FIRST A epoch pass an identity check again once
+  // the SAME object becomes current a second time.
+  //
+  // Detected and applied during RENDER — React's sanctioned "adjust state
+  // when a prop changes" pattern — rather than inside a `useEffect`. Passive
+  // effects run AFTER commit, so a request from the old scope that resolves
+  // in the gap between commit and the effect firing would still pass an
+  // effect-based guard and write stale rows while the rendered scope label
+  // already belongs to the new adapter. Resetting here lands the clear in
+  // the SAME commit as the adapter swap, so a stale scope's rows, dialogs,
+  // and mutation controls are never shown next to the new scope's label.
+  const [epoch, setEpoch] = useState(0);
+  const [prevAdapter, setPrevAdapter] = useState(adapter);
+  // Mirrors `epoch` for reads from async continuations. A closure captured
+  // during render only ever sees that render's `epoch` value, so an async
+  // continuation needs a mutable cell that is genuinely current when it
+  // reads it after an `await` — never the frozen `epoch` binding from
+  // whichever render created the closure. Written ONLY here, synchronously
+  // during render (never in an effect), so it is authoritative before this
+  // render commits.
+  const epochRef = useRef(0);
+  if (prevAdapter !== adapter) {
+    setPrevAdapter(adapter);
+    const nextEpoch = epoch + 1;
+    setEpoch(nextEpoch);
+    epochRef.current = nextEpoch;
     setMembers(undefined);
     setLoadError(undefined);
     setActionError(undefined);
     setPendingMemberId(undefined);
     setIsAdding(false);
     setRemoveTarget(undefined);
+  }
+
+  const load = async () => {
+    // `load` is handed to host code as `reload` (via `renderAddMember` /
+    // `renderMemberActions`) and can be retained and called long after its
+    // scope changed. Check authority BEFORE touching any shared state:
+    // incrementing `latestLoadId` or clearing `loadError` for a stale scope
+    // would corrupt the CURRENT scope's own pending load or wipe its error.
+    const forAdapter = adapter;
+    const forEpoch = epoch;
+    if (forEpoch !== epochRef.current) return;
+    const loadId = ++latestLoadId.current;
+    setLoadError(undefined);
+    try {
+      const next = validateAdminMemberships(await forAdapter.list(), forAdapter.roles);
+      if (loadId === latestLoadId.current && forEpoch === epochRef.current) {
+        setMembers(next);
+      }
+    } catch (reason) {
+      if (loadId === latestLoadId.current && forEpoch === epochRef.current) {
+        setLoadError(reason instanceof Error ? reason.message : "Unable to load members.");
+      }
+    }
+  };
+
+  useEffect(() => {
     void load();
     return () => {
       latestLoadId.current += 1;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adapter]);
 
   const submitInvite = async (input: InviteInput): Promise<boolean> => {
     if (!adapter.invite) return false;
-    const forAdapter = adapter;
+    const forEpoch = epoch;
+    if (forEpoch !== epochRef.current) return false;
     setIsAdding(true);
     setActionError(undefined);
     try {
       await adapter.invite.execute(input);
-      if (currentAdapter.current !== forAdapter) return true;
+      if (forEpoch !== epochRef.current) return true;
       await load();
       return true;
     } catch (reason) {
-      if (currentAdapter.current === forAdapter) {
+      if (forEpoch === epochRef.current) {
         setActionError(reason instanceof Error ? reason.message : "Unable to add the member.");
       }
       return false;
     } finally {
-      if (currentAdapter.current === forAdapter) setIsAdding(false);
+      if (forEpoch === epochRef.current) setIsAdding(false);
     }
   };
 
   const updateRole = async (memberId: string, role: string) => {
     if (!adapter.setRole) return;
-    const forAdapter = adapter;
+    const forEpoch = epoch;
+    if (forEpoch !== epochRef.current) return;
     setPendingMemberId(memberId);
     setActionError(undefined);
     try {
       await adapter.setRole.execute({ memberId, role });
-      if (currentAdapter.current !== forAdapter) return;
+      if (forEpoch !== epochRef.current) return;
       await load();
     } catch (reason) {
-      if (currentAdapter.current === forAdapter) {
+      if (forEpoch === epochRef.current) {
         setActionError(
           reason instanceof Error ? reason.message : "Unable to update the member role.",
         );
       }
     } finally {
-      if (currentAdapter.current === forAdapter) setPendingMemberId(undefined);
+      if (forEpoch === epochRef.current) setPendingMemberId(undefined);
     }
   };
 
   const remove = async (memberId: string) => {
     if (!adapter.remove) return;
-    const forAdapter = adapter;
+    const forEpoch = epoch;
+    if (forEpoch !== epochRef.current) return;
     setPendingMemberId(memberId);
     setActionError(undefined);
     try {
       await adapter.remove.execute({ memberId });
-      if (currentAdapter.current !== forAdapter) return;
+      if (forEpoch !== epochRef.current) return;
       await load();
-      setRemoveTarget(undefined);
+      if (forEpoch === epochRef.current) setRemoveTarget(undefined);
     } catch (reason) {
-      if (currentAdapter.current === forAdapter) {
+      if (forEpoch === epochRef.current) {
         setActionError(reason instanceof Error ? reason.message : "Unable to remove the member.");
         setRemoveTarget(undefined);
       }
     } finally {
-      if (currentAdapter.current === forAdapter) setPendingMemberId(undefined);
+      if (forEpoch === epochRef.current) setPendingMemberId(undefined);
     }
   };
 

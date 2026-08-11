@@ -68,7 +68,12 @@ try {
   run('mkdir', ['-p', consumerDir]);
   writeFileSync(join(consumerDir, 'package.json'), JSON.stringify({ name: 'admin-kit-consumer', private: true }, null, 2));
   console.log('[verify:pack] Installing tarball into a throwaway React consumer...');
-  run('npm', ['install', '--no-audit', '--no-fund', tarballPath, 'react@18.3.1', 'react-dom@18.3.1'], { cwd: consumerDir, stdio: 'inherit' });
+  // `typescript` is installed explicitly because it is an OPTIONAL peer, not a
+  // dependency — admin-kit ships nothing at runtime, and the conformance bin
+  // fails closed without the parser. A real consumer running the gate has it;
+  // this fixture has to model that rather than accidentally testing the
+  // no-parser path, which has its own dedicated test.
+  run('npm', ['install', '--no-audit', '--no-fund', tarballPath, 'react@18.3.1', 'react-dom@18.3.1', 'typescript@5.5.4'], { cwd: consumerDir, stdio: 'inherit' });
 
   const smoke = `
     const mod = require('${pkg.name}');

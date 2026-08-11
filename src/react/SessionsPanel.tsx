@@ -39,82 +39,114 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
   const [revokeTarget, setRevokeTarget] = useState<Session>();
   const [confirmBulk, setConfirmBulk] = useState(false);
   const latestLoadId = useRef(0);
-  // The adapter identity a load or mutation is currently authoritative for.
-  // Compared against on every state write that lands after an `await`, so a
-  // stale in-flight load or mutation — queued under a previous scope's
-  // adapter — can never write into a newer scope's state.
-  const currentAdapter = useRef(adapter);
 
-  const load = async () => {
-    const loadId = ++latestLoadId.current;
-    const forAdapter = adapter;
-    setLoadError(undefined);
-    try {
-      const next = validateAdminSessions(await forAdapter.list());
-      if (loadId === latestLoadId.current && currentAdapter.current === forAdapter) {
-        setSessions(next);
-      }
-    } catch (reason) {
-      if (loadId === latestLoadId.current && currentAdapter.current === forAdapter) {
-        setLoadError(reason instanceof Error ? reason.message : "Unable to load active sessions.");
-      }
-    }
-  };
-
-  useEffect(() => {
-    // A new adapter is a new scope: drop the previous scope's rows, dialogs,
-    // and pending state immediately instead of showing them next to the new
-    // scope's label while the new load is pending (or forever, if it fails).
-    currentAdapter.current = adapter;
+  // Scope epoch: a MONOTONIC COUNTER bumped whenever `adapter` changes
+  // identity — never an identity comparison by itself. Identity alone is not
+  // a real epoch: an A -> B -> back-to-the-same-A-object transition would let
+  // a call queued during the FIRST A epoch pass an identity check again once
+  // the SAME object becomes current a second time.
+  //
+  // Detected and applied during RENDER — React's sanctioned "adjust state
+  // when a prop changes" pattern — rather than inside a `useEffect`. Passive
+  // effects run AFTER commit, so a request from the old scope that resolves
+  // in the gap between commit and the effect firing would still pass an
+  // effect-based guard and write stale rows while the rendered scope label
+  // already belongs to the new adapter. Resetting here lands the clear in
+  // the SAME commit as the adapter swap, so a stale scope's rows, dialogs,
+  // and mutation controls are never shown next to the new scope's label.
+  const [epoch, setEpoch] = useState(0);
+  const [prevAdapter, setPrevAdapter] = useState(adapter);
+  // Mirrors `epoch` for reads from async continuations. A closure captured
+  // during render only ever sees that render's `epoch` value, so an async
+  // continuation needs a mutable cell that is genuinely current when it
+  // reads it after an `await` — never the frozen `epoch` binding from
+  // whichever render created the closure. Written ONLY here, synchronously
+  // during render (never in an effect), so it is authoritative before this
+  // render commits.
+  const epochRef = useRef(0);
+  if (prevAdapter !== adapter) {
+    setPrevAdapter(adapter);
+    const nextEpoch = epoch + 1;
+    setEpoch(nextEpoch);
+    epochRef.current = nextEpoch;
     setSessions(undefined);
     setLoadError(undefined);
     setActionError(undefined);
     setPendingId(undefined);
     setRevokeTarget(undefined);
     setConfirmBulk(false);
+  }
+
+  const load = async () => {
+    // A retained `reload` callback (handed to `renderSessionActions`) can be
+    // called long after its scope changed. Check authority BEFORE touching
+    // any shared state: incrementing `latestLoadId` or clearing `loadError`
+    // for a stale scope would corrupt the CURRENT scope's own pending load
+    // or wipe its error.
+    const forAdapter = adapter;
+    const forEpoch = epoch;
+    if (forEpoch !== epochRef.current) return;
+    const loadId = ++latestLoadId.current;
+    setLoadError(undefined);
+    try {
+      const next = validateAdminSessions(await forAdapter.list());
+      if (loadId === latestLoadId.current && forEpoch === epochRef.current) {
+        setSessions(next);
+      }
+    } catch (reason) {
+      if (loadId === latestLoadId.current && forEpoch === epochRef.current) {
+        setLoadError(reason instanceof Error ? reason.message : "Unable to load active sessions.");
+      }
+    }
+  };
+
+  useEffect(() => {
     void load();
     return () => {
       latestLoadId.current += 1;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adapter]);
 
   const revoke = async (sessionId: string) => {
     if (!adapter.revoke) return;
-    const forAdapter = adapter;
+    const forEpoch = epoch;
+    if (forEpoch !== epochRef.current) return;
     setPendingId(sessionId);
     setActionError(undefined);
     try {
       await adapter.revoke.execute({ sessionId });
-      if (currentAdapter.current !== forAdapter) return;
+      if (forEpoch !== epochRef.current) return;
       await load();
-      setRevokeTarget(undefined);
+      if (forEpoch === epochRef.current) setRevokeTarget(undefined);
     } catch (reason) {
-      if (currentAdapter.current === forAdapter) {
+      if (forEpoch === epochRef.current) {
         setActionError(reason instanceof Error ? reason.message : "Unable to revoke the session.");
         setRevokeTarget(undefined);
       }
     } finally {
-      if (currentAdapter.current === forAdapter) setPendingId(undefined);
+      if (forEpoch === epochRef.current) setPendingId(undefined);
     }
   };
 
   const bulkRevoke = async () => {
     if (!adapter.bulkRevoke) return;
-    const forAdapter = adapter;
+    const forEpoch = epoch;
+    if (forEpoch !== epochRef.current) return;
     setPendingId("__bulk__");
     setActionError(undefined);
     try {
       await adapter.bulkRevoke.execute();
-      if (currentAdapter.current !== forAdapter) return;
+      if (forEpoch !== epochRef.current) return;
       await load();
-      setConfirmBulk(false);
+      if (forEpoch === epochRef.current) setConfirmBulk(false);
     } catch (reason) {
-      if (currentAdapter.current === forAdapter) {
+      if (forEpoch === epochRef.current) {
         setActionError(reason instanceof Error ? reason.message : "Unable to revoke sessions.");
         setConfirmBulk(false);
       }
     } finally {
-      if (currentAdapter.current === forAdapter) setPendingId(undefined);
+      if (forEpoch === epochRef.current) setPendingId(undefined);
     }
   };
 

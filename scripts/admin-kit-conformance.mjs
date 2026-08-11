@@ -2,6 +2,26 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, join, relative, sep } from 'node:path';
 
+// TypeScript is an OPTIONAL peer, not a dependency: admin-kit otherwise ships
+// with zero runtime dependencies, and forcing the compiler on every consumer
+// to support a gate most of them run only in CI would be a poor trade. Any
+// consumer that can be checked at all authors the entry files this gate
+// parses, so it already has typescript — but if it somehow does not, this
+// FAILS CLOSED with an actionable message rather than skipping the check.
+// A gate that quietly reports success when it could not run is the exact
+// defect PKG-139 fixed in this file's stylesheet check.
+let ts;
+try {
+  ({ default: ts } = await import('typescript'));
+} catch {
+  console.error(
+    'admin-kit-conformance: cannot run — the "typescript" package could not be resolved.\n' +
+      'This gate parses your entry files to verify real import declarations, which needs the\n' +
+      'TypeScript parser. Install it as a dev dependency: npm i -D typescript',
+  );
+  process.exit(1);
+}
+
 const root = process.cwd();
 const packageVersion = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 const ignored = new Set([
@@ -50,42 +70,51 @@ function walk(directory) {
 // Windows, which would make the same violation read differently per OS.
 const relativePosix = (path) => relative(root, path).split(sep).join('/');
 
-// A raw-text regex over the whole file would match the stylesheet path
-// sitting inside a `//` or `/* */` comment, or an unrelated string literal
-// that merely mentions it, and treat that as satisfying the import
-// requirement. Strip comments (while preserving string contents, so the
-// import check below still sees a genuine string) before testing so only
-// real code can satisfy the gate.
-function stripComments(text) {
-  let out = '';
-  for (let i = 0; i < text.length; ) {
-    const two = text.slice(i, i + 2);
-    if (two === '//') {
-      const end = text.indexOf('\n', i);
-      i = end === -1 ? text.length : end;
-      continue;
-    }
-    if (two === '/*') {
-      const end = text.indexOf('*/', i + 2);
-      i = end === -1 ? text.length : end + 2;
-      continue;
-    }
-    const ch = text[i];
-    if (ch === '"' || ch === "'" || ch === '`') {
-      let j = i + 1;
-      while (j < text.length && text[j] !== ch) {
-        if (text[j] === '\\') j += 1;
-        j += 1;
+const STYLESHEET_SPECIFIER = '@andrewpopov/admin-kit/styles.css';
+
+function scriptKindFor(path) {
+  if (/\.tsx$/.test(path)) return ts.ScriptKind.TSX;
+  if (/\.jsx$/.test(path)) return ts.ScriptKind.JSX;
+  if (/\.[cm]?ts$/.test(path)) return ts.ScriptKind.TS;
+  return ts.ScriptKind.JS;
+}
+
+// A raw-text regex over the whole file — even with comments stripped — still
+// matches the stylesheet path sitting inside an unrelated string or template
+// literal ("this file documents ...", a decoy fixture, a code-sample
+// string), which satisfies the text pattern without importing anything. Text
+// matching cannot distinguish "the path appears somewhere in this file" from
+// "this file imports the stylesheet". Parse the file and look for the one
+// syntax shape that means the latter: a genuine `import` declaration whose
+// module specifier is the stylesheet, or (this package ships CommonJS output
+// under the `.js`/`.cjs` entry extensions the gate already accepts) a
+// `require(...)` call naming it.
+function fileImportsStylesheet(text, path) {
+  const source = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, false, scriptKindFor(path));
+  let found = false;
+  function visit(node) {
+    if (found) return;
+    if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+      if (node.moduleSpecifier.text === STYLESHEET_SPECIFIER) {
+        found = true;
+        return;
       }
-      j = Math.min(j + 1, text.length);
-      out += text.slice(i, j);
-      i = j;
-      continue;
+    } else if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === 'require' &&
+      node.arguments.length === 1 &&
+      ts.isStringLiteral(node.arguments[0])
+    ) {
+      if (node.arguments[0].text === STYLESHEET_SPECIFIER) {
+        found = true;
+        return;
+      }
     }
-    out += ch;
-    i += 1;
+    ts.forEachChild(node, visit);
   }
-  return out;
+  visit(source);
+  return found;
 }
 
 function fail(messages) {
@@ -118,11 +147,7 @@ for (const { path, specifier } of adminKitSpecs) {
 // Windows, so `src\main.tsx` never matched and every consumer on Windows was
 // told to add a styles.css import it already had.
 const entryFiles = files.filter(({ path }) => /^(?:main|layout)\.(?:[cm]?[jt]sx?)$/.test(basename(path)));
-if (
-  !entryFiles.some(({ text }) =>
-    /['"]@andrewpopov\/admin-kit\/styles\.css['"]/.test(stripComments(text)),
-  )
-) {
+if (!entryFiles.some(({ path, text }) => fileImportsStylesheet(text, path))) {
   errors.push('Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.');
 }
 for (const { path, text } of files) {
