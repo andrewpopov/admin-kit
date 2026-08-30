@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.36.0
+
+### Breaking
+
+- AdminUsersAdapter drops create, invite, resetCredentials, and delete — UsersPanel never called them
+  `AdminUsersAdapter` no longer declares `create`, `invite`, `resetCredentials`, or `delete`. A repo-wide audit confirmed `UsersPanel` only ever reads `list`, `setRole`, and `setStatus` from the adapter; supplying any of the four removed members had no panel behavior and no package-owned lifecycle, so keeping them declared was a false compatibility promise. Hosts that were passing one of these must move that flow to the render seams `UsersPanel` already supports: compose host-owned create/invite forms through `renderHeaderActions`, and product-specific edit, credential-reset, deactivate, or delete flows through `renderUserActions`. `defineAdminUsersAdapter` also drops its now-unused `CreateInput`/`InviteInput`/`DeleteInput` type parameters, and the `AdminUserActionTarget` type is removed along with them.
+
+### Fixed
+
+- createApiKeysAdapter validates the issued secret before persisting a create or rotation
+  `createApiKeysAdapter`'s `create` and `rotate` now validate the issued `{ key, secret }` before writing to the store, instead of after. Previously a create that failed validation could still leave a persisted-but-unusable credential behind, and a rotation that failed validation could revoke the active credential without ever returning a valid replacement secret, locking the operator out. Both flows now fail closed: nothing is persisted or revoked unless the one-time secret validates.
+- admin-kit-conformance now requires a genuine stylesheet import instead of pattern-matching text
+  `admin-kit-conformance` tested for the required `@andrewpopov/admin-kit/styles.css` import with a raw-text regex, so a mention of the path sitting inside a `//`/`/* */` comment, or inside any unrelated string or template literal, was enough to satisfy the check even though no import ran. The script now parses each entry file with the TypeScript compiler API and requires a real `import` declaration (or a `require(...)` call, for CommonJS entry points) whose module specifier is the stylesheet — text that merely mentions the path can no longer pass the gate. `typescript` is now a runtime dependency of this package, since the shipped `admin-kit-conformance` bin parses with it.
+- MembershipsPanel and SessionsPanel no longer show a previous scope's rows under a new scope's label
+  Swapping the `adapter` prop on `MembershipsPanel` or `SessionsPanel` now immediately clears the previous scope's rows, dialogs, and pending state instead of leaving them on screen next to the new scope's label and count while the new load is pending — or indefinitely, if it fails. The reset happens during render (React's "adjust state when props change" pattern) rather than in a `useEffect`, so it lands in the same commit as the adapter swap instead of one commit later, closing a window where a request from the old scope could still land its result after the new scope's label had already committed.
+  
+  Both panels now guard every load and mutation with a monotonic scope epoch instead of comparing adapter identity, so a scope that goes A → B → back to the same A object no longer lets a call queued during the first A visit land during the second. Every state write that follows an `await` — including the confirmation dialogs closing and the load-error banner — is checked against the current epoch before it lands, and a `reload` callback retained by host code past a scope change is now a no-op instead of corrupting the current scope's pending load or its error state.
+- SettingsPanel offers a retry after an initial settings load fails and clears stale errors on success
+  `SettingsPanel` now passes a retry action to its error state when the very first `adapter.load()` call fails, so an operator is no longer stuck on a dead end after a transient failure — previously only a load error surfacing after settings had already loaded once was retryable. A load that succeeds, whether from a retry or from a replacement adapter, now also clears any error left over from an earlier failed load instead of leaving it displayed alongside the freshly loaded fields.
+
 ## 0.35.4
 
 ### Fixed
