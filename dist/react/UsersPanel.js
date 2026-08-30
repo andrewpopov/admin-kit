@@ -24,15 +24,18 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
     const [sort, setSort] = (0, react_1.useState)(defaultSort);
     const latestLoadId = (0, react_1.useRef)(0);
     const queryKey = JSON.stringify(query ?? null);
-    const load = async () => {
+    const sortColumnId = sort?.columnId;
+    const sortDirection = sort?.direction;
+    const load = (0, react_1.useCallback)(async () => {
         const loadId = ++latestLoadId.current;
         setIsLoading(true);
         setLoadError(undefined);
         try {
+            const querySnapshot = JSON.parse(queryKey);
             const nextResult = await adapter.list({
-                ...query,
+                ...(querySnapshot ?? {}),
                 search: search || undefined,
-                ...(sort ? { sort: sort.columnId, order: sort.direction } : {}),
+                ...(sortColumnId ? { sort: sortColumnId, order: sortDirection } : {}),
                 page,
                 pageSize,
             });
@@ -48,7 +51,7 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
             if (loadId === latestLoadId.current)
                 setIsLoading(false);
         }
-    };
+    }, [adapter, page, pageSize, queryKey, search, sortColumnId, sortDirection]);
     (0, react_1.useEffect)(() => {
         void load();
         // Invalidate synchronously with the transition: without this, a request
@@ -62,7 +65,7 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
         // (not just `search`) triggers a reload; `query` itself is not used
         // directly as a dependency because hosts commonly pass a fresh object
         // each render.
-    }, [adapter, page, pageSize, queryKey, search, sort?.columnId, sort?.direction]);
+    }, [load]);
     (0, react_1.useEffect)(() => {
         setSearch(query?.search ?? "");
     }, [query?.search]);

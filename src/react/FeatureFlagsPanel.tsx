@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import {
   type AdminFeatureFlagsAdapter,
   type AdminFeatureFlagsSnapshot,
@@ -40,7 +40,7 @@ export function FeatureFlagsPanel({
   // that issued the mutation is no longer current, so its reload must not
   // overwrite the new adapter's snapshot.
   const adapterEpoch = useRef(0);
-  const load = async () => {
+  const load = useCallback(async () => {
     const loadId = ++latestLoadId.current;
     setLoadError(undefined);
     try {
@@ -51,7 +51,7 @@ export function FeatureFlagsPanel({
         setLoadError(reason instanceof Error ? reason.message : "Unable to load feature flags.");
       }
     }
-  };
+  }, [adapter]);
 
   useEffect(() => {
     adapterEpoch.current += 1;
@@ -66,7 +66,7 @@ export function FeatureFlagsPanel({
     return () => {
       latestLoadId.current += 1;
     };
-  }, [adapter]);
+  }, [load]);
 
   if (loadError && !snapshot)
     return (

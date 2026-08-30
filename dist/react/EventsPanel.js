@@ -18,7 +18,7 @@ function EventsPanel({ adapter, title = "Administrative events", headerPresentat
     const [loading, setLoading] = (0, react_1.useState)(false);
     const latestLoadId = (0, react_1.useRef)(0);
     const searchDebounceRef = (0, react_1.useRef)();
-    const load = async (nextQuery = query) => {
+    const load = (0, react_1.useCallback)(async (nextQuery = query) => {
         const loadId = ++latestLoadId.current;
         setLoading(true);
         setError(undefined);
@@ -36,7 +36,7 @@ function EventsPanel({ adapter, title = "Administrative events", headerPresentat
             if (loadId === latestLoadId.current)
                 setLoading(false);
         }
-    };
+    }, [adapter, query]);
     (0, react_1.useEffect)(() => {
         void load();
         // Invalidate synchronously with the transition: without this, a request
@@ -46,7 +46,7 @@ function EventsPanel({ adapter, title = "Administrative events", headerPresentat
         return () => {
             latestLoadId.current += 1;
         };
-    }, [adapter, query]);
+    }, [load]);
     (0, react_1.useEffect)(() => () => {
         if (searchDebounceRef.current)
             clearTimeout(searchDebounceRef.current);

@@ -2,6 +2,11 @@
 
 ## 0.36.0
 
+- Panel reload effects now depend on stable callback identities. Adapter-backed
+  panels memoize reload callbacks and let effects depend on those callbacks
+  directly, preserving stale-request guards while eliminating ambiguous hook
+  dependency lists.
+
 ### Breaking
 
 - AdminUsersAdapter drops create, invite, resetCredentials, and delete — UsersPanel never called them

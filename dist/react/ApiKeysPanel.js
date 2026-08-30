@@ -35,7 +35,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", headerPresentation = "s
     // that issued the mutation is no longer current, so its result must not be
     // published or used to trigger a reload.
     const adapterEpoch = (0, react_1.useRef)(0);
-    const load = async () => {
+    const load = (0, react_1.useCallback)(async () => {
         const loadId = ++latestLoadId.current;
         setLoadError(undefined);
         try {
@@ -48,7 +48,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", headerPresentation = "s
                 setLoadError(reason instanceof Error ? reason.message : "Unable to load API keys.");
             }
         }
-    };
+    }, [adapter]);
     (0, react_1.useEffect)(() => {
         adapterEpoch.current += 1;
         // A failed load under the new adapter must not fall through to
@@ -62,7 +62,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", headerPresentation = "s
         return () => {
             latestLoadId.current += 1;
         };
-    }, [adapter]);
+    }, [load]);
     (0, react_1.useEffect)(() => {
         if (typeof window.matchMedia !== "function")
             return undefined;

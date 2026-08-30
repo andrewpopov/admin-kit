@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   type AdminEventsAdapter,
   type AdminEventsPage,
@@ -48,7 +48,7 @@ export function EventsPanel({
   const latestLoadId = useRef(0);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const load = async (nextQuery = query) => {
+  const load = useCallback(async (nextQuery = query) => {
     const loadId = ++latestLoadId.current;
     setLoading(true);
     setError(undefined);
@@ -64,7 +64,7 @@ export function EventsPanel({
     } finally {
       if (loadId === latestLoadId.current) setLoading(false);
     }
-  };
+  }, [adapter, query]);
 
   useEffect(() => {
     void load();
@@ -75,7 +75,7 @@ export function EventsPanel({
     return () => {
       latestLoadId.current += 1;
     };
-  }, [adapter, query]);
+  }, [load]);
   useEffect(
     () => () => {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);

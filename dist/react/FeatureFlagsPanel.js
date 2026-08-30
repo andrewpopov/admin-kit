@@ -26,7 +26,7 @@ function FeatureFlagsPanel({ adapter, title = "Feature flags", className, }) {
     // that issued the mutation is no longer current, so its reload must not
     // overwrite the new adapter's snapshot.
     const adapterEpoch = (0, react_1.useRef)(0);
-    const load = async () => {
+    const load = (0, react_1.useCallback)(async () => {
         const loadId = ++latestLoadId.current;
         setLoadError(undefined);
         try {
@@ -39,7 +39,7 @@ function FeatureFlagsPanel({ adapter, title = "Feature flags", className, }) {
                 setLoadError(reason instanceof Error ? reason.message : "Unable to load feature flags.");
             }
         }
-    };
+    }, [adapter]);
     (0, react_1.useEffect)(() => {
         adapterEpoch.current += 1;
         // A failed load under the new adapter must not fall through to
@@ -53,7 +53,7 @@ function FeatureFlagsPanel({ adapter, title = "Feature flags", className, }) {
         return () => {
             latestLoadId.current += 1;
         };
-    }, [adapter]);
+    }, [load]);
     if (loadError && !snapshot)
         return ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() }, className: className }));
     if (!snapshot)

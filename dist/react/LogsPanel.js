@@ -29,7 +29,7 @@ function LogsPanel({ adapter, title = "Runtime logs", pollIntervalMs, defaultAut
     const outputRef = (0, react_1.useRef)(null);
     const scrollPosition = (0, react_1.useRef)(0);
     const previousEntryIds = (0, react_1.useRef)();
-    const load = async (announce = false) => {
+    const load = (0, react_1.useCallback)(async (announce = false) => {
         const loadId = ++latestLoadId.current;
         setIsLoading(true);
         setError(undefined);
@@ -69,19 +69,19 @@ function LogsPanel({ adapter, title = "Runtime logs", pollIntervalMs, defaultAut
             if (loadId === latestLoadId.current)
                 setIsLoading(false);
         }
-    };
+    }, [adapter, appliedSearch, category, level, limit, source]);
     (0, react_1.useEffect)(() => {
         void load();
         return () => {
             latestLoadId.current += 1;
         };
-    }, [adapter, source, limit, level, category, appliedSearch]);
+    }, [load]);
     (0, react_1.useEffect)(() => {
         if (!autoRefresh || !pollingInterval)
             return;
         const timer = window.setInterval(() => void load(true), pollingInterval);
         return () => window.clearInterval(timer);
-    }, [autoRefresh, pollingInterval, adapter, source, limit, level, category, appliedSearch]);
+    }, [autoRefresh, pollingInterval, load]);
     (0, react_1.useEffect)(() => {
         if (!snapshot)
             return;

@@ -25,7 +25,7 @@ function OperationalJobsPanel({ adapter, title = "Operational jobs", runLabel = 
     const [busy, setBusy] = (0, react_1.useState)(false);
     const [isLoading, setIsLoading] = (0, react_1.useState)(false);
     const latestLoadId = (0, react_1.useRef)(0);
-    const load = async () => {
+    const load = (0, react_1.useCallback)(async () => {
         const loadId = ++latestLoadId.current;
         setIsLoading(true);
         try {
@@ -42,7 +42,7 @@ function OperationalJobsPanel({ adapter, title = "Operational jobs", runLabel = 
             if (loadId === latestLoadId.current)
                 setIsLoading(false);
         }
-    };
+    }, [adapter, page, pageSize]);
     (0, react_1.useEffect)(() => {
         void load();
         // See BackupsPanel: invalidate synchronously with the transition so a
@@ -51,7 +51,7 @@ function OperationalJobsPanel({ adapter, title = "Operational jobs", runLabel = 
         return () => {
             latestLoadId.current += 1;
         };
-    }, [adapter, page, pageSize]);
+    }, [load]);
     (0, react_1.useEffect)(() => {
         if (!result)
             return;
@@ -89,7 +89,7 @@ function BackupsPanel({ adapter, title = "Backups", runLabel = "Run backup", pag
     const [isLoading, setIsLoading] = (0, react_1.useState)(false);
     const [restoreTarget, setRestoreTarget] = (0, react_1.useState)();
     const latestLoadId = (0, react_1.useRef)(0);
-    const load = async () => {
+    const load = (0, react_1.useCallback)(async () => {
         const loadId = ++latestLoadId.current;
         setIsLoading(true);
         try {
@@ -106,7 +106,7 @@ function BackupsPanel({ adapter, title = "Backups", runLabel = "Run backup", pag
             if (loadId === latestLoadId.current)
                 setIsLoading(false);
         }
-    };
+    }, [adapter, page, pageSize]);
     const run = async () => {
         if (!adapter.run)
             return;
@@ -149,7 +149,7 @@ function BackupsPanel({ adapter, title = "Backups", runLabel = "Run backup", pag
         return () => {
             latestLoadId.current += 1;
         };
-    }, [adapter, page, pageSize]);
+    }, [load]);
     (0, react_1.useEffect)(() => {
         if (!result)
             return;
@@ -178,7 +178,7 @@ function SettingsPanel({ adapter, title = "Settings", className }) {
     const [saved, setSaved] = (0, react_1.useState)(false);
     const [error, setError] = (0, react_1.useState)();
     const latestLoadId = (0, react_1.useRef)(0);
-    const load = async () => {
+    const load = (0, react_1.useCallback)(async () => {
         const loadId = ++latestLoadId.current;
         // A failed load under the new adapter must not fall through to
         // displaying the previous adapter's fields, and a retried or
@@ -199,7 +199,7 @@ function SettingsPanel({ adapter, title = "Settings", className }) {
                 setError(reason instanceof Error ? reason.message : "Unable to load settings.");
             }
         }
-    };
+    }, [adapter]);
     (0, react_1.useEffect)(() => {
         void load();
         // Invalidate synchronously with the transition: without this, a request
@@ -209,7 +209,7 @@ function SettingsPanel({ adapter, title = "Settings", className }) {
         return () => {
             latestLoadId.current += 1;
         };
-    }, [adapter]);
+    }, [load]);
     if (error && !fields)
         return ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: error, onRetry: () => void load() }, className: className }));
     if (!fields)

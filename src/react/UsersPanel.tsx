@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   type AdminPage,
   type AdminPageQuery,
@@ -90,16 +90,22 @@ export function UsersPanel<User extends AdminUserSummary>({
   const [sort, setSort] = useState<AdminUserTableSort | undefined>(defaultSort);
   const latestLoadId = useRef(0);
   const queryKey = JSON.stringify(query ?? null);
+  const sortColumnId = sort?.columnId;
+  const sortDirection = sort?.direction;
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const loadId = ++latestLoadId.current;
     setIsLoading(true);
     setLoadError(undefined);
     try {
+      const querySnapshot = JSON.parse(queryKey) as Omit<
+        AdminPageQuery,
+        "page" | "pageSize"
+      > | null;
       const nextResult = await adapter.list({
-        ...query,
+        ...(querySnapshot ?? {}),
         search: search || undefined,
-        ...(sort ? { sort: sort.columnId, order: sort.direction } : {}),
+        ...(sortColumnId ? { sort: sortColumnId, order: sortDirection } : {}),
         page,
         pageSize,
       });
@@ -111,7 +117,7 @@ export function UsersPanel<User extends AdminUserSummary>({
     } finally {
       if (loadId === latestLoadId.current) setIsLoading(false);
     }
-  };
+  }, [adapter, page, pageSize, queryKey, search, sortColumnId, sortDirection]);
 
   useEffect(() => {
     void load();
@@ -126,7 +132,7 @@ export function UsersPanel<User extends AdminUserSummary>({
     // (not just `search`) triggers a reload; `query` itself is not used
     // directly as a dependency because hosts commonly pass a fresh object
     // each render.
-  }, [adapter, page, pageSize, queryKey, search, sort?.columnId, sort?.direction]);
+  }, [load]);
 
   useEffect(() => {
     setSearch(query?.search ?? "");

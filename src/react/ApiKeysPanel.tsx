@@ -1,5 +1,13 @@
 "use client";
-import { Fragment, useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import {
   type AdminApiKey,
   type AdminApiKeyCreateRequest,
@@ -169,7 +177,7 @@ function ApiKeysPanelImpl({
   // that issued the mutation is no longer current, so its result must not be
   // published or used to trigger a reload.
   const adapterEpoch = useRef(0);
-  const load = async () => {
+  const load = useCallback(async () => {
     const loadId = ++latestLoadId.current;
     setLoadError(undefined);
     try {
@@ -180,7 +188,7 @@ function ApiKeysPanelImpl({
         setLoadError(reason instanceof Error ? reason.message : "Unable to load API keys.");
       }
     }
-  };
+  }, [adapter]);
   useEffect(() => {
     adapterEpoch.current += 1;
     // A failed load under the new adapter must not fall through to
@@ -194,7 +202,7 @@ function ApiKeysPanelImpl({
     return () => {
       latestLoadId.current += 1;
     };
-  }, [adapter]);
+  }, [load]);
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return undefined;
     const query = window.matchMedia("(max-width: 48rem)");
