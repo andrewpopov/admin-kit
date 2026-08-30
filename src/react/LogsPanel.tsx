@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   formatAdminTimestamp,
   validateAdminLogsSnapshot,
@@ -50,7 +50,7 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
   const scrollPosition = useRef(0);
   const previousEntryIds = useRef<Set<string>>();
 
-  const load = async (announce = false) => {
+  const load = useCallback(async (announce = false) => {
     const loadId = ++latestLoadId.current;
     setIsLoading(true);
     setError(undefined);
@@ -91,20 +91,20 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
     } finally {
       if (loadId === latestLoadId.current) setIsLoading(false);
     }
-  };
+  }, [adapter, appliedSearch, category, level, limit, source]);
 
   useEffect(() => {
     void load();
     return () => {
       latestLoadId.current += 1;
     };
-  }, [adapter, source, limit, level, category, appliedSearch]);
+  }, [load]);
 
   useEffect(() => {
     if (!autoRefresh || !pollingInterval) return;
     const timer = window.setInterval(() => void load(true), pollingInterval);
     return () => window.clearInterval(timer);
-  }, [autoRefresh, pollingInterval, adapter, source, limit, level, category, appliedSearch]);
+  }, [autoRefresh, pollingInterval, load]);
 
   useEffect(() => {
     if (!snapshot) return;
