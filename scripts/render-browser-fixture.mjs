@@ -184,7 +184,9 @@ await act(async () => {
 });
 
 const bodyHtml = container.innerHTML;
-root.unmount();
+await act(async () => {
+  root.unmount();
+});
 
 const template = `<!doctype html>
 <html lang="en">

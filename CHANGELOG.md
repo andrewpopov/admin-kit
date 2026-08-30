@@ -6,6 +6,8 @@
   panels memoize reload callbacks and let effects depend on those callbacks
   directly, preserving stale-request guards while eliminating ambiguous hook
   dependency lists.
+- The browser fixture now unmounts its React root inside `act`, so its clean-up
+  no longer emits a misleading test-environment warning.
 
 ### Breaking
 
