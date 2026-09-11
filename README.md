@@ -544,8 +544,9 @@ Use `renderCreate` when the host needs a product-specific input form (for
 example, name, expiry, scopes, or an audit reason). The callback receives the
 package-owned create operation and pending state; its promise resolves to
 `true` only when creation succeeded, so the host can safely clear its form.
-Use `title` to keep product vocabulary accurate (for example, "Personal access
-tokens"). The host retains its form schema and validation.
+Use `title` for the route heading and `vocabulary={{ singular: "token", plural:
+"tokens" }}` to apply the same product term to counts, states, actions, forms,
+and confirmations. The host retains its form schema and validation.
 Use `headerActions` for host-owned actions such as opening that create form.
 With `headerPresentation="page"`, those actions share the single route header
 instead of creating a second title/action row above the credential table.

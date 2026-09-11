@@ -15,6 +15,79 @@ const activeKey = {
 afterEach(cleanup);
 
 describe("ApiKeysPanel", () => {
+  it("uses host vocabulary throughout empty and loading states", async () => {
+    const list = vi.fn().mockResolvedValue([]);
+    render(
+      <ApiKeysPanel
+        adapter={{ list, create: vi.fn(), revoke: vi.fn() }}
+        title="Personal access tokens"
+        vocabulary={{ singular: "token", plural: "tokens" }}
+      />,
+    );
+
+    expect(screen.getByText("Loading tokens…")).toBeTruthy();
+    await screen.findByText("No tokens yet.");
+    expect(screen.getByText("0 tokens")).toBeTruthy();
+  });
+
+  it("uses host vocabulary throughout populated and revoke states", async () => {
+    render(
+      <ApiKeysPanel
+        adapter={{ list: vi.fn().mockResolvedValue([activeKey]), create: vi.fn(), revoke: vi.fn() }}
+        createInput={{ name: "Automation" }}
+        presentation="table"
+        title="Personal access tokens"
+        vocabulary={{ singular: "token", plural: "tokens" }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    expect(screen.getByText("1 token · 1 active")).toBeTruthy();
+    expect(screen.getByRole("columnheader", { name: "Token" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Create token" })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Revoke Automation" }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog.textContent).toContain("Revoke token");
+    expect(dialog.textContent).toContain("This token will stop working");
+    expect(within(dialog).getByRole("button", { name: "Revoke token" })).toBeTruthy();
+  });
+
+  it("does not reset adapter lifecycle when vocabulary changes during creation", async () => {
+    let resolveCreate: ((value: unknown) => void) | undefined;
+    const create = vi.fn().mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCreate = resolve;
+        }),
+    );
+    const list = vi.fn().mockResolvedValue([activeKey]);
+    const adapter = { list, create, revoke: vi.fn() };
+    const { rerender } = render(
+      <ApiKeysPanel
+        adapter={adapter}
+        createInput={{ name: "Automation" }}
+        vocabulary={{ singular: "token", plural: "tokens" }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    fireEvent.click(screen.getByRole("button", { name: "Create token" }));
+    await waitFor(() => expect(create).toHaveBeenCalledOnce());
+
+    rerender(
+      <ApiKeysPanel
+        adapter={adapter}
+        createInput={{ name: "Automation" }}
+        vocabulary={{ singular: "access token", plural: "access tokens" }}
+      />,
+    );
+    resolveCreate?.({ key: activeKey, secret: "create-once" });
+
+    await screen.findByText("create-once");
+    expect(screen.getByText("Automation")).toBeTruthy();
+  });
+
   it("keeps the page header and host action mounted while loading", () => {
     render(
       <ApiKeysPanel
@@ -555,6 +628,30 @@ const scopedKey = {
 };
 
 describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
+  it("uses host vocabulary in built-in create and edit guidance", async () => {
+    render(
+      <ApiKeysPanel
+        scopeGroups={scopeGroups}
+        vocabulary={{ singular: "token", plural: "tokens" }}
+        adapter={{
+          list: vi.fn().mockResolvedValue([scopedKey]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+          update: vi.fn(),
+        }}
+      />,
+    );
+
+    await screen.findByText("Automation");
+    expect(screen.getByText("Create a new token")).toBeTruthy();
+    expect(screen.getByText(/what this token is allowed to do/)).toBeTruthy();
+    expect(screen.getByText(/after you create the token/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit scopes for Automation" }));
+    expect(screen.getAllByText(/what this token is allowed to do/)).toHaveLength(2);
+    expect(screen.getByText(/updates what this token can do/)).toBeTruthy();
+  });
+
   it("create card calls adapter.create with {name, expiresInDays, scopes}", async () => {
     const create = vi.fn().mockResolvedValue({ key: scopedKey, secret: "made-once" });
     render(
