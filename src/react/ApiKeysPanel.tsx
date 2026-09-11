@@ -31,9 +31,16 @@ import { AdminPanelHeader, type AdminPanelHeaderPresentation } from "./AdminPane
 import { AdminPanelStateView } from "./AdminPanelState";
 
 /** Props whose types never depend on the adapter's create/update shapes. */
+export interface ApiKeysPanelVocabulary {
+  singular: string;
+  plural: string;
+}
+
 interface ApiKeysPanelSharedProps {
   /** Product vocabulary for credentials, such as "Personal access tokens". */
   title?: string;
+  /** Visible singular and plural names for an API key, such as token/tokens. */
+  vocabulary?: ApiKeysPanelVocabulary;
   /** Promote the panel heading and host actions into the route-level header band. */
   headerPresentation?: AdminPanelHeaderPresentation;
   /** Host-owned primary actions displayed beside the panel title. */
@@ -140,6 +147,7 @@ export type ApiKeysPanelProps<CreateInput, UpdateInput = never> =
 function ApiKeysPanelImpl({
   adapter,
   title = "API keys",
+  vocabulary,
   headerPresentation = "section",
   headerActions,
   presentation = "responsive",
@@ -156,6 +164,11 @@ function ApiKeysPanelImpl({
   dialogClassName,
   formatTimestamp,
 }: ApiKeysPanelProps<AdminApiKeyCreateRequest, AdminApiKeyScopeUpdate>) {
+  const singular = vocabulary?.singular ?? "API key";
+  const plural = vocabulary?.plural ?? "API keys";
+  const countSingular = vocabulary?.singular ?? "credential";
+  const countPlural = vocabulary?.plural ?? "credentials";
+  const capitalizedSingular = `${singular.charAt(0).toUpperCase()}${singular.slice(1)}`;
   const [keys, setKeys] = useState<readonly AdminApiKey[]>();
   const [secret, setSecret] = useState<string>();
   const [loadError, setLoadError] = useState<string>();
@@ -177,6 +190,8 @@ function ApiKeysPanelImpl({
   // that issued the mutation is no longer current, so its result must not be
   // published or used to trigger a reload.
   const adapterEpoch = useRef(0);
+  const pluralRef = useRef(plural);
+  pluralRef.current = plural;
   const load = useCallback(async () => {
     const loadId = ++latestLoadId.current;
     setLoadError(undefined);
@@ -185,7 +200,9 @@ function ApiKeysPanelImpl({
       if (loadId === latestLoadId.current) setKeys(nextKeys);
     } catch (reason) {
       if (loadId === latestLoadId.current) {
-        setLoadError(reason instanceof Error ? reason.message : "Unable to load API keys.");
+        setLoadError(
+          reason instanceof Error ? reason.message : `Unable to load ${pluralRef.current}.`,
+        );
       }
     }
   }, [adapter]);
@@ -222,7 +239,7 @@ function ApiKeysPanelImpl({
       detail={
         counts ? (
           <p>
-            {counts.total} {counts.total === 1 ? "credential" : "credentials"}
+            {counts.total} {counts.total === 1 ? countSingular : countPlural}
             {counts.total > 0 ? ` · ${counts.active} active` : ""}
           </p>
         ) : null
@@ -250,7 +267,7 @@ function ApiKeysPanelImpl({
         aria-label={title}
       >
         {panelHeader()}
-        <AdminPanelStateView state={{ kind: "loading", label: "Loading API keys…" }} />
+        <AdminPanelStateView state={{ kind: "loading", label: `Loading ${plural}…` }} />
       </section>
     );
   const lifecycleKeys = keys.map((key) => ({
@@ -284,7 +301,7 @@ function ApiKeysPanelImpl({
       await load();
       return true;
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Unable to create API key.");
+      setActionError(reason instanceof Error ? reason.message : `Unable to create ${singular}.`);
       return false;
     } finally {
       setPending(undefined);
@@ -300,7 +317,7 @@ function ApiKeysPanelImpl({
       if (epoch === adapterEpoch.current) await load();
       return true;
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Unable to update API key.");
+      setActionError(reason instanceof Error ? reason.message : `Unable to update ${singular}.`);
       return false;
     } finally {
       setPending(undefined);
@@ -335,7 +352,7 @@ function ApiKeysPanelImpl({
       if (epoch === adapterEpoch.current) await load();
       setConfirmation(undefined);
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : `Unable to ${action} API key.`);
+      setActionError(reason instanceof Error ? reason.message : `Unable to ${action} ${singular}.`);
     } finally {
       setPending(undefined);
     }
@@ -414,6 +431,7 @@ function ApiKeysPanelImpl({
         </div>
         <AdminApiKeyForm
           mode="edit"
+          itemNoun={vocabulary?.singular}
           scopeGroups={scopeGroups}
           minimumScopeCount={minimumScopeCount}
           pending={isPending}
@@ -486,11 +504,12 @@ function ApiKeysPanelImpl({
             <span className="admin-kit__key-create-icon" aria-hidden="true">
               ＋
             </span>{" "}
-            Create a new key
+            Create a new {vocabulary?.singular ?? "key"}
           </summary>
           <div className="admin-kit__key-create-body">
             <AdminApiKeyForm
               mode="create"
+              itemNoun={vocabulary?.singular}
               scopeGroups={scopeGroups}
               minimumScopeCount={minimumScopeCount}
               pending={pending === "create"}
@@ -504,7 +523,7 @@ function ApiKeysPanelImpl({
           disabled={pending === "create"}
           onClick={() => void create(createInput)}
         >
-          Create API key
+          Create {singular}
         </button>
       ) : null}
       {renderKeys ? (
@@ -516,13 +535,13 @@ function ApiKeysPanelImpl({
           pendingKeyId: pending === "create" ? undefined : pending,
         })
       ) : lifecycleKeys.length === 0 ? (
-        <AdminPanelStateView state={{ kind: "empty", title: "No API keys yet." }} />
+        <AdminPanelStateView state={{ kind: "empty", title: `No ${plural} yet.` }} />
       ) : resolvedPresentation === "table" ? (
         <div className="admin-kit__table-wrap admin-kit__keys-table-wrap">
           <table className="admin-kit__table admin-kit__keys-table">
             <thead>
               <tr>
-                <th scope="col">Key</th>
+                <th scope="col">{vocabulary ? capitalizedSingular : "Key"}</th>
                 <th scope="col">Scope</th>
                 {hasDetails ? <th scope="col">Details</th> : null}
                 <th scope="col">State</th>
@@ -687,13 +706,13 @@ function ApiKeysPanelImpl({
       <AdminConfirmationDialog
         open={Boolean(confirmation)}
         className={dialogClassName}
-        title={confirmation?.action === "rotate" ? "Rotate API key" : "Revoke API key"}
+        title={`${confirmation?.action === "rotate" ? "Rotate" : "Revoke"} ${singular}`}
         description={
           confirmation?.action === "rotate"
-            ? "The current credential will stop working. Copy the replacement secret immediately after rotating it."
-            : "This credential will stop working immediately and cannot be restored."
+            ? `The current ${vocabulary?.singular ?? "credential"} will stop working. Copy the replacement secret immediately after rotating it.`
+            : `This ${vocabulary?.singular ?? "credential"} will stop working immediately and cannot be restored.`
         }
-        confirmLabel={confirmation?.action === "rotate" ? "Rotate key" : "Revoke key"}
+        confirmLabel={`${confirmation?.action === "rotate" ? "Rotate" : "Revoke"} ${vocabulary?.singular ?? "key"}`}
         danger={confirmation?.action === "revoke"}
         pending={Boolean(confirmation) && pending === confirmation?.key.id}
         onCancel={() => setConfirmation(undefined)}

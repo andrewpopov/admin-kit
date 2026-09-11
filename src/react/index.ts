@@ -60,7 +60,7 @@ export {
   type UsersPanelProps,
 } from "./UsersPanel";
 export { FeatureFlagsPanel, type FeatureFlagsPanelProps } from "./FeatureFlagsPanel";
-export { ApiKeysPanel, type ApiKeysPanelProps } from "./ApiKeysPanel";
+export { ApiKeysPanel, type ApiKeysPanelProps, type ApiKeysPanelVocabulary } from "./ApiKeysPanel";
 export { AdminScopePicker, type AdminScopePickerProps } from "./AdminScopePicker";
 export { AdminApiKeyForm, type AdminApiKeyFormProps } from "./AdminApiKeyForm";
 export { EventsPanel, type EventsPanelProps } from "./EventsPanel";

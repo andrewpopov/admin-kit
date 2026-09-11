@@ -23,6 +23,8 @@ export interface AdminApiKeyFormProps {
   onSubmit: (request: AdminApiKeyCreateRequest | AdminApiKeyScopeUpdate) => void | Promise<void>;
   onCancel?: () => void;
   submitLabel?: string;
+  /** Host vocabulary for the credential being created or edited. */
+  itemNoun?: string;
 }
 
 interface ExpiryOption {
@@ -57,6 +59,7 @@ export function AdminApiKeyForm({
   onSubmit,
   onCancel,
   submitLabel,
+  itemNoun,
 }: AdminApiKeyFormProps) {
   const [name, setName] = useState(initialName ?? "");
   const [expiresInDays, setExpiresInDays] = useState<number | null>(
@@ -66,7 +69,7 @@ export function AdminApiKeyForm({
 
   const scopeSummary = `${scopes.length} ${scopes.length === 1 ? "scope" : "scopes"} selected`;
   const resolvedSubmitLabel =
-    submitLabel ?? (mode === "create" ? "Create API key" : "Save changes");
+    submitLabel ?? (mode === "create" ? `Create ${itemNoun ?? "API key"}` : "Save changes");
   const requiredScopeCount = Math.max(0, minimumScopeCount);
   const scopeRequirementUnmet = scopes.length < requiredScopeCount;
   const submitDisabled = pending || (mode === "create" && !name.trim()) || scopeRequirementUnmet;
@@ -84,8 +87,9 @@ export function AdminApiKeyForm({
       {mode === "create" ? (
         <>
           <p className="admin-kit__key-form-intro">
-            Name the credential, choose how long it should live, and pick the scopes it may use.
-            These settings apply to the key you&apos;re about to create.
+            {itemNoun
+              ? `Name the ${itemNoun}, choose how long it should live, and pick the scopes it may use. These settings apply to the ${itemNoun} you're about to create.`
+              : "Name the credential, choose how long it should live, and pick the scopes it may use. These settings apply to the key you're about to create."}
           </p>
           <div className="admin-kit__key-form-grid">
             <label className="admin-kit__field">
@@ -121,15 +125,16 @@ export function AdminApiKeyForm({
         </>
       ) : (
         <p className="admin-kit__key-form-note">
-          <strong>Scopes only.</strong> Saving updates what this key can do and takes effect
-          immediately — it does <strong>not</strong> issue a new secret, and the key keeps working.
-          To replace the secret, rotate the key instead.
+          <strong>Scopes only.</strong> Saving updates what this {itemNoun ?? "key"} can do and
+          takes effect immediately — it does <strong>not</strong> issue a new secret, and the{" "}
+          {itemNoun ?? "key"} keeps working. To replace the secret, rotate the {itemNoun ?? "key"}{" "}
+          instead.
         </p>
       )}
 
       <div>
         <p className="admin-kit__key-form-legend">
-          Scopes <span>— what this key is allowed to do</span>
+          Scopes <span>— what this {itemNoun ?? "key"} is allowed to do</span>
         </p>
         <AdminScopePicker
           disabled={pending}
@@ -143,7 +148,7 @@ export function AdminApiKeyForm({
         <p aria-live="polite">
           {scopeSummary}
           {mode === "create"
-            ? " · the secret is shown once, right after you create the key."
+            ? ` · the secret is shown once, right after you create the ${itemNoun ?? "key"}.`
             : " · saving changes permissions only — the secret is unchanged."}
           {scopeRequirementUnmet
             ? ` Select at least ${requiredScopeCount} ${requiredScopeCount === 1 ? "scope" : "scopes"} to continue.`

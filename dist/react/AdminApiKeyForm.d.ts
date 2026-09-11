@@ -13,6 +13,8 @@ export interface AdminApiKeyFormProps {
     onSubmit: (request: AdminApiKeyCreateRequest | AdminApiKeyScopeUpdate) => void | Promise<void>;
     onCancel?: () => void;
     submitLabel?: string;
+    /** Host vocabulary for the credential being created or edited. */
+    itemNoun?: string;
 }
 /**
  * The one form behind both built-in credential flows. In `create` mode it
@@ -20,4 +22,4 @@ export interface AdminApiKeyFormProps {
  * in `edit` mode it changes scopes only and emits an `AdminApiKeyScopeUpdate` —
  * saving never re-issues a secret, which the copy makes explicit.
  */
-export declare function AdminApiKeyForm({ mode, scopeGroups, pending, initialName, initialExpiresInDays, initialScopes, minimumScopeCount, onSubmit, onCancel, submitLabel, }: AdminApiKeyFormProps): import("react").JSX.Element;
+export declare function AdminApiKeyForm({ mode, scopeGroups, pending, initialName, initialExpiresInDays, initialScopes, minimumScopeCount, onSubmit, onCancel, submitLabel, itemNoun, }: AdminApiKeyFormProps): import("react").JSX.Element;
