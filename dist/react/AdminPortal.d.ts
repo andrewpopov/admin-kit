@@ -1,4 +1,4 @@
-import type { MouseEventHandler, ReactNode } from "react";
+import { type MouseEventHandler, type ReactNode } from "react";
 import type { AdminPortalSectionDefinition, AdminSectionGroupDefinition, AdminSectionId } from "../core/contracts";
 export interface AdminPortalReactSection extends AdminPortalSectionDefinition {
     render: () => ReactNode;
@@ -20,6 +20,8 @@ interface AdminPortalBaseProps {
     activeSection: AdminSectionId;
     groups: readonly AdminPortalReactGroup[];
     ariaLabel?: string;
+    /** Label of the toggle that collapses the navigation below 48rem. Defaults to "Menu". */
+    mobileNavigationLabel?: string;
     className?: string;
     emptyState?: ReactNode;
     inactiveSectionState?: (sectionId: AdminSectionId) => ReactNode;
@@ -39,5 +41,5 @@ export type AdminPortalProps = AdminPortalBaseProps & ({
  * navigation, and authorization; the portal owns grouping, selection,
  * responsive layout, disabled behavior, and accessible page semantics.
  */
-export declare function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationItem, ariaLabel, className, emptyState, inactiveSectionState, }: AdminPortalProps): import("react").JSX.Element;
+export declare function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationItem, ariaLabel, mobileNavigationLabel, className, emptyState, inactiveSectionState, }: AdminPortalProps): import("react").JSX.Element;
 export {};

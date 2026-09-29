@@ -1,4 +1,5 @@
-import type { ElementType, ReactNode } from "react";
+"use client";
+import { createContext, useContext, type ElementType, type ReactNode } from "react";
 
 /**
  * `"section"` renders an `h2` title band; `"page"` renders an `h1` title band
@@ -11,6 +12,15 @@ import type { ElementType, ReactNode } from "react";
  * rendered.
  */
 export type AdminPanelHeaderPresentation = "section" | "page" | "none";
+
+const AdminFrameHeadingContext = createContext(false);
+
+/**
+ * Marks that an application frame already renders the page's `h1`, so a
+ * `presentation="page"` panel title becomes an `h2` (same look) and the page
+ * keeps exactly one `h1`.
+ */
+export const AdminFrameHeadingProvider = AdminFrameHeadingContext.Provider;
 
 export interface AdminPanelHeaderProps {
   title: string;
@@ -35,9 +45,10 @@ export function AdminPanelHeader({
   toolbar,
   className,
 }: AdminPanelHeaderProps) {
+  const frameOwnsH1 = useContext(AdminFrameHeadingContext);
   if (presentation === "none") return null;
 
-  const Heading = (presentation === "page" ? "h1" : "h2") as ElementType;
+  const Heading = (presentation === "page" && !frameOwnsH1 ? "h1" : "h2") as ElementType;
 
   return (
     <header

@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.37.0
+
+### Added
+
+- EventsPanel accepts optional columns and emptyState props
+  `columns` chooses which of occurred, event, actor, resource and outcome render (table and feed); `emptyState` replaces the default empty content. Defaults are unchanged.
+- AdminPortal and AdminApp collapse navigation behind a Menu toggle below 48rem
+  Below 48rem the portal navigation is collapsed behind a single "Menu" button (aria-expanded/aria-controls, 44px target). Escape and choosing a section close it and return focus to the button, so content comes first on phones. Desktop layout is unchanged. Use the new optional `mobileNavigationLabel` prop to localize the label.
+
+### Changed
+
+- One shared 2px accent focus ring now also covers links, textareas and summaries
+  The three focus treatments are consolidated into one 2px accent `:focus-visible` ring with a 2px offset, and it now also covers links, textareas and summaries (navigation links previously used the browser default).
+
+### Fixed
+
+- AdminApp and AdminAppShell frames paint the themed surface background in light and dark
+  The `AdminApp` and `AdminAppShell` frames now paint `--admin-kit-surface`, so hosts no longer show a transparent white canvas in dark mode.
+- A page-presentation panel title renders as h2 under an app frame so the page keeps one h1
+  With an `AdminApp` or `AdminAppShell` `frame`, a panel using `headerPresentation="page"` now renders its title as an h2 with the same visuals, so the page keeps exactly one h1. Without a frame nothing changes.
+
 ## 0.36.1
 
 ### Changed

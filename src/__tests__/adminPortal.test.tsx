@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AdminApp, AdminPortal } from "../react";
+import { AdminApp, AdminPanelHeader, AdminPortal } from "../react";
 import type { AdminPortalProps } from "../react";
 
 afterEach(cleanup);
@@ -198,5 +198,111 @@ describe("AdminApp", () => {
 
     expect(screen.getByText("User content")).toBeTruthy();
     expect(container.querySelector(".admin-kit__app-header")).toBeNull();
+  });
+  describe("mobile navigation toggle", () => {
+    const renderPortal = (onSectionChange = vi.fn()) =>
+      render(
+        <AdminPortal activeSection="users" groups={groups} onSectionChange={onSectionChange} />,
+      );
+
+    it("renders a collapsed Menu toggle wired to the navigation", () => {
+      const { container } = renderPortal();
+      const toggle = screen.getByRole("button", { name: "Menu" });
+      const nav = container.querySelector("nav");
+
+      expect(toggle.getAttribute("aria-expanded")).toBe("false");
+      expect(toggle.getAttribute("aria-controls")).toBe(nav?.id);
+      expect(nav?.hasAttribute("data-open")).toBe(false);
+      expect(
+        toggle.compareDocumentPosition(nav as Node) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
+    it("opens on toggle, closes on Escape, and returns focus to the toggle", () => {
+      const { container } = renderPortal();
+      const toggle = screen.getByRole("button", { name: "Menu" });
+
+      fireEvent.click(toggle);
+      expect(toggle.getAttribute("aria-expanded")).toBe("true");
+      expect(container.querySelector("nav")?.hasAttribute("data-open")).toBe(true);
+
+      screen.getByRole("button", { name: /Catalog/ }).focus();
+      fireEvent.keyDown(screen.getByRole("button", { name: /Catalog/ }), { key: "Escape" });
+      expect(toggle.getAttribute("aria-expanded")).toBe("false");
+      expect(document.activeElement).toBe(toggle);
+    });
+
+    it("closes after navigating but stays open for a disabled section", () => {
+      const onSectionChange = vi.fn();
+      renderPortal(onSectionChange);
+      const toggle = screen.getByRole("button", { name: "Menu" });
+
+      fireEvent.click(toggle);
+      fireEvent.click(screen.getByRole("button", { name: /Integration/ }));
+      expect(toggle.getAttribute("aria-expanded")).toBe("true");
+
+      fireEvent.click(screen.getByRole("button", { name: /Catalog/ }));
+      expect(onSectionChange).toHaveBeenCalledWith("catalog");
+      expect(toggle.getAttribute("aria-expanded")).toBe("false");
+      expect(document.activeElement).toBe(toggle);
+    });
+
+    it("closes after activating a host-rendered link", () => {
+      render(
+        <AdminPortal
+          activeSection="users"
+          groups={groups}
+          renderNavigationItem={({ section, className, onClick }) => (
+            <a className={className} href={`#${section.id}`} onClick={onClick}>
+              {section.label}
+            </a>
+          )}
+        />,
+      );
+      const toggle = screen.getByRole("button", { name: "Menu" });
+      fireEvent.click(toggle);
+      fireEvent.click(screen.getByRole("link", { name: "Catalog" }));
+      expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    });
+
+    it("accepts a custom toggle label", () => {
+      render(
+        <AdminPortal
+          activeSection="users"
+          groups={groups}
+          mobileNavigationLabel="Sections"
+          onSectionChange={() => undefined}
+        />,
+      );
+      expect(screen.getByRole("button", { name: "Sections" })).toBeTruthy();
+    });
+  });
+
+  it("keeps exactly one h1 when the app frame and a page-presentation panel both render", () => {
+    render(
+      <AdminApp
+        activeSection="users"
+        frame={{ title: "Administration" }}
+        groups={[
+          {
+            id: "core",
+            label: "Core",
+            sections: [
+              {
+                id: "users",
+                label: "Users",
+                capability: "users",
+                render: () => <AdminPanelHeader presentation="page" title="Users" />,
+              },
+            ],
+          },
+        ]}
+        onSectionChange={() => undefined}
+      />,
+    );
+    expect(screen.getAllByRole("heading", { level: 1 }).map((h) => h.textContent)).toEqual([
+      "Administration",
+    ]);
+    expect(screen.getByRole("heading", { level: 2, name: "Users" })).toBeTruthy();
   });
 });

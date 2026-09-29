@@ -3,15 +3,34 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminPortal = AdminPortal;
 const jsx_runtime_1 = require("react/jsx-runtime");
+const react_1 = require("react");
 /**
  * A grouped shell for routed administration areas. The host owns URLs,
  * navigation, and authorization; the portal owns grouping, selection,
  * responsive layout, disabled behavior, and accessible page semantics.
  */
-function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationItem, ariaLabel = "Administration sections", className, emptyState = "No administration sections are available.", inactiveSectionState, }) {
+function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationItem, ariaLabel = "Administration sections", mobileNavigationLabel = "Menu", className, emptyState = "No administration sections are available.", inactiveSectionState, }) {
     if (!renderNavigationItem && !onSectionChange) {
         throw new Error("AdminPortal default navigation needs onSectionChange.");
     }
+    const [mobileNavigationOpen, setMobileNavigationOpen] = (0, react_1.useState)(false);
+    const mobileNavigationId = `admin-kit-portal-navigation-${(0, react_1.useId)().replace(/:/g, "")}`;
+    const toggleRef = (0, react_1.useRef)(null);
+    const closeMobileNavigation = () => {
+        setMobileNavigationOpen(false);
+        toggleRef.current?.focus();
+    };
+    const closeOnEscape = (event) => {
+        if (event.key === "Escape" && mobileNavigationOpen)
+            closeMobileNavigation();
+    };
+    const closeOnNavigate = (event) => {
+        const target = event.target.closest("a, button");
+        if (!mobileNavigationOpen || !target || target.matches('[aria-disabled="true"], :disabled')) {
+            return;
+        }
+        closeMobileNavigation();
+    };
     const visibleGroups = groups
         .filter((group) => group.visible !== false)
         .map((group) => ({
@@ -31,7 +50,7 @@ function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationI
     }
     return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit", "admin-kit--theme-core", "admin-kit__portal", className]
             .filter(Boolean)
-            .join(" "), "data-admin-kit-theme": "core", children: [(0, jsx_runtime_1.jsx)("nav", { "aria-label": ariaLabel, className: "admin-kit__portal-navigation", children: visibleGroups.map((group) => ((0, jsx_runtime_1.jsxs)("section", { className: "admin-kit__portal-group", children: [(0, jsx_runtime_1.jsxs)("header", { className: "admin-kit__portal-group-header", children: [(0, jsx_runtime_1.jsx)("p", { className: "admin-kit__portal-group-label", children: group.label }), group.description ? (0, jsx_runtime_1.jsx)("p", { children: group.description }) : null] }), (0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__portal-list", children: group.sections.map((section) => {
+            .join(" "), "data-admin-kit-theme": "core", children: [(0, jsx_runtime_1.jsx)("button", { "aria-controls": mobileNavigationId, "aria-expanded": mobileNavigationOpen, className: "admin-kit__app-shell-mobile-toggle", onClick: () => setMobileNavigationOpen((open) => !open), onKeyDown: closeOnEscape, ref: toggleRef, type: "button", children: mobileNavigationLabel }), (0, jsx_runtime_1.jsx)("nav", { "aria-label": ariaLabel, className: "admin-kit__portal-navigation", "data-open": mobileNavigationOpen ? "" : undefined, id: mobileNavigationId, onClick: closeOnNavigate, onKeyDown: closeOnEscape, children: visibleGroups.map((group) => ((0, jsx_runtime_1.jsxs)("section", { className: "admin-kit__portal-group", children: [(0, jsx_runtime_1.jsxs)("header", { className: "admin-kit__portal-group-header", children: [(0, jsx_runtime_1.jsx)("p", { className: "admin-kit__portal-group-label", children: group.label }), group.description ? (0, jsx_runtime_1.jsx)("p", { children: group.description }) : null] }), (0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__portal-list", children: group.sections.map((section) => {
                                 const isActive = section.id === active.id;
                                 const onClick = (event) => {
                                     if (section.disabled) {

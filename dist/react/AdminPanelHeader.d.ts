@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 /**
  * `"section"` renders an `h2` title band; `"page"` renders an `h1` title band
  * for panel-led routes. `"none"` means the HOST owns the entire band — title,
@@ -10,6 +10,12 @@ import type { ReactNode } from "react";
  * rendered.
  */
 export type AdminPanelHeaderPresentation = "section" | "page" | "none";
+/**
+ * Marks that an application frame already renders the page's `h1`, so a
+ * `presentation="page"` panel title becomes an `h2` (same look) and the page
+ * keeps exactly one `h1`.
+ */
+export declare const AdminFrameHeadingProvider: import("react").Provider<boolean>;
 export interface AdminPanelHeaderProps {
     title: string;
     presentation?: AdminPanelHeaderPresentation;
