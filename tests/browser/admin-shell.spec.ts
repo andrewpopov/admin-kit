@@ -51,3 +51,21 @@ test("keeps routed navigation intrinsic and collection overflow inside their pan
       ),
   ).toBeVisible();
 });
+
+test("collapses portal navigation behind a Menu toggle on phones only", async ({ page }) => {
+  await page.goto(fixture);
+  const toggle = page.getByRole("button", { name: "Menu" });
+  const navigation = page.locator(".admin-kit__portal-navigation");
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(toggle).toBeVisible();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(navigation).toBeHidden();
+  expect((await toggle.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+  const content = await page.locator(".admin-kit__portal-content").boundingBox();
+  expect(content?.y).toBeLessThan(200);
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(toggle).toBeHidden();
+  await expect(navigation).toBeVisible();
+});

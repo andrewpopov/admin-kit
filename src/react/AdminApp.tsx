@@ -10,6 +10,7 @@ import {
   type AdminPortalNavigationItemProps,
   type AdminPortalProps,
 } from "./AdminPortal";
+import { AdminFrameHeadingProvider } from "./AdminPanelHeader";
 import { AdminTheme, type AdminThemeName } from "./AdminTheme";
 
 export interface AdminAppReactSection extends AdminAppSectionDefinition {
@@ -57,11 +58,13 @@ export function AdminApp({ frame, theme, labels, className, ...portalProps }: Ad
             {frame.actions ? <div className="admin-kit__app-actions">{frame.actions}</div> : null}
           </header>
         ) : null}
-        <AdminPortal
-          {...portalProps}
-          className={["admin-kit__app-portal", className].filter(Boolean).join(" ")}
-          groups={portalProps.groups}
-        />
+        <AdminFrameHeadingProvider value={Boolean(frame)}>
+          <AdminPortal
+            {...portalProps}
+            className={["admin-kit__app-portal", className].filter(Boolean).join(" ")}
+            groups={portalProps.groups}
+          />
+        </AdminFrameHeadingProvider>
       </AdminTheme>
     </AdminLabelsProvider>
   );

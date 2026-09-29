@@ -1,5 +1,13 @@
 "use client";
-import type { MouseEventHandler, ReactNode } from "react";
+import {
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+  type MouseEventHandler,
+  type ReactNode,
+} from "react";
 import type {
   AdminPortalSectionDefinition,
   AdminSectionGroupDefinition,
@@ -29,6 +37,8 @@ interface AdminPortalBaseProps {
   activeSection: AdminSectionId;
   groups: readonly AdminPortalReactGroup[];
   ariaLabel?: string;
+  /** Label of the toggle that collapses the navigation below 48rem. Defaults to "Menu". */
+  mobileNavigationLabel?: string;
   className?: string;
   emptyState?: ReactNode;
   inactiveSectionState?: (sectionId: AdminSectionId) => ReactNode;
@@ -60,6 +70,7 @@ export function AdminPortal({
   onSectionChange,
   renderNavigationItem,
   ariaLabel = "Administration sections",
+  mobileNavigationLabel = "Menu",
   className,
   emptyState = "No administration sections are available.",
   inactiveSectionState,
@@ -67,6 +78,25 @@ export function AdminPortal({
   if (!renderNavigationItem && !onSectionChange) {
     throw new Error("AdminPortal default navigation needs onSectionChange.");
   }
+
+  const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
+  const mobileNavigationId = `admin-kit-portal-navigation-${useId().replace(/:/g, "")}`;
+  const toggleRef = useRef<HTMLButtonElement>(null);
+
+  const closeMobileNavigation = () => {
+    setMobileNavigationOpen(false);
+    toggleRef.current?.focus();
+  };
+  const closeOnEscape = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Escape" && mobileNavigationOpen) closeMobileNavigation();
+  };
+  const closeOnNavigate = (event: MouseEvent<HTMLElement>) => {
+    const target = (event.target as Element).closest<HTMLElement>("a, button");
+    if (!mobileNavigationOpen || !target || target.matches('[aria-disabled="true"], :disabled')) {
+      return;
+    }
+    closeMobileNavigation();
+  };
 
   const visibleGroups = groups
     .filter((group) => group.visible !== false)
@@ -101,7 +131,25 @@ export function AdminPortal({
         .join(" ")}
       data-admin-kit-theme="core"
     >
-      <nav aria-label={ariaLabel} className="admin-kit__portal-navigation">
+      <button
+        aria-controls={mobileNavigationId}
+        aria-expanded={mobileNavigationOpen}
+        className="admin-kit__app-shell-mobile-toggle"
+        onClick={() => setMobileNavigationOpen((open) => !open)}
+        onKeyDown={closeOnEscape}
+        ref={toggleRef}
+        type="button"
+      >
+        {mobileNavigationLabel}
+      </button>
+      <nav
+        aria-label={ariaLabel}
+        className="admin-kit__portal-navigation"
+        data-open={mobileNavigationOpen ? "" : undefined}
+        id={mobileNavigationId}
+        onClick={closeOnNavigate}
+        onKeyDown={closeOnEscape}
+      >
         {visibleGroups.map((group) => (
           <section className="admin-kit__portal-group" key={group.id}>
             <header className="admin-kit__portal-group-header">

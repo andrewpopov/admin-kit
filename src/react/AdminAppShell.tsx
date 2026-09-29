@@ -2,6 +2,7 @@
 import { useId, useState, type ReactNode } from "react";
 import { AdminTheme, type AdminThemeName } from "./AdminTheme";
 import type { AdminAppFrame } from "./AdminApp";
+import { AdminFrameHeadingProvider } from "./AdminPanelHeader";
 
 export interface AdminAppShellNavigationContext {
   idPrefix: string;
@@ -83,7 +84,9 @@ export function AdminAppShell({
         <aside className="admin-kit__app-shell-navigation">
           <nav aria-label={ariaLabel}>{renderNavigation({ idPrefix: "admin-kit-desktop" })}</nav>
         </aside>
-        <main className="admin-kit__app-shell-content">{children}</main>
+        <main className="admin-kit__app-shell-content">
+          <AdminFrameHeadingProvider value={Boolean(frame)}>{children}</AdminFrameHeadingProvider>
+        </main>
       </div>
     </AdminTheme>
   );

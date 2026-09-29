@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   type AdminEventsAdapter,
   type AdminEventsPage,
@@ -12,6 +12,16 @@ import { AdminPanelHeader, type AdminPanelHeaderPresentation } from "./AdminPane
 import { AdminPanelStateView } from "./AdminPanelState";
 
 const SEARCH_DEBOUNCE_MS = 250;
+
+export type EventsPanelColumn = "occurred" | "event" | "actor" | "resource" | "outcome";
+
+const ALL_COLUMNS: readonly EventsPanelColumn[] = [
+  "occurred",
+  "event",
+  "actor",
+  "resource",
+  "outcome",
+];
 
 export interface EventsPanelProps {
   adapter: AdminEventsAdapter;
@@ -26,6 +36,14 @@ export interface EventsPanelProps {
   className?: string;
   /** Overrides the default timestamp presentation for occurredAt / source.updatedAt. */
   formatTimestamp?: (iso: string) => string;
+  /**
+   * Which event fields render, in the table's fixed order. Defaults to all
+   * five. The feed presentation honours the same set; `event` (action and
+   * message) is always shown there.
+   */
+  columns?: readonly EventsPanelColumn[];
+  /** Replaces the default "No administrative events found." content. */
+  emptyState?: ReactNode;
 }
 
 export function EventsPanel({
@@ -38,7 +56,10 @@ export function EventsPanel({
   presentation = "feed",
   className,
   formatTimestamp,
+  columns = ALL_COLUMNS,
+  emptyState,
 }: EventsPanelProps) {
+  const show = (column: EventsPanelColumn) => columns.includes(column);
   const labels = useAdminLabels();
   const [query, setQuery] = useState<AdminEventsQuery>({ page: 1, pageSize });
   const [searchInput, setSearchInput] = useState(query.search ?? "");
@@ -231,40 +252,50 @@ export function EventsPanel({
         <AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} />
       ) : null}
       {result.items.length === 0 ? (
-        <AdminPanelStateView state={{ kind: "empty", title: "No administrative events found." }} />
+        (emptyState ?? (
+          <AdminPanelStateView
+            state={{ kind: "empty", title: "No administrative events found." }}
+          />
+        ))
       ) : presentation === "table" ? (
         <div className="admin-kit__table-wrap admin-kit__events-table-wrap">
           <table className="admin-kit__table admin-kit__events-table" aria-busy={loading}>
             <thead>
               <tr>
-                <th scope="col">Occurred</th>
-                <th scope="col">Event</th>
-                <th scope="col">Actor</th>
-                <th scope="col">Resource</th>
-                <th scope="col">Outcome</th>
+                {show("occurred") ? <th scope="col">Occurred</th> : null}
+                {show("event") ? <th scope="col">Event</th> : null}
+                {show("actor") ? <th scope="col">Actor</th> : null}
+                {show("resource") ? <th scope="col">Resource</th> : null}
+                {show("outcome") ? <th scope="col">Outcome</th> : null}
                 <th scope="col">Details</th>
               </tr>
             </thead>
             <tbody>
               {result.items.map((event) => (
                 <tr key={event.id}>
-                  <td>{formatAdminTimestamp(event.occurredAt, formatTimestamp)}</td>
-                  <td>
-                    <strong>{event.action}</strong>
-                    <small>{event.message}</small>
-                  </td>
-                  <td>{event.actor?.label ?? "—"}</td>
-                  <td>{event.resource?.label ?? "—"}</td>
-                  <td>
-                    <span
-                      className={`admin-kit__event-outcome admin-kit__event-outcome--${event.outcome}`}
-                    >
-                      {event.outcome}
-                    </span>
-                    <small>
-                      {event.severity} · {event.category}
-                    </small>
-                  </td>
+                  {show("occurred") ? (
+                    <td>{formatAdminTimestamp(event.occurredAt, formatTimestamp)}</td>
+                  ) : null}
+                  {show("event") ? (
+                    <td>
+                      <strong>{event.action}</strong>
+                      <small>{event.message}</small>
+                    </td>
+                  ) : null}
+                  {show("actor") ? <td>{event.actor?.label ?? "—"}</td> : null}
+                  {show("resource") ? <td>{event.resource?.label ?? "—"}</td> : null}
+                  {show("outcome") ? (
+                    <td>
+                      <span
+                        className={`admin-kit__event-outcome admin-kit__event-outcome--${event.outcome}`}
+                      >
+                        {event.outcome}
+                      </span>
+                      <small>
+                        {event.severity} · {event.category}
+                      </small>
+                    </td>
+                  ) : null}
                   <td>
                     {event.metadata ? (
                       <details>
@@ -295,11 +326,21 @@ export function EventsPanel({
                 <strong>{event.action}</strong>
                 <p>{event.message}</p>
                 <span>
-                  {formatAdminTimestamp(event.occurredAt, formatTimestamp)} · {event.category} ·{" "}
-                  {event.severity} · {event.outcome}
+                  {[
+                    show("occurred")
+                      ? formatAdminTimestamp(event.occurredAt, formatTimestamp)
+                      : null,
+                    event.category,
+                    event.severity,
+                    show("outcome") ? event.outcome : null,
+                  ]
+                    .filter((part) => part !== null)
+                    .join(" · ")}
                 </span>
-                {event.actor ? <span> · actor: {event.actor.label}</span> : null}
-                {event.resource ? <span> · resource: {event.resource.label}</span> : null}
+                {show("actor") && event.actor ? <span> · actor: {event.actor.label}</span> : null}
+                {show("resource") && event.resource ? (
+                  <span> · resource: {event.resource.label}</span>
+                ) : null}
               </div>
               {event.metadata ? (
                 <details>

@@ -201,4 +201,63 @@ describe("EventsPanel", () => {
     // Only one additional adapter call for three keystrokes.
     expect(list).toHaveBeenCalledTimes(2);
   });
+  it("renders only the requested columns in the table presentation", async () => {
+    const { container } = render(
+      <EventsPanel
+        adapter={{ list: vi.fn().mockResolvedValue(page) }}
+        columns={["occurred", "event", "outcome"]}
+        presentation="table"
+      />,
+    );
+    await screen.findByText("Sign-in succeeded");
+    const headers = Array.from(container.querySelectorAll("th")).map((th) => th.textContent);
+    expect(headers).toEqual(["Occurred", "Event", "Outcome", "Details"]);
+    expect(container.querySelectorAll("tbody tr:first-child td")).toHaveLength(4);
+    expect(screen.queryByText("Ada")).toBeNull();
+  });
+
+  it("renders every column by default", async () => {
+    const { container } = render(
+      <EventsPanel adapter={{ list: vi.fn().mockResolvedValue(page) }} presentation="table" />,
+    );
+    await screen.findByText("Sign-in succeeded");
+    expect(Array.from(container.querySelectorAll("th")).map((th) => th.textContent)).toEqual([
+      "Occurred",
+      "Event",
+      "Actor",
+      "Resource",
+      "Outcome",
+      "Details",
+    ]);
+  });
+
+  it("applies columns to the feed presentation", async () => {
+    render(
+      <EventsPanel
+        adapter={{ list: vi.fn().mockResolvedValue(page) }}
+        columns={["event", "actor"]}
+      />,
+    );
+    await screen.findByText("Sign-in succeeded");
+    expect(screen.getByText(/actor: Ada/)).toBeTruthy();
+    expect(screen.getByText("security · info")).toBeTruthy();
+  });
+
+  it("renders a custom empty state instead of the default", async () => {
+    const empty = { ...page, items: [], total: 0 };
+    render(
+      <EventsPanel
+        adapter={{ list: vi.fn().mockResolvedValue(empty) }}
+        emptyState={<p>Nothing has happened yet.</p>}
+      />,
+    );
+    await screen.findByText("Nothing has happened yet.");
+    expect(screen.queryByText("No administrative events found.")).toBeNull();
+  });
+
+  it("keeps the default empty state when none is supplied", async () => {
+    const empty = { ...page, items: [], total: 0 };
+    render(<EventsPanel adapter={{ list: vi.fn().mockResolvedValue(empty) }} />);
+    await screen.findByText("No administrative events found.");
+  });
 });

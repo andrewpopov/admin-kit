@@ -240,4 +240,14 @@ describe("Admin Kit styles", () => {
       });
     }
   });
+  it("uses one shared focus ring that covers links and paints the app canvas", () => {
+    const ring = styles.match(/:focus-visible\s*{([^}]*)}/g) ?? [];
+    const outlines = ring.filter((rule) => rule.includes("outline:"));
+    expect(outlines).toHaveLength(1);
+    expect(outlines[0]).toContain("outline: 2px solid var(--admin-kit-accent);");
+    expect(outlines[0]).toContain("outline-offset: 2px;");
+    expect(styles).toMatch(/\.admin-kit :where\(a, button, .*\):focus-visible/);
+    expect(styles).toMatch(/\.admin-kit__app \{ background: var\(--admin-kit-surface\);/);
+    expect(styles).toMatch(/\.admin-kit__app-shell \{ background: var\(--admin-kit-surface\);/);
+  });
 });
