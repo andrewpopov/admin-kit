@@ -602,6 +602,29 @@ With `headerPresentation="page"`, the title becomes the route `h1`; search and
 refresh share that header band, while severity/outcome/category filters remain
 in the toolbar before the table.
 
+### Stacked tables on phones
+
+Wide tables scroll sideways inside `admin-kit__table-wrap`. For a table that
+must be readable on a phone, opt in to the stacked layout: add
+`admin-kit__table-wrap--stack` to the wrap and `admin-kit__table--stack` to the
+table, and render an `AdminMobileCellLabel` as the first child of every `td`.
+Below the phone breakpoint each row becomes a labelled card; the label is
+hidden everywhere else, and the table stays one semantic table with its
+headers and focus order. `EventsPanel` uses this.
+
+```tsx
+<div className="admin-kit__table-wrap admin-kit__table-wrap--stack">
+  <table className="admin-kit__table admin-kit__table--stack">
+    <thead>{/* th headers as usual */}</thead>
+    <tbody>
+      <tr>
+        <td><AdminMobileCellLabel>Name</AdminMobileCellLabel>Casa Mono</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+```
+
 ### Runtime logs
 
 `LogsPanel` is deliberately separate from `EventsPanel`. Events are normalized

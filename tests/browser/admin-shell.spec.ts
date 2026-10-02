@@ -69,3 +69,43 @@ test("collapses portal navigation behind a Menu toggle on phones only", async ({
   await expect(toggle).toBeHidden();
   await expect(navigation).toBeVisible();
 });
+
+test("renders EventsPanel rows as labelled cards on phones", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(fixture);
+  const eventsPanel = page.getByRole("region", { name: "Events" }).first();
+  const eventsTableWrap = eventsPanel.locator(".admin-kit__events-table-wrap");
+  await expect(eventsPanel.locator(".admin-kit__events-table tbody tr")).toHaveCount(1);
+  expect(
+    await eventsTableWrap.evaluate((node) => node.scrollWidth <= node.clientWidth),
+    "EventsPanel must not require horizontal scrolling at 375px",
+  ).toBe(true);
+  await expect(
+    eventsPanel.locator(".admin-kit__mobile-cell-label", { hasText: "Outcome" }),
+  ).toBeVisible();
+});
+
+test("stacks a consumer-built table with the stack modifier on phones", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(fixture);
+  const wrap = page.getByTestId("stack-table-wrap");
+  expect(
+    await wrap.evaluate((node) => node.scrollWidth <= node.clientWidth),
+    "a .admin-kit__table--stack table must not require horizontal scrolling at 375px",
+  ).toBe(true);
+  await expect(wrap.locator(".admin-kit__mobile-cell-label", { hasText: "Cuisine" })).toBeVisible();
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(wrap.locator(".admin-kit__mobile-cell-label").first()).toBeHidden();
+});
+
+test("fits a 15-item portal navigation without clipping at desktop size", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(fixture);
+  const navigation = page.locator(".admin-kit__portal-navigation");
+  await expect(navigation.locator(".admin-kit__portal-link")).toHaveCount(15);
+  expect(
+    await navigation.evaluate((node) => node.scrollHeight <= node.clientHeight),
+    "desktop portal navigation must not need its own scrollbar for 15 items",
+  ).toBe(true);
+});

@@ -37,6 +37,8 @@ const {
   ApiKeysPanel,
   UsersPanel,
   LogsPanel,
+  EventsPanel,
+  AdminMobileCellLabel,
 } = await import(resolve(packageRoot, "dist/index.js"));
 
 const usersAdapter = {
@@ -107,6 +109,35 @@ const apiKeysAdapter = {
   },
 };
 
+const eventsAdapter = {
+  async list() {
+    return {
+      items: [
+        {
+          id: "evt_1",
+          occurredAt: "2024-01-01T15:12:00.000Z",
+          category: "assistant",
+          action: "assistant.task.completed",
+          message: "Assistant task finished after a long-running catalog reconciliation",
+          severity: "info",
+          outcome: "success",
+          metadata: { task: "task-0123456789abcdef" },
+        },
+      ],
+      page: 1,
+      pageSize: 25,
+      total: 1,
+    };
+  },
+};
+
+// A realistic 3-group, 15-item rail of single-line links so the desktop density assertion is meaningful.
+const fillerSections = (prefix, count) => Array.from({ length: count }, (_, index) => ({
+  id: `${prefix}-${index + 1}`,
+  label: `${prefix} section ${index + 1}`,
+  render: () => null,
+}));
+
 const tree = React.createElement(
   React.Fragment,
   null,
@@ -132,7 +163,9 @@ const tree = React.createElement(
               React.createElement(AdminActionButton, null, "Export"),
             ),
           },
-          React.createElement(UsersPanel, {
+          // Keeps the routed content taller than the 15-item rail so the rail's
+          // intrinsic (unstretched) height stays observable.
+          React.createElement("div", { style: { minHeight: "1400px" } }, React.createElement(UsersPanel, {
             adapter: usersAdapter,
             search: false,
             renderUserActions: (user) => React.createElement(
@@ -149,15 +182,55 @@ const tree = React.createElement(
                 "Reset password",
               ),
             ),
-          }),
+          })),
         ),
-      }],
+      }, ...fillerSections("admin", 4)],
+    }, {
+      id: "operations",
+      label: "Operations",
+      sections: fillerSections("ops", 5),
+    }, {
+      id: "security",
+      label: "Security",
+      sections: fillerSections("sec", 5),
     }],
   }),
   React.createElement(
     AdminWorkspace,
     { as: "section", title: "Runtime logs", description: "Inspect bounded output from the selected process." },
     React.createElement(LogsPanel, { adapter: logsAdapter, title: "Server logs" }),
+  ),
+  React.createElement(
+    AdminWorkspace,
+    { as: "section", title: "Events", description: "Audit trail stays readable on phones." },
+    React.createElement(EventsPanel, {
+      adapter: eventsAdapter,
+      columns: ["occurred", "event", "outcome"],
+      headerPresentation: "section",
+      presentation: "table",
+    }),
+  ),
+  React.createElement(
+    AdminWorkspace,
+    { as: "section", title: "Stacked table", description: "Consumer-built table using the stack modifier." },
+    React.createElement(
+      "div",
+      { className: "admin-kit__table-wrap admin-kit__table-wrap--stack", "data-testid": "stack-table-wrap" },
+      React.createElement(
+        "table",
+        { className: "admin-kit__table admin-kit__table--stack" },
+        React.createElement("thead", null, React.createElement("tr", null,
+          React.createElement("th", { scope: "col" }, "Name"),
+          React.createElement("th", { scope: "col" }, "Cuisine"),
+          React.createElement("th", { scope: "col" }, "Notes"),
+        )),
+        React.createElement("tbody", null, React.createElement("tr", null,
+          React.createElement("td", null, React.createElement(AdminMobileCellLabel, null, "Name"), "Restaurant with a very long name that would normally force sideways scrolling"),
+          React.createElement("td", null, React.createElement(AdminMobileCellLabel, null, "Cuisine"), "Neapolitan"),
+          React.createElement("td", null, React.createElement(AdminMobileCellLabel, null, "Notes"), "Reservation-required-weekends-only-and-bring-cash-for-the-coat-check"),
+        )),
+      ),
+    ),
   ),
   React.createElement(
     AdminWorkspace,

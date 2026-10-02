@@ -34,6 +34,7 @@ export {
   type AdminPortalReactGroup,
   type AdminPortalReactSection,
 } from "./AdminPortal";
+export { AdminMobileCellLabel } from "./AdminTablePrimitives";
 export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";
 export {
   AdminPanelHeader,
