@@ -214,6 +214,10 @@ describe("EventsPanel", () => {
     expect(headers).toEqual(["Occurred", "Event", "Outcome", "Details"]);
     expect(container.querySelectorAll("tbody tr:first-child td")).toHaveLength(4);
     expect(screen.queryByText("Ada")).toBeNull();
+    const labels = Array.from(
+      container.querySelectorAll("tbody tr:first-child .admin-kit__mobile-cell-label"),
+    ).map((label) => label.textContent);
+    expect(labels).toEqual(["Occurred", "Event", "Outcome", "Details"]);
   });
 
   it("renders every column by default", async () => {

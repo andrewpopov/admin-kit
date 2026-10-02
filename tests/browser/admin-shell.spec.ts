@@ -69,3 +69,18 @@ test("collapses portal navigation behind a Menu toggle on phones only", async ({
   await expect(toggle).toBeHidden();
   await expect(navigation).toBeVisible();
 });
+
+test("renders EventsPanel rows as labelled cards on phones", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(fixture);
+  const eventsPanel = page.getByRole("region", { name: "Events" }).first();
+  const eventsTableWrap = eventsPanel.locator(".admin-kit__events-table-wrap");
+  await expect(eventsPanel.locator(".admin-kit__events-table tbody tr")).toHaveCount(1);
+  expect(
+    await eventsTableWrap.evaluate((node) => node.scrollWidth <= node.clientWidth),
+    "EventsPanel must not require horizontal scrolling at 375px",
+  ).toBe(true);
+  await expect(
+    eventsPanel.locator(".admin-kit__mobile-cell-label", { hasText: "Outcome" }),
+  ).toBeVisible();
+});

@@ -8,6 +8,7 @@ import {
   validateAdminEventsPage,
 } from "../core";
 import { useAdminLabels } from "./AdminLabels";
+import { AdminMobileCellLabel } from "./AdminTablePrimitives";
 import { AdminPanelHeader, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
 
@@ -274,18 +275,33 @@ export function EventsPanel({
               {result.items.map((event) => (
                 <tr key={event.id}>
                   {show("occurred") ? (
-                    <td>{formatAdminTimestamp(event.occurredAt, formatTimestamp)}</td>
+                    <td>
+                      <AdminMobileCellLabel>Occurred</AdminMobileCellLabel>
+                      {formatAdminTimestamp(event.occurredAt, formatTimestamp)}
+                    </td>
                   ) : null}
                   {show("event") ? (
                     <td>
+                      <AdminMobileCellLabel>Event</AdminMobileCellLabel>
                       <strong>{event.action}</strong>
                       <small>{event.message}</small>
                     </td>
                   ) : null}
-                  {show("actor") ? <td>{event.actor?.label ?? "—"}</td> : null}
-                  {show("resource") ? <td>{event.resource?.label ?? "—"}</td> : null}
+                  {show("actor") ? (
+                    <td>
+                      <AdminMobileCellLabel>Actor</AdminMobileCellLabel>
+                      {event.actor?.label ?? "—"}
+                    </td>
+                  ) : null}
+                  {show("resource") ? (
+                    <td>
+                      <AdminMobileCellLabel>Resource</AdminMobileCellLabel>
+                      {event.resource?.label ?? "—"}
+                    </td>
+                  ) : null}
                   {show("outcome") ? (
                     <td>
+                      <AdminMobileCellLabel>Outcome</AdminMobileCellLabel>
                       <span
                         className={`admin-kit__event-outcome admin-kit__event-outcome--${event.outcome}`}
                       >
@@ -297,6 +313,7 @@ export function EventsPanel({
                     </td>
                   ) : null}
                   <td>
+                    <AdminMobileCellLabel>Details</AdminMobileCellLabel>
                     {event.metadata ? (
                       <details>
                         <summary>View</summary>

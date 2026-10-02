@@ -37,6 +37,7 @@ const {
   ApiKeysPanel,
   UsersPanel,
   LogsPanel,
+  EventsPanel,
 } = await import(resolve(packageRoot, "dist/index.js"));
 
 const usersAdapter = {
@@ -107,6 +108,28 @@ const apiKeysAdapter = {
   },
 };
 
+const eventsAdapter = {
+  async list() {
+    return {
+      items: [
+        {
+          id: "evt_1",
+          occurredAt: "2024-01-01T15:12:00.000Z",
+          category: "assistant",
+          action: "assistant.task.completed",
+          message: "Assistant task finished after a long-running catalog reconciliation",
+          severity: "info",
+          outcome: "success",
+          metadata: { task: "task-0123456789abcdef" },
+        },
+      ],
+      page: 1,
+      pageSize: 25,
+      total: 1,
+    };
+  },
+};
+
 const tree = React.createElement(
   React.Fragment,
   null,
@@ -158,6 +181,16 @@ const tree = React.createElement(
     AdminWorkspace,
     { as: "section", title: "Runtime logs", description: "Inspect bounded output from the selected process." },
     React.createElement(LogsPanel, { adapter: logsAdapter, title: "Server logs" }),
+  ),
+  React.createElement(
+    AdminWorkspace,
+    { as: "section", title: "Events", description: "Audit trail stays readable on phones." },
+    React.createElement(EventsPanel, {
+      adapter: eventsAdapter,
+      columns: ["occurred", "event", "outcome"],
+      headerPresentation: "section",
+      presentation: "table",
+    }),
   ),
   React.createElement(
     AdminWorkspace,
