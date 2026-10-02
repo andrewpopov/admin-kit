@@ -259,8 +259,8 @@ export function EventsPanel({
           />
         ))
       ) : presentation === "table" ? (
-        <div className="admin-kit__table-wrap admin-kit__events-table-wrap">
-          <table className="admin-kit__table admin-kit__events-table" aria-busy={loading}>
+        <div className="admin-kit__table-wrap admin-kit__table-wrap--stack admin-kit__events-table-wrap">
+          <table className="admin-kit__table admin-kit__table--stack admin-kit__events-table" aria-busy={loading}>
             <thead>
               <tr>
                 {show("occurred") ? <th scope="col">Occurred</th> : null}

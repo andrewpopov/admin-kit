@@ -6,6 +6,7 @@ export { AdminApp, type AdminAppFrame, type AdminAppProps, type AdminAppReactGro
 export { AdminAppShell, type AdminAppShellNavigationContext, type AdminAppShellProps, } from "./AdminAppShell";
 export { AdminConsole, type AdminConsoleProps, type AdminReactSection } from "./AdminConsole";
 export { AdminPortal, type AdminPortalNavigationItemProps, type AdminPortalProps, type AdminPortalReactGroup, type AdminPortalReactSection, } from "./AdminPortal";
+export { AdminMobileCellLabel } from "./AdminTablePrimitives";
 export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";
 export { AdminPanelHeader, type AdminPanelHeaderPresentation, type AdminPanelHeaderProps, } from "./AdminPanelHeader";
 export { AdminWorkspace, type AdminWorkspaceProps } from "./AdminWorkspace";
