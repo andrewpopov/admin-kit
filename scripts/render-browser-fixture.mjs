@@ -135,6 +135,7 @@ const eventsAdapter = {
 const fillerSections = (prefix, count) => Array.from({ length: count }, (_, index) => ({
   id: `${prefix}-${index + 1}`,
   label: `${prefix} section ${index + 1}`,
+  capability: `custom:${prefix}-${index + 1}`,
   render: () => null,
 }));
 
@@ -154,6 +155,7 @@ const tree = React.createElement(
       sections: [{
         id: "users",
         label: "Users",
+        capability: "users",
         description: "Account access and lifecycle",
         render: () => React.createElement(
           AdminWorkspace,
