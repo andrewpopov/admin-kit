@@ -109,3 +109,79 @@ test("fits a 15-item portal navigation without clipping at desktop size", async 
     "desktop portal navigation must not need its own scrollbar for 15 items",
   ).toBe(true);
 });
+
+test("keeps the phone app header compact so content starts near the top", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(fixture);
+  await expect(page.getByRole("heading", { name: "Admin console", level: 1 })).toBeVisible();
+  expect((await page.getByRole("button", { name: "Menu" }).boundingBox())?.height).toBeGreaterThanOrEqual(44);
+  const content = await page.locator(".admin-kit__portal-content").boundingBox();
+  expect(
+    content?.y,
+    "the frame header and Menu toggle must not push content below 140px on a phone",
+  ).toBeLessThanOrEqual(140);
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  const fontSize = await page
+    .getByRole("heading", { name: "Admin console", level: 1 })
+    .evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
+  expect(fontSize, "desktop frame title keeps its larger size").toBeGreaterThanOrEqual(28);
+});
+
+test("styles only column headers as uppercase headers, not row headers", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(fixture);
+  const wrap = page.getByTestId("stack-table-wrap");
+  const rowHeader = wrap.locator("tbody th[scope=row]");
+  await expect(rowHeader).toHaveCount(1);
+  const rowStyle = await rowHeader.evaluate((node) => {
+    const style = getComputedStyle(node);
+    return { textTransform: style.textTransform, fontWeight: style.fontWeight };
+  });
+  expect(rowStyle.textTransform, "row headers read as body text").toBe("none");
+  expect(Number(rowStyle.fontWeight)).toBe(600);
+  expect(
+    await wrap.locator("thead th").first().evaluate((node) => getComputedStyle(node).textTransform),
+    "column headers keep the uppercase header look",
+  ).toBe("uppercase");
+});
+
+test("keeps a disabled primary button readable (text contrast at least 4.5:1)", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(fixture);
+  const button = page.getByRole("button", { name: "Archive all" });
+  await expect(button).toBeDisabled();
+  const contrast = await button.evaluate((node) => {
+    type Rgb = [number, number, number];
+    const parse = (value: string): Rgb => {
+      const channels = value.match(/rgba?\(([^)]+)\)/)?.[1].split(/[ ,/]+/).map(Number);
+      if (!channels) throw new Error(`unparseable colour: ${value}`);
+      return [channels[0], channels[1], channels[2]];
+    };
+    const blend = (top: Rgb, below: Rgb, alpha: number): Rgb =>
+      [0, 1, 2].map((i) => top[i] * alpha + below[i] * (1 - alpha)) as Rgb;
+    let behind: Rgb = [255, 255, 255];
+    for (let el = node.parentElement; el; el = el.parentElement) {
+      const background = getComputedStyle(el).backgroundColor;
+      if (!/rgba\(.*, 0\)$/.test(background) && background !== "transparent") {
+        behind = parse(background);
+        break;
+      }
+    }
+    const style = getComputedStyle(node);
+    // Opacity dims text and background together over whatever is behind the button.
+    const opacity = Number(style.opacity);
+    const background = blend(parse(style.backgroundColor), behind, opacity);
+    const text = blend(parse(style.color), behind, opacity);
+    const luminance = (rgb: Rgb) => {
+      const [r, g, b] = rgb.map((channel) => {
+        const c = channel / 255;
+        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const [lighter, darker] = [luminance(text), luminance(background)].sort((a, b) => b - a);
+    return (lighter + 0.05) / (darker + 0.05);
+  });
+  expect(contrast).toBeGreaterThanOrEqual(4.5);
+});

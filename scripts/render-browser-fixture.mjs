@@ -33,7 +33,7 @@ const { createRoot } = await import("react-dom/client");
 const {
   AdminWorkspace,
   AdminActionButton,
-  AdminPortal,
+  AdminApp,
   ApiKeysPanel,
   UsersPanel,
   LogsPanel,
@@ -141,7 +141,11 @@ const fillerSections = (prefix, count) => Array.from({ length: count }, (_, inde
 const tree = React.createElement(
   React.Fragment,
   null,
-  React.createElement(AdminPortal, {
+  React.createElement(AdminApp, {
+    frame: {
+      title: "Admin console",
+      actions: React.createElement("span", null, "Signed in as admin@example.test"),
+    },
     activeSection: "users",
     onSectionChange: () => undefined,
     groups: [{
@@ -161,6 +165,7 @@ const tree = React.createElement(
               null,
               React.createElement(AdminActionButton, { tone: "primary" }, "Invite user"),
               React.createElement(AdminActionButton, null, "Export"),
+              React.createElement(AdminActionButton, { tone: "primary", disabled: true }, "Archive all"),
             ),
           },
           // Keeps the routed content taller than the 15-item rail so the rail's
@@ -225,7 +230,7 @@ const tree = React.createElement(
           React.createElement("th", { scope: "col" }, "Notes"),
         )),
         React.createElement("tbody", null, React.createElement("tr", null,
-          React.createElement("td", null, React.createElement(AdminMobileCellLabel, null, "Name"), "Restaurant with a very long name that would normally force sideways scrolling"),
+          React.createElement("th", { scope: "row" }, React.createElement(AdminMobileCellLabel, null, "Name"), "Restaurant with a very long name that would normally force sideways scrolling"),
           React.createElement("td", null, React.createElement(AdminMobileCellLabel, null, "Cuisine"), "Neapolitan"),
           React.createElement("td", null, React.createElement(AdminMobileCellLabel, null, "Notes"), "Reservation-required-weekends-only-and-bring-cash-for-the-coat-check"),
         )),
