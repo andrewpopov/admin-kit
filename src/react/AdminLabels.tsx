@@ -8,6 +8,7 @@ export interface AdminLabels {
   cancel: string;
   previousPage: string;
   nextPage: string;
+  skipToContent: string;
   pageStatus: (page: number, pageCount: number) => string;
 }
 
@@ -18,6 +19,7 @@ export const defaultAdminLabels: AdminLabels = {
   cancel: "Cancel",
   previousPage: "Previous",
   nextPage: "Next",
+  skipToContent: "Skip to content",
   pageStatus: (page, pageCount) => `Page ${page} of ${pageCount}`,
 };
 

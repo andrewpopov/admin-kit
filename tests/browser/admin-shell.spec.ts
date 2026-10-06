@@ -185,3 +185,155 @@ test("keeps a disabled primary button readable (text contrast at least 4.5:1)", 
   });
   expect(contrast).toBeGreaterThanOrEqual(4.5);
 });
+
+const dialogFixture = pathToFileURL(resolve("tests/browser/admin-dialog.html")).href;
+const confirmationFixture = pathToFileURL(
+  resolve("tests/browser/admin-confirmation-dialog.html"),
+).href;
+
+test("keeps a dialog taller than the viewport inside it, scrollable, with Close reachable", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(dialogFixture);
+  const dialog = page.getByRole("dialog", { name: "Invite teammates" });
+  const close = page.getByRole("button", { name: "Close dialog" });
+  expect(
+    await dialog.evaluate((node) => node.scrollHeight > node.clientHeight),
+    "the fixture dialog must be taller than the viewport for this test to mean anything",
+  ).toBe(true);
+  const box = await dialog.boundingBox();
+  expect(box?.y).toBeGreaterThanOrEqual(0);
+  expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(844);
+  await expect(close).toBeVisible();
+
+  const last = dialog.locator(".admin-kit__dialog-actions button").last();
+  await last.scrollIntoViewIfNeeded();
+  const lastBox = await last.boundingBox();
+  expect(lastBox?.y).toBeGreaterThanOrEqual(0);
+  expect((lastBox?.y ?? 0) + (lastBox?.height ?? 0)).toBeLessThanOrEqual(844);
+
+  // Scrolled to the bottom, the header (and Close) is still pinned inside the viewport.
+  const closeBox = await close.boundingBox();
+  expect(closeBox?.y).toBeGreaterThanOrEqual(0);
+  expect((closeBox?.y ?? 0) + (closeBox?.height ?? 0)).toBeLessThanOrEqual(844);
+  expect(await dialog.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+});
+
+test("gives the dialog Close button a 44px target", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(dialogFixture);
+  const box = await page.getByRole("button", { name: "Close dialog" }).boundingBox();
+  expect(box?.width).toBeGreaterThanOrEqual(44);
+  expect(box?.height).toBeGreaterThanOrEqual(44);
+});
+
+for (const [name, url, button] of [
+  ["AdminDialog", dialogFixture, "Send invites"],
+  ["AdminConfirmationDialog", confirmationFixture, "Revoke key"],
+] as const) {
+  test(`${name} picks up a host rebrand on .admin-kit.admin-kit--theme-core`, async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(url);
+    const primary = page.getByRole("button", { name: button });
+    expect(await primary.evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(
+      "rgb(107, 91, 69)",
+    );
+    // The theme layer must not become a box that shifts the dialog or its backdrop.
+    const layer = page.locator(".admin-kit--layer");
+    await expect(layer).toHaveCount(1);
+    expect(await layer.evaluate((node) => getComputedStyle(node).display)).toBe("contents");
+  });
+}
+
+test("draws form control borders at 3:1 or better against the surface behind them", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(dialogFixture);
+  const ratio = await page
+    .locator(".admin-kit__dialog .admin-kit__field input")
+    .first()
+    .evaluate((node) => {
+      const channels = (value: string) =>
+        (value.match(/rgba?\(([^)]+)\)/)?.[1] ?? "")
+          .split(/[ ,/]+/)
+          .map(Number)
+          .slice(0, 3);
+      const luminance = (rgb: number[]) => {
+        const [r, g, b] = rgb.map((channel) => {
+          const c = channel / 255;
+          return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      };
+      const border = luminance(channels(getComputedStyle(node).borderTopColor));
+      const surface = luminance(
+        channels(getComputedStyle(node.closest(".admin-kit__dialog")!).backgroundColor),
+      );
+      const [lighter, darker] = [border, surface].sort((a, b) => b - a);
+      return (lighter + 0.05) / (darker + 0.05);
+    });
+  expect(ratio).toBeGreaterThanOrEqual(3);
+});
+
+test("puts a skip link first in tab order and moves focus into the content region", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(fixture);
+  const link = page.getByRole("link", { name: "Skip to content" });
+  const hidden = await link.boundingBox();
+  expect(hidden?.width, "the skip link is visually hidden until focused").toBeLessThanOrEqual(1);
+
+  await page.keyboard.press("Tab");
+  await expect(link).toBeFocused();
+  const shown = await link.boundingBox();
+  expect(shown?.width).toBeGreaterThan(40);
+  expect(shown?.x).toBeGreaterThanOrEqual(0);
+  expect(shown?.y).toBeGreaterThanOrEqual(0);
+  expect(await link.evaluate((node) => getComputedStyle(node).outlineStyle)).toBe("solid");
+
+  // The fixture is static markup (no React handlers), so this exercises the
+  // native fragment-link fallback; the programmatic path is covered in jsdom.
+  await page.keyboard.press("Enter");
+  const active = await page.evaluate(() => ({
+    className: document.activeElement?.className,
+    outline: getComputedStyle(document.activeElement!).outlineStyle,
+  }));
+  expect(active.className).toContain("admin-kit__portal-content");
+  expect(active.outline, "programmatic focus of the region draws no ring").toBe("none");
+});
+
+test("renders loading skeleton bars, and only animates them when motion is allowed", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(fixture);
+  const skeleton = page.locator(".skeleton-fixture");
+  const bars = skeleton.locator(".admin-kit__skeleton-bar");
+  await expect(bars).toHaveCount(3);
+  expect((await bars.first().boundingBox())?.height).toBeGreaterThan(8);
+  expect((await skeleton.getByText("Loading users…").boundingBox())?.width).toBeLessThanOrEqual(1);
+
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  expect(await bars.first().evaluate((node) => getComputedStyle(node).animationName)).toBe(
+    "admin-kit-skeleton-pulse",
+  );
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  expect(await bars.first().evaluate((node) => getComputedStyle(node).animationName)).toBe("none");
+});
+
+test("stacks the OperationalJobsPanel table into labelled cards on phones", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(fixture);
+  const wrap = page.locator(".admin-kit__operations-table-wrap");
+  expect(
+    await wrap.evaluate((node) => node.scrollWidth <= node.clientWidth),
+    "OperationalJobsPanel must not require horizontal scrolling at 375px",
+  ).toBe(true);
+  await expect(wrap.locator(".admin-kit__mobile-cell-label", { hasText: "Started" })).toBeVisible();
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(wrap.locator(".admin-kit__mobile-cell-label").first()).toBeHidden();
+});

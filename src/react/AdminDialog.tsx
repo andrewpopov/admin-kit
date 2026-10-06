@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { AdminThemeLayer } from "./AdminThemeContext";
 
 export interface AdminDialogProps {
   open: boolean;
@@ -133,5 +134,7 @@ export function AdminDialog({
     </div>
   );
 
-  return mounted ? createPortal(surface, document.body) : surface;
+  return mounted
+    ? createPortal(<AdminThemeLayer>{surface}</AdminThemeLayer>, document.body)
+    : surface;
 }

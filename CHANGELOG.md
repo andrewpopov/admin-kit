@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.39.0
+
+### Added
+
+- AdminApp renders a localisable Skip to content link (labels.skipToContent) that focuses a stable content region, and AdminPanelStateView loading accepts skeletonRows for placeholder bars.
+  The skip link is hidden until keyboard focus, then shows with the kit focus ring; it targets a `tabindex="-1"` content div rather than a second `main`. `skeletonRows` (1 to 12) renders aria-hidden bars beside a visually hidden polite label and animates only under `prefers-reduced-motion: no-preference`; the default loading output is unchanged.
+
+### Fixed
+
+- Text inputs, selects, textareas and the switch track use a new internal --admin-kit-control-border token that clears WCAG 1.4.11 3:1 against both surfaces in light and dark; OperationalJobsPanel stacks into labelled cards on phones instead of scrolling sideways.
+  `--admin-kit-control-border` is internal and locked like the other non-brand tokens (`#7c8798` light, `#6f80a0` dark); `--admin-kit-border-strong` is unchanged. OperationalJobsPanel gains the existing stacked-table modifier and mobile cell labels.
+- Dialogs taller than the viewport now scroll inside themselves with a pinned header and a 44px Close button, and portaled dialogs opened inside AdminTheme inherit host theme overrides (a host rule on .admin-kit.admin-kit--theme-core now rebrands them).
+  AdminDialog and AdminConfirmationDialog cap at the viewport height and scroll internally; the header sticks so Close stays reachable. Inside an AdminTheme, the portaled surface is wrapped in an `admin-kit admin-kit--theme-<name> admin-kit--layer` element (display: contents) so host token overrides reach it; outside AdminTheme nothing changes.
+- Polish found by a downstream design audit: table header styling now applies only to column headers (row headers read as body text), AdminMobileCellLabel is aria-hidden so the thead is not announced twice, a disabled primary button keeps at least 4.5:1 text contrast instead of dimming with opacity, and the phone app header is compact so content starts higher.
+
 ## 0.38.0
 
 ### Changed

@@ -2,6 +2,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAdminLabels } from "./AdminLabels";
+import { AdminThemeLayer } from "./AdminThemeContext";
 
 export interface AdminConfirmationDialogProps {
   open: boolean;
@@ -150,5 +151,5 @@ export function AdminConfirmationDialog({
   // actually open the component has long since mounted and portaled.
   if (!mounted) return surface;
 
-  return createPortal(surface, document.body);
+  return createPortal(<AdminThemeLayer>{surface}</AdminThemeLayer>, document.body);
 }

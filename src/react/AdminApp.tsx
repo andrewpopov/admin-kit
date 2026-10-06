@@ -11,6 +11,7 @@ import {
   type AdminPortalProps,
 } from "./AdminPortal";
 import { AdminFrameHeadingProvider } from "./AdminPanelHeader";
+import { AdminContentTargetProvider, AdminSkipLink } from "./AdminSkipLink";
 import { AdminTheme, type AdminThemeName } from "./AdminTheme";
 
 export interface AdminAppReactSection extends AdminAppSectionDefinition {
@@ -49,22 +50,25 @@ export function AdminApp({ frame, theme, labels, className, ...portalProps }: Ad
   return (
     <AdminLabelsProvider labels={labels}>
       <AdminTheme as="section" className="admin-kit__app" theme={theme}>
-        {frame ? (
-          <header className="admin-kit__app-header">
-            <div>
-              <h1>{frame.title}</h1>
-              {frame.description ? <p>{frame.description}</p> : null}
-            </div>
-            {frame.actions ? <div className="admin-kit__app-actions">{frame.actions}</div> : null}
-          </header>
-        ) : null}
-        <AdminFrameHeadingProvider value={Boolean(frame)}>
-          <AdminPortal
-            {...portalProps}
-            className={["admin-kit__app-portal", className].filter(Boolean).join(" ")}
-            groups={portalProps.groups}
-          />
-        </AdminFrameHeadingProvider>
+        <AdminContentTargetProvider>
+          <AdminSkipLink />
+          {frame ? (
+            <header className="admin-kit__app-header">
+              <div>
+                <h1>{frame.title}</h1>
+                {frame.description ? <p>{frame.description}</p> : null}
+              </div>
+              {frame.actions ? <div className="admin-kit__app-actions">{frame.actions}</div> : null}
+            </header>
+          ) : null}
+          <AdminFrameHeadingProvider value={Boolean(frame)}>
+            <AdminPortal
+              {...portalProps}
+              className={["admin-kit__app-portal", className].filter(Boolean).join(" ")}
+              groups={portalProps.groups}
+            />
+          </AdminFrameHeadingProvider>
+        </AdminContentTargetProvider>
       </AdminTheme>
     </AdminLabelsProvider>
   );

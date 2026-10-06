@@ -5,6 +5,7 @@ exports.AdminDialog = AdminDialog;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const react_dom_1 = require("react-dom");
+const AdminThemeContext_1 = require("./AdminThemeContext");
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 /**
  * Accessible form-dialog shell for host-owned create and edit workflows.
@@ -66,5 +67,7 @@ function AdminDialog({ open, title, description, children, actions, onClose, clo
             if (!closeDisabled && event.target === event.currentTarget)
                 onClose();
         }, children: (0, jsx_runtime_1.jsxs)("section", { ref: dialogRef, "aria-describedby": description ? descriptionId : undefined, "aria-labelledby": titleId, "aria-modal": "true", className: ["admin-kit__dialog", className].filter(Boolean).join(" "), role: "dialog", tabIndex: -1, children: [(0, jsx_runtime_1.jsxs)("header", { className: "admin-kit__dialog-header", children: [(0, jsx_runtime_1.jsx)("h2", { id: titleId, children: title }), (0, jsx_runtime_1.jsx)("button", { "aria-label": "Close dialog", className: "admin-kit__dialog-close", disabled: closeDisabled, onClick: onClose, type: "button", children: "\u00D7" })] }), description ? ((0, jsx_runtime_1.jsx)("p", { className: "admin-kit__dialog-description", id: descriptionId, children: description })) : null, (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__dialog-body", children: children }), actions ? (0, jsx_runtime_1.jsx)("footer", { className: "admin-kit__dialog-actions", children: actions }) : null] }) }));
-    return mounted ? (0, react_dom_1.createPortal)(surface, document.body) : surface;
+    return mounted
+        ? (0, react_dom_1.createPortal)((0, jsx_runtime_1.jsx)(AdminThemeContext_1.AdminThemeLayer, { children: surface }), document.body)
+        : surface;
 }

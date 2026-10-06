@@ -6,6 +6,7 @@ const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const react_dom_1 = require("react-dom");
 const AdminLabels_1 = require("./AdminLabels");
+const AdminThemeContext_1 = require("./AdminThemeContext");
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 /**
  * Host applications supply the impact language and server-side semantics;
@@ -92,5 +93,5 @@ function AdminConfirmationDialog({ open, title, description, confirmLabel, cance
     // actually open the component has long since mounted and portaled.
     if (!mounted)
         return surface;
-    return (0, react_dom_1.createPortal)(surface, document.body);
+    return (0, react_dom_1.createPortal)((0, jsx_runtime_1.jsx)(AdminThemeContext_1.AdminThemeLayer, { children: surface }), document.body);
 }

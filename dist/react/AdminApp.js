@@ -6,6 +6,7 @@ const core_1 = require("../core");
 const AdminLabels_1 = require("./AdminLabels");
 const AdminPortal_1 = require("./AdminPortal");
 const AdminPanelHeader_1 = require("./AdminPanelHeader");
+const AdminSkipLink_1 = require("./AdminSkipLink");
 const AdminTheme_1 = require("./AdminTheme");
 /**
  * The canonical Admin Kit application shell. Use this for every host
@@ -14,5 +15,5 @@ const AdminTheme_1 = require("./AdminTheme");
  */
 function AdminApp({ frame, theme, labels, className, ...portalProps }) {
     (0, core_1.defineAdminApp)({ groups: portalProps.groups });
-    return ((0, jsx_runtime_1.jsx)(AdminLabels_1.AdminLabelsProvider, { labels: labels, children: (0, jsx_runtime_1.jsxs)(AdminTheme_1.AdminTheme, { as: "section", className: "admin-kit__app", theme: theme, children: [frame ? ((0, jsx_runtime_1.jsxs)("header", { className: "admin-kit__app-header", children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("h1", { children: frame.title }), frame.description ? (0, jsx_runtime_1.jsx)("p", { children: frame.description }) : null] }), frame.actions ? (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__app-actions", children: frame.actions }) : null] })) : null, (0, jsx_runtime_1.jsx)(AdminPanelHeader_1.AdminFrameHeadingProvider, { value: Boolean(frame), children: (0, jsx_runtime_1.jsx)(AdminPortal_1.AdminPortal, { ...portalProps, className: ["admin-kit__app-portal", className].filter(Boolean).join(" "), groups: portalProps.groups }) })] }) }));
+    return ((0, jsx_runtime_1.jsx)(AdminLabels_1.AdminLabelsProvider, { labels: labels, children: (0, jsx_runtime_1.jsx)(AdminTheme_1.AdminTheme, { as: "section", className: "admin-kit__app", theme: theme, children: (0, jsx_runtime_1.jsxs)(AdminSkipLink_1.AdminContentTargetProvider, { children: [(0, jsx_runtime_1.jsx)(AdminSkipLink_1.AdminSkipLink, {}), frame ? ((0, jsx_runtime_1.jsxs)("header", { className: "admin-kit__app-header", children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("h1", { children: frame.title }), frame.description ? (0, jsx_runtime_1.jsx)("p", { children: frame.description }) : null] }), frame.actions ? (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__app-actions", children: frame.actions }) : null] })) : null, (0, jsx_runtime_1.jsx)(AdminPanelHeader_1.AdminFrameHeadingProvider, { value: Boolean(frame), children: (0, jsx_runtime_1.jsx)(AdminPortal_1.AdminPortal, { ...portalProps, className: ["admin-kit__app-portal", className].filter(Boolean).join(" "), groups: portalProps.groups }) })] }) }) }));
 }

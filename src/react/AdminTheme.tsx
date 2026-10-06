@@ -1,4 +1,5 @@
 import type { ElementType, ReactNode } from "react";
+import { AdminThemeProvider } from "./AdminThemeContext";
 
 export type AdminThemeName = "core";
 
@@ -23,7 +24,7 @@ export function AdminTheme({ theme = "core", as = "div", className, children }: 
       className={["admin-kit", `admin-kit--theme-${theme}`, className].filter(Boolean).join(" ")}
       data-admin-kit-theme={theme}
     >
-      {children}
+      <AdminThemeProvider theme={theme}>{children}</AdminThemeProvider>
     </Theme>
   );
 }
