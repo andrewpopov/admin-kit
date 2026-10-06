@@ -13,7 +13,7 @@ import type {
   AdminSectionGroupDefinition,
   AdminSectionId,
 } from "../core/contracts";
-import { useAdminContentTargetId } from "./AdminSkipLink";
+import { AdminContentTargetReset, useAdminContentTargetId } from "./AdminSkipLink";
 import { AdminThemeProvider } from "./AdminThemeContext";
 
 export interface AdminPortalReactSection extends AdminPortalSectionDefinition {
@@ -123,100 +123,104 @@ export function AdminPortal({
         id={contentId}
         tabIndex={-1}
       >
-        {sections.length === 0
-          ? emptyState
-          : (inactiveSectionState?.(activeSection) ??
-            "This administration section is unavailable.")}
+        <AdminContentTargetReset>
+          {sections.length === 0
+            ? emptyState
+            : (inactiveSectionState?.(activeSection) ??
+              "This administration section is unavailable.")}
+        </AdminContentTargetReset>
       </section>
     );
   }
 
   return (
-    <AdminThemeProvider theme="core">
-      <section
-        className={["admin-kit", "admin-kit--theme-core", "admin-kit__portal", className]
-          .filter(Boolean)
-          .join(" ")}
-        data-admin-kit-theme="core"
-      >
-        <button
-          aria-controls={mobileNavigationId}
-          aria-expanded={mobileNavigationOpen}
-          className="admin-kit__app-shell-mobile-toggle"
-          onClick={() => setMobileNavigationOpen((open) => !open)}
-          onKeyDown={closeOnEscape}
-          ref={toggleRef}
-          type="button"
+    <AdminContentTargetReset>
+      <AdminThemeProvider theme="core">
+        <section
+          className={["admin-kit", "admin-kit--theme-core", "admin-kit__portal", className]
+            .filter(Boolean)
+            .join(" ")}
+          data-admin-kit-theme="core"
         >
-          {mobileNavigationLabel}
-        </button>
-        <nav
-          aria-label={ariaLabel}
-          className="admin-kit__portal-navigation"
-          data-open={mobileNavigationOpen ? "" : undefined}
-          id={mobileNavigationId}
-          onClick={closeOnNavigate}
-          onKeyDown={closeOnEscape}
-        >
-          {visibleGroups.map((group) => (
-            <section className="admin-kit__portal-group" key={group.id}>
-              <header className="admin-kit__portal-group-header">
-                <p className="admin-kit__portal-group-label">{group.label}</p>
-                {group.description ? <p>{group.description}</p> : null}
-              </header>
-              <ul className="admin-kit__portal-list">
-                {group.sections.map((section) => {
-                  const isActive = section.id === active.id;
-                  const onClick: MouseEventHandler<HTMLElement> = (event) => {
-                    if (section.disabled) {
-                      event.preventDefault();
-                      return;
-                    }
-                    onSectionChange?.(section.id);
-                  };
-                  const navigationProps: AdminPortalNavigationItemProps = {
-                    section,
-                    active: isActive,
-                    className: "admin-kit__portal-link",
-                    ariaCurrent: isActive ? "page" : undefined,
-                    ariaDisabled: section.disabled ? true : undefined,
-                    tabIndex: section.disabled ? -1 : undefined,
-                    onClick,
-                  };
+          <button
+            aria-controls={mobileNavigationId}
+            aria-expanded={mobileNavigationOpen}
+            className="admin-kit__app-shell-mobile-toggle"
+            onClick={() => setMobileNavigationOpen((open) => !open)}
+            onKeyDown={closeOnEscape}
+            ref={toggleRef}
+            type="button"
+          >
+            {mobileNavigationLabel}
+          </button>
+          <nav
+            aria-label={ariaLabel}
+            className="admin-kit__portal-navigation"
+            data-open={mobileNavigationOpen ? "" : undefined}
+            id={mobileNavigationId}
+            onClick={closeOnNavigate}
+            onKeyDown={closeOnEscape}
+          >
+            {visibleGroups.map((group) => (
+              <section className="admin-kit__portal-group" key={group.id}>
+                <header className="admin-kit__portal-group-header">
+                  <p className="admin-kit__portal-group-label">{group.label}</p>
+                  {group.description ? <p>{group.description}</p> : null}
+                </header>
+                <ul className="admin-kit__portal-list">
+                  {group.sections.map((section) => {
+                    const isActive = section.id === active.id;
+                    const onClick: MouseEventHandler<HTMLElement> = (event) => {
+                      if (section.disabled) {
+                        event.preventDefault();
+                        return;
+                      }
+                      onSectionChange?.(section.id);
+                    };
+                    const navigationProps: AdminPortalNavigationItemProps = {
+                      section,
+                      active: isActive,
+                      className: "admin-kit__portal-link",
+                      ariaCurrent: isActive ? "page" : undefined,
+                      ariaDisabled: section.disabled ? true : undefined,
+                      tabIndex: section.disabled ? -1 : undefined,
+                      onClick,
+                    };
 
-                  return (
-                    <li key={section.id}>
-                      {renderNavigationItem ? (
-                        renderNavigationItem(navigationProps)
-                      ) : (
-                        <button
-                          aria-current={navigationProps.ariaCurrent}
-                          className={navigationProps.className}
-                          disabled={section.disabled}
-                          onClick={onClick}
-                          type="button"
-                        >
-                          <span>{section.label}</span>
-                          {section.description ? <small>{section.description}</small> : null}
-                        </button>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          ))}
-        </nav>
+                    return (
+                      <li key={section.id}>
+                        {renderNavigationItem ? (
+                          renderNavigationItem(navigationProps)
+                        ) : (
+                          <button
+                            aria-current={navigationProps.ariaCurrent}
+                            className={navigationProps.className}
+                            disabled={section.disabled}
+                            onClick={onClick}
+                            type="button"
+                          >
+                            <span>{section.label}</span>
+                            {section.description ? <small>{section.description}</small> : null}
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ))}
+          </nav>
 
-        <div
-          className="admin-kit__portal-content"
-          data-admin-section={active.id}
-          id={contentId}
-          tabIndex={-1}
-        >
-          {active.render()}
-        </div>
-      </section>
-    </AdminThemeProvider>
+          <div
+            className="admin-kit__portal-content"
+            data-admin-section={active.id}
+            id={contentId}
+            tabIndex={-1}
+          >
+            {active.render()}
+          </div>
+        </section>
+      </AdminThemeProvider>
+    </AdminContentTargetReset>
   );
 }

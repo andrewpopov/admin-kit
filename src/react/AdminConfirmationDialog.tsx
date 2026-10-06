@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAdminLabels } from "./AdminLabels";
 import { AdminThemeLayer } from "./AdminThemeContext";
+import { useModalKeyClaim } from "./useModalKeyClaim";
 
 export interface AdminConfirmationDialogProps {
   open: boolean;
@@ -48,6 +49,7 @@ export function AdminConfirmationDialog({
   const titleId = useId();
   const descriptionId = useId();
   const [mounted, setMounted] = useState(false);
+  const claimKey = useModalKeyClaim(open);
 
   useEffect(() => setMounted(true), []);
 
@@ -72,6 +74,7 @@ export function AdminConfirmationDialog({
     if (!open) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.key !== "Escape" && event.key !== "Tab") || !claimKey(event)) return;
       if (event.key === "Escape") {
         // Escape must not bypass `pending`: it dismisses the dialog just
         // like Cancel does, so it must be equally disabled in flight.
@@ -111,7 +114,7 @@ export function AdminConfirmationDialog({
 
     document.addEventListener("keydown", handleKeyDown, true);
     return () => document.removeEventListener("keydown", handleKeyDown, true);
-  }, [open, onCancel, pending]);
+  }, [open, onCancel, pending, claimKey]);
 
   if (!open) return null;
 
@@ -127,7 +130,9 @@ export function AdminConfirmationDialog({
         tabIndex={-1}
       >
         <h2 id={titleId}>{title}</h2>
-        <p id={descriptionId}>{description}</p>
+        <div className="admin-kit__dialog-body admin-kit__dialog-body--message">
+          <p id={descriptionId}>{description}</p>
+        </div>
         <div className="admin-kit__dialog-actions">
           <button ref={cancelRef} type="button" disabled={pending} onClick={onCancel}>
             {cancelLabel ?? labels.cancel}

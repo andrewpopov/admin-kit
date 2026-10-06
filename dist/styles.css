@@ -159,6 +159,29 @@
     --admin-kit-warning-soft: var(--admin-kit-dark-warning-soft);
     --admin-kit-shadow: var(--admin-kit-dark-shadow);
   }
+  /* Portaled dialogs and nested AdminTheme wrappers carry .admin-kit--theme-core, which re-declares the light tokens on the element itself; like `.dark .admin-kit--theme-core` above, this descendant rule keeps them dark under an auto host. */
+  [data-admin-kit-theme="auto"] .admin-kit--theme-core {
+    --admin-kit-surface: var(--admin-kit-dark-surface);
+    --admin-kit-surface-subtle: var(--admin-kit-dark-surface-subtle);
+    --admin-kit-border: var(--admin-kit-dark-border);
+    --admin-kit-border-strong: var(--admin-kit-dark-border-strong);
+    --admin-kit-control-border: var(--admin-kit-dark-control-border);
+    --admin-kit-text: var(--admin-kit-dark-text);
+    --admin-kit-muted: var(--admin-kit-dark-muted);
+    --admin-kit-accent: var(--admin-kit-dark-accent);
+    --admin-kit-accent-strong: var(--admin-kit-dark-accent-strong);
+    --admin-kit-accent-soft: var(--admin-kit-dark-accent-soft);
+    --admin-kit-on-accent: var(--admin-kit-dark-on-accent);
+    --admin-kit-danger: var(--admin-kit-dark-danger);
+    --admin-kit-danger-strong: var(--admin-kit-dark-danger-strong);
+    --admin-kit-danger-soft: var(--admin-kit-dark-danger-soft);
+    --admin-kit-on-danger: var(--admin-kit-dark-on-danger);
+    --admin-kit-success: var(--admin-kit-dark-success);
+    --admin-kit-success-soft: var(--admin-kit-dark-success-soft);
+    --admin-kit-warning: var(--admin-kit-dark-warning);
+    --admin-kit-warning-soft: var(--admin-kit-dark-warning-soft);
+    --admin-kit-shadow: var(--admin-kit-dark-shadow);
+  }
 }
 
 .admin-kit,
@@ -469,18 +492,21 @@
 .admin-kit__dialog-backdrop { align-items: center; background: rgb(8 15 30 / 58%); display: flex; inset: 0; justify-content: center; padding: 1rem; position: fixed; z-index: 1000; }
 /* The backdrop is a fixed, centred flex box, so a dialog taller than the
    viewport would overflow both ends and never scroll. Cap the dialog at the
-   viewport minus the backdrop padding and let it scroll itself; the header
-   sticks so Close stays reachable. 100vh is the fallback for browsers without
-   dynamic viewport units. */
-.admin-kit__dialog { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: calc(var(--admin-kit-radius) + 0.125rem); box-shadow: 0 24px 60px rgb(0 0 0 / 30%); box-sizing: border-box; color: var(--admin-kit-text); max-block-size: calc(100vh - 2rem); max-block-size: calc(100dvh - 2rem); max-width: 34rem; overflow-y: auto; overscroll-behavior: contain; padding: 1.5rem; width: 100%; }
+   viewport minus the backdrop padding and make it a flex column in which only
+   the body scrolls: the header (Close) and actions stay in place, and nothing
+   is stacked over a scrolled field, so a focused control is never obscured
+   (WCAG 2.4.11). 100vh is the fallback for browsers without dynamic viewport
+   units. */
+.admin-kit__dialog { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: calc(var(--admin-kit-radius) + 0.125rem); box-shadow: 0 24px 60px rgb(0 0 0 / 30%); box-sizing: border-box; color: var(--admin-kit-text); display: flex; flex-direction: column; max-block-size: calc(100vh - 2rem); max-block-size: calc(100dvh - 2rem); max-width: 34rem; overflow: hidden; padding: 1.5rem; width: 100%; }
 .admin-kit__dialog h2 { font-size: 1.25rem; letter-spacing: -0.015em; margin: 0; }
-/* Negative margins pull the sticky header over the dialog padding so scrolled content slides under a surface-coloured bar; the bottom margin cancels the bottom padding so resting layout is unchanged. */
-.admin-kit__dialog-header { align-items: start; background: var(--admin-kit-surface); display: flex; gap: 1rem; inset-block-start: 0; justify-content: space-between; margin: -1.5rem -1.5rem -0.5rem; padding: 1.5rem 1.5rem 0.5rem; position: sticky; z-index: 1; }
+.admin-kit__dialog-header { align-items: start; display: flex; flex: 0 0 auto; gap: 1rem; justify-content: space-between; }
 .admin-kit__dialog-close { align-items: center; background: transparent; border: 0; border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-muted); cursor: pointer; display: inline-flex; flex: 0 0 auto; font-size: 1.5rem; justify-content: center; line-height: 1; min-block-size: 2.75rem; min-inline-size: 2.75rem; padding: 0; }
 .admin-kit__dialog-close:hover:not(:disabled) { background: var(--admin-kit-surface-subtle); color: var(--admin-kit-text); }
-.admin-kit__dialog-description { color: var(--admin-kit-muted); margin: 0.75rem 0 0; }
-.admin-kit__dialog-body { margin-top: 1.25rem; }
-.admin-kit__dialog-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: flex-end; margin-top: 1.75rem; }
+.admin-kit__dialog-description { color: var(--admin-kit-muted); flex: 0 0 auto; margin: 0.75rem 0 0; }
+/* The 0.25rem padding (pulled back out by the negative inline margin and a smaller top margin, so spacing is unchanged) keeps a focus ring at the body edge from being clipped by its own scrollport. */
+.admin-kit__dialog-body { flex: 1 1 auto; margin: 1rem -0.25rem 0; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0.25rem; }
+.admin-kit__dialog-body--message > p { margin: 0; }
+.admin-kit__dialog-actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; gap: 0.75rem; justify-content: flex-end; margin-top: 1.75rem; }
 /* Portaled dialogs sit outside the host's themed wrapper, so they re-enter the theme through this element. It carries the theme classes (tokens, host overrides) but must not gain a box or change inherited type: the dialog already renders against the document's own font and color. */
 .admin-kit--layer { color: inherit; display: contents; font: inherit; }
 .admin-kit__button { appearance: none; background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); cursor: pointer; font: inherit; min-block-size: 2.75rem; padding: 0.5rem 0.75rem; }

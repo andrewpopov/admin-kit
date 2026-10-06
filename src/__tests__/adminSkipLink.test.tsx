@@ -75,4 +75,72 @@ describe("AdminApp skip link", () => {
     expect(region.id).not.toBe("");
     expect(region.getAttribute("tabindex")).toBe("-1");
   });
+  it("keeps content ids unique when a portal is nested in a section or the frame actions", () => {
+    const inner = (id: string, label: string) =>
+      [
+        {
+          id: `${id}-group`,
+          label,
+          sections: [
+            {
+              id,
+              label,
+              capability: "custom:nested",
+              render: () => <p>{label} content</p>,
+            },
+          ],
+        },
+      ] as const;
+    const { container } = render(
+      <AdminApp
+        frame={{
+          title: "Admin",
+          actions: (
+            <AdminPortal
+              activeSection="a"
+              groups={inner("a", "In actions")}
+              onSectionChange={() => undefined}
+            />
+          ),
+        }}
+        activeSection="users"
+        groups={[
+          {
+            id: "core",
+            label: "Core",
+            sections: [
+              {
+                id: "users",
+                label: "Users",
+                capability: "users",
+                render: () => (
+                  <AdminPortal
+                    activeSection="b"
+                    groups={inner("b", "In section")}
+                    onSectionChange={() => undefined}
+                  />
+                ),
+              },
+            ],
+          },
+        ]}
+        onSectionChange={() => undefined}
+      />,
+    );
+    const regions = Array.from(
+      container.querySelectorAll<HTMLElement>(".admin-kit__portal-content"),
+    );
+    expect(regions).toHaveLength(3);
+    const ids = regions.map((region) => region.id);
+    expect(new Set(ids).size).toBe(3);
+    for (const id of ids) expect(container.querySelectorAll(`[id="${id}"]`)).toHaveLength(1);
+
+    const outer = container.querySelector<HTMLElement>(
+      ".admin-kit__app-portal > .admin-kit__portal-content",
+    )!;
+    const link = screen.getByRole("link", { name: "Skip to content" });
+    expect(link.getAttribute("href")).toBe(`#${outer.id}`);
+    fireEvent.click(link);
+    expect(document.activeElement).toBe(outer);
+  });
 });

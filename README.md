@@ -249,9 +249,12 @@ app-level wrapper or target the supplied `className`. (During server rendering
 the dialog falls back to inline markup, so the kit remains server-renderable.)
 
 A dialog is capped at the viewport height (`100dvh` minus the backdrop padding)
-and scrolls inside itself, with the title and Close button pinned to the top,
-so a tall form on a phone never overflows off screen. The Close button is a
-44px target.
+and only its body scrolls: the title, Close button and actions stay in place,
+so a tall form on a phone never overflows off screen and a keyboard-focused
+field is never hidden behind a bar (WCAG 2.4.11). `AdminConfirmationDialog`
+puts its description in that scrolling body. The Close button is a 44px target.
+Under `data-admin-kit-theme="auto"` on `body` with a dark OS, portaled dialogs
+follow the dark palette like the rest of the page.
 
 For a host-owned create or edit flow, use `AdminDialog` with `AdminStack`,
 `AdminField`, and `AdminActionButton`; keep only the API call and business rules

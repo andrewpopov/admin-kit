@@ -285,18 +285,37 @@ describe("Admin Kit styles", () => {
     });
   });
 
-  it("caps a dialog at the viewport so tall content scrolls inside it and keeps Close reachable", () => {
+  it("caps a dialog at the viewport and scrolls only its body, never stacking a bar over a focused field", () => {
     const dialog = styles.match(/\.admin-kit__dialog \{([^}]*)\}/)?.[1] ?? "";
     expect(dialog).toContain("max-block-size: calc(100vh - 2rem);");
     expect(dialog.indexOf("calc(100vh - 2rem)")).toBeLessThan(
       dialog.indexOf("calc(100dvh - 2rem)"),
     );
-    expect(dialog).toContain("overflow-y: auto;");
-    expect(dialog).toContain("overscroll-behavior: contain;");
+    expect(dialog).toContain("display: flex;");
+    expect(dialog).toContain("flex-direction: column;");
+    expect(dialog).toContain("overflow: hidden;");
     expect(dialog).toContain("box-sizing: border-box;");
+    const body = styles.match(/\.admin-kit__dialog-body \{([^}]*)\}/)?.[1] ?? "";
+    expect(body).toContain("overflow-y: auto;");
+    expect(body).toContain("min-block-size: 0;");
+    expect(body).toContain("overscroll-behavior: contain;");
     const header = styles.match(/\.admin-kit__dialog-header \{([^}]*)\}/)?.[1] ?? "";
-    expect(header).toContain("position: sticky;");
-    expect(header).toContain("background: var(--admin-kit-surface);");
+    expect(header).not.toContain("sticky");
+    expect(header).not.toMatch(/margin:\s*-/);
+  });
+
+  it("re-maps every dark token on a core boundary under an auto host, as it does under .dark", () => {
+    const declarations = (block: string) =>
+      [...block.matchAll(/(--admin-kit-[a-z-]+):\s*(var\(--admin-kit-dark-[a-z-]+\));/g)].map(
+        (match) => `${match[1]}: ${match[2]}`,
+      );
+    const darkCore = styles.match(/\.dark \.admin-kit--theme-core \{([^}]*)\}/)?.[1] ?? "";
+    const autoCore =
+      styles.match(/\[data-admin-kit-theme="auto"\] \.admin-kit--theme-core \{([^}]*)\}/)?.[1] ??
+      "";
+    expect(declarations(darkCore).length).toBeGreaterThan(15);
+    expect(declarations(autoCore).sort()).toEqual(declarations(darkCore).sort());
+    expect(autoCore).toContain("--admin-kit-control-border: var(--admin-kit-dark-control-border);");
   });
 
   it("gives the dialog close button a 44px target", () => {

@@ -3,6 +3,15 @@ import { type ReactNode } from "react";
 export declare function AdminContentTargetProvider({ children }: {
     children: ReactNode;
 }): import("react").JSX.Element;
+/**
+ * Hides the app's content target from descendants. A skip link has exactly one
+ * target, so the portal that claims it (and the frame header) re-provide
+ * `undefined`; any AdminPortal nested inside then mints its own id instead of
+ * duplicating the outer one.
+ */
+export declare function AdminContentTargetReset({ children }: {
+    children: ReactNode;
+}): import("react").JSX.Element;
 export declare function useAdminContentTargetId(): string | undefined;
 /**
  * First focusable element of an app: hidden until keyboard focus, then moves

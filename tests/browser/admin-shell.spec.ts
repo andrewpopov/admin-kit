@@ -191,33 +191,70 @@ const confirmationFixture = pathToFileURL(
   resolve("tests/browser/admin-confirmation-dialog.html"),
 ).href;
 
-test("keeps a dialog taller than the viewport inside it, scrollable, with Close reachable", async ({
+test("keeps a dialog taller than the viewport inside it, with only the body scrolling", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(dialogFixture);
   const dialog = page.getByRole("dialog", { name: "Invite teammates" });
+  const body = dialog.locator(".admin-kit__dialog-body");
   const close = page.getByRole("button", { name: "Close dialog" });
+  const actions = dialog.locator(".admin-kit__dialog-actions");
   expect(
-    await dialog.evaluate((node) => node.scrollHeight > node.clientHeight),
-    "the fixture dialog must be taller than the viewport for this test to mean anything",
+    await body.evaluate((node) => node.scrollHeight > node.clientHeight),
+    "the fixture body must overflow for this test to mean anything",
   ).toBe(true);
   const box = await dialog.boundingBox();
   expect(box?.y).toBeGreaterThanOrEqual(0);
   expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(844);
-  await expect(close).toBeVisible();
+  expect(await dialog.evaluate((node) => node.scrollHeight <= node.clientHeight)).toBe(true);
 
-  const last = dialog.locator(".admin-kit__dialog-actions button").last();
-  await last.scrollIntoViewIfNeeded();
-  const lastBox = await last.boundingBox();
-  expect(lastBox?.y).toBeGreaterThanOrEqual(0);
-  expect((lastBox?.y ?? 0) + (lastBox?.height ?? 0)).toBeLessThanOrEqual(844);
+  await body.evaluate((node) => node.scrollTo(0, node.scrollHeight));
+  for (const control of [close, actions.locator("button").last()]) {
+    await expect(control).toBeVisible();
+    const controlBox = await control.boundingBox();
+    expect(controlBox?.y).toBeGreaterThanOrEqual(0);
+    expect((controlBox?.y ?? 0) + (controlBox?.height ?? 0)).toBeLessThanOrEqual(844);
+  }
+});
 
-  // Scrolled to the bottom, the header (and Close) is still pinned inside the viewport.
-  const closeBox = await close.boundingBox();
-  expect(closeBox?.y).toBeGreaterThanOrEqual(0);
-  expect((closeBox?.y ?? 0) + (closeBox?.height ?? 0)).toBeLessThanOrEqual(844);
-  expect(await dialog.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+test("never leaves a keyboard-focused dialog field behind the header or footer", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(dialogFixture);
+  const fieldCount = await page.locator(".admin-kit__dialog-body input").count();
+  expect(fieldCount).toBeGreaterThan(10);
+  const assertFocusedFieldIsClear = async () => {
+    const rects = await page.evaluate(() => {
+      const field = document.activeElement as HTMLElement;
+      const rect = (selector: string) =>
+        document.querySelector(selector)!.getBoundingClientRect();
+      const { top, bottom } = field.getBoundingClientRect();
+      return {
+        tag: field.tagName,
+        top,
+        bottom,
+        bodyTop: rect(".admin-kit__dialog-body").top,
+        bodyBottom: rect(".admin-kit__dialog-body").bottom,
+        headerBottom: rect(".admin-kit__dialog-header").bottom,
+        actionsTop: rect(".admin-kit__dialog-actions").top,
+      };
+    });
+    expect(rects.tag).toBe("INPUT");
+    expect(rects.top).toBeGreaterThanOrEqual(Math.max(rects.bodyTop, rects.headerBottom));
+    expect(rects.bottom).toBeLessThanOrEqual(Math.min(rects.bodyBottom, rects.actionsTop));
+  };
+
+  await page.keyboard.press("Tab"); // Close button
+  for (let index = 0; index < fieldCount; index += 1) {
+    await page.keyboard.press("Tab");
+    await assertFocusedFieldIsClear();
+  }
+  for (let index = 0; index < fieldCount - 1; index += 1) {
+    await page.keyboard.press("Shift+Tab");
+    await assertFocusedFieldIsClear();
+  }
 });
 
 test("gives the dialog Close button a 44px target", async ({ page }) => {
@@ -337,3 +374,38 @@ test("stacks the OperationalJobsPanel table into labelled cards on phones", asyn
   await page.setViewportSize({ width: 1280, height: 800 });
   await expect(wrap.locator(".admin-kit__mobile-cell-label").first()).toBeHidden();
 });
+
+for (const [name, url] of [
+  ["AdminDialog", dialogFixture],
+  ["AdminConfirmationDialog", confirmationFixture],
+] as const) {
+  test(`${name} follows light, .dark and auto + dark colour schemes`, async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const surface = async () =>
+      page
+        .locator(".admin-kit__dialog")
+        .evaluate((node) => getComputedStyle(node).backgroundColor);
+    const light = "rgb(255, 255, 255)";
+    const dark = "rgb(23, 32, 51)";
+
+    await page.emulateMedia({ colorScheme: "light" });
+    await page.goto(url);
+    expect(await surface(), "stock light").toBe(light);
+
+    await page.evaluate(() => document.documentElement.classList.add("dark"));
+    expect(await surface(), ".dark on the document").toBe(dark);
+    await page.evaluate(() => document.documentElement.classList.remove("dark"));
+
+    await page.evaluate(() => document.body.setAttribute("data-admin-kit-theme", "auto"));
+    expect(await surface(), "auto host, light OS").toBe(light);
+    await page.emulateMedia({ colorScheme: "dark" });
+    expect(await surface(), "auto host, dark OS").toBe(dark);
+    expect(
+      await page.evaluate(() => getComputedStyle(document.body).getPropertyValue("--admin-kit-dark-surface").trim()),
+    ).toBe("#172033");
+
+    // Without the opt-in, a dark OS alone must not darken the dialog.
+    await page.evaluate(() => document.body.removeAttribute("data-admin-kit-theme"));
+    expect(await surface(), "no auto opt-in, dark OS").toBe(light);
+  });
+}

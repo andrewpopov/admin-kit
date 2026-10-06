@@ -2,6 +2,7 @@
 "use client";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminContentTargetProvider = AdminContentTargetProvider;
+exports.AdminContentTargetReset = AdminContentTargetReset;
 exports.useAdminContentTargetId = useAdminContentTargetId;
 exports.AdminSkipLink = AdminSkipLink;
 const jsx_runtime_1 = require("react/jsx-runtime");
@@ -12,6 +13,15 @@ const AdminContentTargetContext = (0, react_1.createContext)(undefined);
 function AdminContentTargetProvider({ children }) {
     const id = `admin-kit-content-${(0, react_1.useId)().replace(/:/g, "")}`;
     return ((0, jsx_runtime_1.jsx)(AdminContentTargetContext.Provider, { value: id, children: children }));
+}
+/**
+ * Hides the app's content target from descendants. A skip link has exactly one
+ * target, so the portal that claims it (and the frame header) re-provide
+ * `undefined`; any AdminPortal nested inside then mints its own id instead of
+ * duplicating the outer one.
+ */
+function AdminContentTargetReset({ children }) {
+    return ((0, jsx_runtime_1.jsx)(AdminContentTargetContext.Provider, { value: undefined, children: children }));
 }
 function useAdminContentTargetId() {
     return (0, react_1.useContext)(AdminContentTargetContext);

@@ -6,6 +6,7 @@ const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const react_dom_1 = require("react-dom");
 const AdminThemeContext_1 = require("./AdminThemeContext");
+const useModalKeyClaim_1 = require("./useModalKeyClaim");
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 /**
  * Accessible form-dialog shell for host-owned create and edit workflows.
@@ -18,6 +19,7 @@ function AdminDialog({ open, title, description, children, actions, onClose, clo
     const titleId = (0, react_1.useId)();
     const descriptionId = (0, react_1.useId)();
     const [mounted, setMounted] = (0, react_1.useState)(false);
+    const claimKey = (0, useModalKeyClaim_1.useModalKeyClaim)(open);
     (0, react_1.useEffect)(() => setMounted(true), []);
     (0, react_1.useEffect)(() => {
         if (open) {
@@ -35,6 +37,8 @@ function AdminDialog({ open, title, description, children, actions, onClose, clo
         if (!open)
             return;
         const handleKeyDown = (event) => {
+            if ((event.key !== "Escape" && event.key !== "Tab") || !claimKey(event))
+                return;
             if (event.key === "Escape") {
                 if (closeDisabled)
                     return;
@@ -60,7 +64,7 @@ function AdminDialog({ open, title, description, children, actions, onClose, clo
         };
         document.addEventListener("keydown", handleKeyDown, true);
         return () => document.removeEventListener("keydown", handleKeyDown, true);
-    }, [open, onClose, closeDisabled]);
+    }, [open, onClose, closeDisabled, claimKey]);
     if (!open)
         return null;
     const surface = ((0, jsx_runtime_1.jsx)("div", { className: "admin-kit__dialog-backdrop", role: "presentation", onMouseDown: (event) => {

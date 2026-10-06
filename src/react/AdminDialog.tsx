@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AdminThemeLayer } from "./AdminThemeContext";
+import { useModalKeyClaim } from "./useModalKeyClaim";
 
 export interface AdminDialogProps {
   open: boolean;
@@ -40,6 +41,7 @@ export function AdminDialog({
   const titleId = useId();
   const descriptionId = useId();
   const [mounted, setMounted] = useState(false);
+  const claimKey = useModalKeyClaim(open);
 
   useEffect(() => setMounted(true), []);
 
@@ -62,6 +64,7 @@ export function AdminDialog({
     if (!open) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.key !== "Escape" && event.key !== "Tab") || !claimKey(event)) return;
       if (event.key === "Escape") {
         if (closeDisabled) return;
         event.preventDefault();
@@ -90,7 +93,7 @@ export function AdminDialog({
 
     document.addEventListener("keydown", handleKeyDown, true);
     return () => document.removeEventListener("keydown", handleKeyDown, true);
-  }, [open, onClose, closeDisabled]);
+  }, [open, onClose, closeDisabled, claimKey]);
 
   if (!open) return null;
 

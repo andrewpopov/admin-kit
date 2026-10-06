@@ -12,6 +12,20 @@ export function AdminContentTargetProvider({ children }: { children: ReactNode }
   );
 }
 
+/**
+ * Hides the app's content target from descendants. A skip link has exactly one
+ * target, so the portal that claims it (and the frame header) re-provide
+ * `undefined`; any AdminPortal nested inside then mints its own id instead of
+ * duplicating the outer one.
+ */
+export function AdminContentTargetReset({ children }: { children: ReactNode }) {
+  return (
+    <AdminContentTargetContext.Provider value={undefined}>
+      {children}
+    </AdminContentTargetContext.Provider>
+  );
+}
+
 export function useAdminContentTargetId(): string | undefined {
   return useContext(AdminContentTargetContext);
 }

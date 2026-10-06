@@ -11,7 +11,11 @@ import {
   type AdminPortalProps,
 } from "./AdminPortal";
 import { AdminFrameHeadingProvider } from "./AdminPanelHeader";
-import { AdminContentTargetProvider, AdminSkipLink } from "./AdminSkipLink";
+import {
+  AdminContentTargetProvider,
+  AdminContentTargetReset,
+  AdminSkipLink,
+} from "./AdminSkipLink";
 import { AdminTheme, type AdminThemeName } from "./AdminTheme";
 
 export interface AdminAppReactSection extends AdminAppSectionDefinition {
@@ -53,13 +57,17 @@ export function AdminApp({ frame, theme, labels, className, ...portalProps }: Ad
         <AdminContentTargetProvider>
           <AdminSkipLink />
           {frame ? (
-            <header className="admin-kit__app-header">
-              <div>
-                <h1>{frame.title}</h1>
-                {frame.description ? <p>{frame.description}</p> : null}
-              </div>
-              {frame.actions ? <div className="admin-kit__app-actions">{frame.actions}</div> : null}
-            </header>
+            <AdminContentTargetReset>
+              <header className="admin-kit__app-header">
+                <div>
+                  <h1>{frame.title}</h1>
+                  {frame.description ? <p>{frame.description}</p> : null}
+                </div>
+                {frame.actions ? (
+                  <div className="admin-kit__app-actions">{frame.actions}</div>
+                ) : null}
+              </header>
+            </AdminContentTargetReset>
           ) : null}
           <AdminFrameHeadingProvider value={Boolean(frame)}>
             <AdminPortal
