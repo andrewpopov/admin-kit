@@ -104,6 +104,15 @@ import { AdminApp, UsersPanel } from "@andrewpopov/admin-kit/react";
 />;
 ```
 
+`AdminApp` renders a "Skip to content" link as its first focusable element
+(WCAG 2.4.1). It is hidden until it receives keyboard focus, then shows with the
+kit focus ring; activating it moves focus into the content region (a `div` with
+a stable id and `tabindex="-1"`, deliberately not a second `main`, since hosts
+render `AdminWorkspace` as `main`) without changing the URL hash. Localise the
+text with `labels={{ skipToContent: "Aller au contenu" }}`; the default is
+"Skip to content". `AdminAppShell` and a standalone `AdminPortal` do not render
+the link.
+
 `frame` is optional. Include it when the admin surface needs its own visible
 application title, description, or actions. Omit it when the host product
 chrome and grouped admin navigation already establish that context; the shared
@@ -175,11 +184,18 @@ override wins on specificity regardless of load order, and
 ```
 
 Locked (internal) tokens — surfaces (`surface`, `surface-subtle`), borders
-(`border`, `border-strong`), text (`text`, `muted`), and the semantic
+(`border`, `border-strong`, `control-border`), text (`text`, `muted`), and the semantic
 palettes (`danger*`, `success*`, `warning*`), plus their `dark-*`
 counterparts and `dark-text`/`dark-muted` — stay fixed. They carry the admin
 surface's legibility and contrast contract, so `admin-kit-conformance` fails
 any consumer CSS that redeclares them.
+
+`control-border` is the border of text inputs, selects, textareas and the
+switch track. It is a separate token from `border-strong` because WCAG 1.4.11
+needs a form control's boundary to reach 3:1 against the adjacent surface;
+`border-strong` is a decorative divider and stays lighter. The shipped values
+(`#7c8798` light, `#6f80a0` dark) clear 3:1 against both `surface` and
+`surface-subtle`, and a stylesheet test recomputes that from the CSS.
 
 Admin Kit is intentionally opinionated about shared administrative UI. Every
 admin route must import `@andrewpopov/admin-kit/styles.css` and render through
@@ -221,10 +237,24 @@ Package selectors keep their pseudo-classes inside `:where()`, so an equally
 targeted host rule wins without `!important` — and the package itself ships no
 `!important` declarations.
 
-Confirmation dialogs render through a portal on `document.body`, outside the panel
-wrapper, so apply dialog token overrides to an app-level wrapper or target the
-supplied `dialogClassName`. (During server rendering the dialog falls back to
-inline markup, so the kit remains server-renderable.)
+`AdminDialog` and `AdminConfirmationDialog` render through a portal on
+`document.body`. Opened from inside an `AdminTheme` (so `AdminApp`,
+`AdminAppShell` and `AdminPortal` too), the portaled surface is wrapped in an
+element carrying the same `admin-kit admin-kit--theme-core` classes, so the
+host rule from [Theming](#theming) — `.admin-kit.admin-kit--theme-core { --admin-kit-accent: … }` —
+rebrands the dialogs along with the page. The wrapper adds no box and keeps the
+host's font and colour (`display: contents`). Outside any `AdminTheme` nothing
+changes: dialogs use the document-level defaults, so override tokens on an
+app-level wrapper or target the supplied `className`. (During server rendering
+the dialog falls back to inline markup, so the kit remains server-renderable.)
+
+A dialog is capped at the viewport height (`100dvh` minus the backdrop padding)
+and only its body scrolls: the title, Close button and actions stay in place,
+so a tall form on a phone never overflows off screen and a keyboard-focused
+field is never hidden behind a bar (WCAG 2.4.11). `AdminConfirmationDialog`
+puts its description in that scrolling body. The Close button is a 44px target.
+Under `data-admin-kit-theme="auto"` on `body` with a dark OS, portaled dialogs
+follow the dark palette like the rest of the page.
 
 For a host-owned create or edit flow, use `AdminDialog` with `AdminStack`,
 `AdminField`, and `AdminActionButton`; keep only the API call and business rules
@@ -602,6 +632,20 @@ With `headerPresentation="page"`, the title becomes the route `h1`; search and
 refresh share that header band, while severity/outcome/category filters remain
 in the toolbar before the table.
 
+### Loading skeletons
+
+`AdminPanelStateView` renders a plain polite "Loading…" line by default. Pass
+`skeletonRows` on the loading state to show that many placeholder bars instead
+(whole numbers from 1 to 12; `0` or omitted keeps the plain line):
+
+```tsx
+<AdminPanelStateView state={{ kind: "loading", label: "Loading users…", skeletonRows: 5 }} />
+```
+
+The bars are `aria-hidden`; the label stays in the polite live region, visually
+hidden, so screen readers still hear it. The bars pulse only under
+`prefers-reduced-motion: no-preference`.
+
 ### Stacked tables on phones
 
 Wide tables scroll sideways inside `admin-kit__table-wrap`. For a table that
@@ -610,7 +654,7 @@ must be readable on a phone, opt in to the stacked layout: add
 table, and render an `AdminMobileCellLabel` as the first child of every `td`.
 Below the phone breakpoint each row becomes a labelled card; the label is
 hidden everywhere else, and the table stays one semantic table with its
-headers and focus order. `EventsPanel` uses this.
+headers and focus order. `EventsPanel` and `OperationalJobsPanel` use this.
 
 ```tsx
 <div className="admin-kit__table-wrap admin-kit__table-wrap--stack">

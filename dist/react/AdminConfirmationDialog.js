@@ -6,6 +6,8 @@ const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const react_dom_1 = require("react-dom");
 const AdminLabels_1 = require("./AdminLabels");
+const AdminThemeContext_1 = require("./AdminThemeContext");
+const useModalKeyClaim_1 = require("./useModalKeyClaim");
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 /**
  * Host applications supply the impact language and server-side semantics;
@@ -21,6 +23,7 @@ function AdminConfirmationDialog({ open, title, description, confirmLabel, cance
     const titleId = (0, react_1.useId)();
     const descriptionId = (0, react_1.useId)();
     const [mounted, setMounted] = (0, react_1.useState)(false);
+    const claimKey = (0, useModalKeyClaim_1.useModalKeyClaim)(open);
     (0, react_1.useEffect)(() => setMounted(true), []);
     (0, react_1.useEffect)(() => {
         if (open) {
@@ -43,6 +46,8 @@ function AdminConfirmationDialog({ open, title, description, confirmLabel, cance
         if (!open)
             return;
         const handleKeyDown = (event) => {
+            if ((event.key !== "Escape" && event.key !== "Tab") || !claimKey(event))
+                return;
             if (event.key === "Escape") {
                 // Escape must not bypass `pending`: it dismisses the dialog just
                 // like Cancel does, so it must be equally disabled in flight.
@@ -82,15 +87,15 @@ function AdminConfirmationDialog({ open, title, description, confirmLabel, cance
         };
         document.addEventListener("keydown", handleKeyDown, true);
         return () => document.removeEventListener("keydown", handleKeyDown, true);
-    }, [open, onCancel, pending]);
+    }, [open, onCancel, pending, claimKey]);
     if (!open)
         return null;
-    const surface = ((0, jsx_runtime_1.jsx)("div", { className: "admin-kit__dialog-backdrop", role: "presentation", children: (0, jsx_runtime_1.jsxs)("section", { ref: dialogRef, "aria-describedby": descriptionId, "aria-labelledby": titleId, "aria-modal": "true", className: ["admin-kit__dialog", className].filter(Boolean).join(" "), role: "dialog", tabIndex: -1, children: [(0, jsx_runtime_1.jsx)("h2", { id: titleId, children: title }), (0, jsx_runtime_1.jsx)("p", { id: descriptionId, children: description }), (0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__dialog-actions", children: [(0, jsx_runtime_1.jsx)("button", { ref: cancelRef, type: "button", disabled: pending, onClick: onCancel, children: cancelLabel ?? labels.cancel }), (0, jsx_runtime_1.jsx)("button", { className: danger ? "admin-kit__button--danger" : undefined, type: "button", disabled: pending, onClick: onConfirm, children: confirmLabel })] })] }) }));
+    const surface = ((0, jsx_runtime_1.jsx)("div", { className: "admin-kit__dialog-backdrop", role: "presentation", children: (0, jsx_runtime_1.jsxs)("section", { ref: dialogRef, "aria-describedby": descriptionId, "aria-labelledby": titleId, "aria-modal": "true", className: ["admin-kit__dialog", className].filter(Boolean).join(" "), role: "dialog", tabIndex: -1, children: [(0, jsx_runtime_1.jsx)("h2", { id: titleId, children: title }), (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__dialog-body admin-kit__dialog-body--message", children: (0, jsx_runtime_1.jsx)("p", { id: descriptionId, children: description }) }), (0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__dialog-actions", children: [(0, jsx_runtime_1.jsx)("button", { ref: cancelRef, type: "button", disabled: pending, onClick: onCancel, children: cancelLabel ?? labels.cancel }), (0, jsx_runtime_1.jsx)("button", { className: danger ? "admin-kit__button--danger" : undefined, type: "button", disabled: pending, onClick: onConfirm, children: confirmLabel })] })] }) }));
     // The server renderer cannot render portals, and effects never run there, so
     // `mounted` stays false through SSR and the dialog falls back to inline
     // markup. Hosts drive `open` from client state, so by the time a dialog can
     // actually open the component has long since mounted and portaled.
     if (!mounted)
         return surface;
-    return (0, react_dom_1.createPortal)(surface, document.body);
+    return (0, react_dom_1.createPortal)((0, jsx_runtime_1.jsx)(AdminThemeContext_1.AdminThemeLayer, { children: surface }), document.body);
 }

@@ -152,9 +152,9 @@ export function OperationalJobsPanel({
           state={{ kind: "empty", title: emptyState.title, detail: emptyState.detail }}
         />
       ) : (
-        <div className="admin-kit__table-wrap admin-kit__operations-table-wrap">
+        <div className="admin-kit__table-wrap admin-kit__table-wrap--stack admin-kit__operations-table-wrap">
           <table
-            className="admin-kit__table admin-kit__operations-table"
+            className="admin-kit__table admin-kit__table--stack admin-kit__operations-table"
             aria-busy={busy || isLoading}
           >
             <thead>
@@ -169,18 +169,32 @@ export function OperationalJobsPanel({
               {result.items.map((item) => (
                 <tr key={item.id}>
                   <td>
-                    <strong>{item.label}</strong>
-                    {item.detail ? <small>{item.detail}</small> : null}
-                  </td>
-                  <td>{formatAdminTimestamp(item.startedAt, formatTimestamp)}</td>
-                  <td>
-                    {item.finishedAt
-                      ? formatAdminTimestamp(item.finishedAt, formatTimestamp)
-                      : "In progress"}
+                    <AdminMobileCellLabel>Job</AdminMobileCellLabel>
+                    <span>
+                      <strong>{item.label}</strong>
+                      {item.detail ? <small>{item.detail}</small> : null}
+                    </span>
                   </td>
                   <td>
-                    <span className={`admin-kit__state-pill admin-kit__state-pill--${item.state}`}>
-                      {item.state}
+                    <AdminMobileCellLabel>Started</AdminMobileCellLabel>
+                    <span>{formatAdminTimestamp(item.startedAt, formatTimestamp)}</span>
+                  </td>
+                  <td>
+                    <AdminMobileCellLabel>Finished</AdminMobileCellLabel>
+                    <span>
+                      {item.finishedAt
+                        ? formatAdminTimestamp(item.finishedAt, formatTimestamp)
+                        : "In progress"}
+                    </span>
+                  </td>
+                  <td>
+                    <AdminMobileCellLabel>Status</AdminMobileCellLabel>
+                    <span>
+                      <span
+                        className={`admin-kit__state-pill admin-kit__state-pill--${item.state}`}
+                      >
+                        {item.state}
+                      </span>
                     </span>
                   </td>
                 </tr>

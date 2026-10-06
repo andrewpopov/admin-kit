@@ -250,4 +250,90 @@ describe("Admin Kit styles", () => {
     expect(styles).toMatch(/\.admin-kit__app \{ background: var\(--admin-kit-surface\);/);
     expect(styles).toMatch(/\.admin-kit__app-shell \{ background: var\(--admin-kit-surface\);/);
   });
+  describe("WCAG 1.4.11 non-text contrast for form control boundaries", () => {
+    const THREE_TO_ONE = 3;
+    for (const scope of ["root", "dark"] as const) {
+      for (const surface of ["--admin-kit-surface", "--admin-kit-surface-subtle"]) {
+        it(`--admin-kit-control-border clears 3:1 against ${surface} in the ${scope === "root" ? "light" : "dark"} theme`, () => {
+          const ratio = contrastRatio(
+            resolvedHex("--admin-kit-control-border", scope),
+            resolvedHex(surface, scope),
+          );
+          expect(ratio).toBeGreaterThanOrEqual(THREE_TO_ONE);
+        });
+      }
+    }
+
+    it("is re-declared on the core theme boundary and uses a dedicated dark value", () => {
+      expect(styles).toMatch(/\.admin-kit--theme-core \{[^}]*--admin-kit-control-border: #/);
+      expect(styles).toMatch(/--admin-kit-dark-control-border: #/);
+    });
+
+    it("draws every text input, select and textarea border and the switch track from it", () => {
+      const controlRules = styles
+        .split("\n")
+        .flatMap((line) => line.match(/[^{}]+\{[^}]*\}/g) ?? [])
+        .filter((rule) => /\b(input|select|textarea)\b|switch-track/.test(rule.split("{")[0]))
+        .filter((rule) =>
+          /border:\s*1px solid|background: var\(--admin-kit-(border|control)/.test(rule),
+        );
+      expect(controlRules.length).toBeGreaterThanOrEqual(6);
+      for (const rule of controlRules) {
+        expect(rule, rule).not.toContain("--admin-kit-border-strong");
+        expect(rule, rule).toContain("--admin-kit-control-border");
+      }
+    });
+  });
+
+  it("caps a dialog at the viewport and scrolls only its body, never stacking a bar over a focused field", () => {
+    const dialog = styles.match(/\.admin-kit__dialog \{([^}]*)\}/)?.[1] ?? "";
+    expect(dialog).toContain("max-block-size: calc(100vh - 2rem);");
+    expect(dialog.indexOf("calc(100vh - 2rem)")).toBeLessThan(
+      dialog.indexOf("calc(100dvh - 2rem)"),
+    );
+    expect(dialog).toContain("display: flex;");
+    expect(dialog).toContain("flex-direction: column;");
+    expect(dialog).toContain("overflow: hidden;");
+    expect(dialog).toContain("box-sizing: border-box;");
+    const body = styles.match(/\.admin-kit__dialog-body \{([^}]*)\}/)?.[1] ?? "";
+    expect(body).toContain("overflow-y: auto;");
+    expect(body).toContain("min-block-size: 0;");
+    expect(body).toContain("overscroll-behavior: contain;");
+    const header = styles.match(/\.admin-kit__dialog-header \{([^}]*)\}/)?.[1] ?? "";
+    expect(header).not.toContain("sticky");
+    expect(header).not.toMatch(/margin:\s*-/);
+  });
+
+  it("re-maps every dark token on a core boundary under an auto host, as it does under .dark", () => {
+    const declarations = (block: string) =>
+      [...block.matchAll(/(--admin-kit-[a-z-]+):\s*(var\(--admin-kit-dark-[a-z-]+\));/g)].map(
+        (match) => `${match[1]}: ${match[2]}`,
+      );
+    const darkCore = styles.match(/\.dark \.admin-kit--theme-core \{([^}]*)\}/)?.[1] ?? "";
+    const autoCore =
+      styles.match(/\[data-admin-kit-theme="auto"\] \.admin-kit--theme-core \{([^}]*)\}/)?.[1] ??
+      "";
+    expect(declarations(darkCore).length).toBeGreaterThan(15);
+    expect(declarations(autoCore).sort()).toEqual(declarations(darkCore).sort());
+    expect(autoCore).toContain("--admin-kit-control-border: var(--admin-kit-dark-control-border);");
+  });
+
+  it("gives the dialog close button a 44px target", () => {
+    const close = styles.match(/\.admin-kit__dialog-close \{([^}]*)\}/)?.[1] ?? "";
+    expect(close).toContain("min-block-size: 2.75rem;");
+    expect(close).toContain("min-inline-size: 2.75rem;");
+  });
+
+  it("neutralises layout and type on the portaled theme layer", () => {
+    const layer = styles.match(/\.admin-kit--layer \{([^}]*)\}/)?.[1] ?? "";
+    expect(layer).toContain("display: contents;");
+    expect(layer).toContain("font: inherit;");
+  });
+
+  it("only animates the loading skeleton when motion is allowed", () => {
+    expect(styles).toMatch(
+      /@media \(prefers-reduced-motion: no-preference\) \{\s*\.admin-kit__skeleton-bar \{[^}]*animation:/,
+    );
+    expect(styles.match(/^\.admin-kit__skeleton-bar \{[^}]*\}/m)?.[0]).not.toContain("animation");
+  });
 });

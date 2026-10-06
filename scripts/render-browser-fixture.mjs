@@ -33,12 +33,18 @@ const { createRoot } = await import("react-dom/client");
 const {
   AdminWorkspace,
   AdminActionButton,
-  AdminPortal,
+  AdminApp,
   ApiKeysPanel,
   UsersPanel,
   LogsPanel,
   EventsPanel,
   AdminMobileCellLabel,
+  AdminPanelStateView,
+  OperationalJobsPanel,
+  AdminTheme,
+  AdminDialog,
+  AdminConfirmationDialog,
+  AdminField,
 } = await import(resolve(packageRoot, "dist/index.js"));
 
 const usersAdapter = {
@@ -135,13 +141,37 @@ const eventsAdapter = {
 const fillerSections = (prefix, count) => Array.from({ length: count }, (_, index) => ({
   id: `${prefix}-${index + 1}`,
   label: `${prefix} section ${index + 1}`,
+  capability: `custom:${prefix}-${index + 1}`,
   render: () => null,
 }));
+
+const jobsAdapter = {
+  async list() {
+    return {
+      items: [
+        {
+          id: "job_1",
+          label: "Retention policy enforcement for long-running audit exports",
+          detail: "Removes exports older than the configured retention window",
+          startedAt: "2024-01-01T15:12:00.000Z",
+          state: "completed",
+        },
+      ],
+      page: 1,
+      pageSize: 25,
+      total: 1,
+    };
+  },
+};
 
 const tree = React.createElement(
   React.Fragment,
   null,
-  React.createElement(AdminPortal, {
+  React.createElement(AdminApp, {
+    frame: {
+      title: "Admin console",
+      actions: React.createElement("span", null, "Signed in as admin@example.test"),
+    },
     activeSection: "users",
     onSectionChange: () => undefined,
     groups: [{
@@ -150,6 +180,7 @@ const tree = React.createElement(
       sections: [{
         id: "users",
         label: "Users",
+        capability: "users",
         description: "Account access and lifecycle",
         render: () => React.createElement(
           AdminWorkspace,
@@ -161,6 +192,7 @@ const tree = React.createElement(
               null,
               React.createElement(AdminActionButton, { tone: "primary" }, "Invite user"),
               React.createElement(AdminActionButton, null, "Export"),
+              React.createElement(AdminActionButton, { tone: "primary", disabled: true }, "Archive all"),
             ),
           },
           // Keeps the routed content taller than the 15-item rail so the rail's
@@ -225,12 +257,25 @@ const tree = React.createElement(
           React.createElement("th", { scope: "col" }, "Notes"),
         )),
         React.createElement("tbody", null, React.createElement("tr", null,
-          React.createElement("td", null, React.createElement(AdminMobileCellLabel, null, "Name"), "Restaurant with a very long name that would normally force sideways scrolling"),
+          React.createElement("th", { scope: "row" }, React.createElement(AdminMobileCellLabel, null, "Name"), "Restaurant with a very long name that would normally force sideways scrolling"),
           React.createElement("td", null, React.createElement(AdminMobileCellLabel, null, "Cuisine"), "Neapolitan"),
           React.createElement("td", null, React.createElement(AdminMobileCellLabel, null, "Notes"), "Reservation-required-weekends-only-and-bring-cash-for-the-coat-check"),
         )),
       ),
     ),
+  ),
+  React.createElement(
+    AdminWorkspace,
+    { as: "section", title: "Operational jobs", description: "Jobs stack into cards on phones." },
+    React.createElement(OperationalJobsPanel, { adapter: jobsAdapter, title: "Retention runs" }),
+  ),
+  React.createElement(
+    AdminWorkspace,
+    { as: "section", title: "Loading skeleton", description: "Placeholder bars while a panel loads." },
+    React.createElement(AdminPanelStateView, {
+      state: { kind: "loading", label: "Loading users…", skeletonRows: 3 },
+      className: "skeleton-fixture",
+    }),
   ),
   React.createElement(
     AdminWorkspace,
@@ -261,19 +306,93 @@ await act(async () => {
   root.unmount();
 });
 
-const template = `<!doctype html>
+const page = (title, body, head = "") => `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="../../dist/styles.css" />
-    <title>Admin Kit browser fixture</title>
+    ${head}
+    <title>${title}</title>
   </head>
   <body>
-    ${bodyHtml}
+    ${body}
   </body>
 </html>
 `;
 
-writeFileSync(fixturePath, template);
+writeFileSync(fixturePath, page("Admin Kit browser fixture", bodyHtml));
 console.log(`[render-browser-fixture] wrote ${fixturePath} (${bodyHtml.length} bytes of rendered markup)`);
+
+// Dialogs portal to document.body once mounted, which is the layout the
+// browser tests need to see. Render each in jsdom (effects flushed), then
+// serialize the host tree plus whatever was portaled beside it.
+async function renderPortaledPage(fileName, title, dialog, head) {
+  const host = document.createElement("div");
+  document.body.append(host);
+  const pageRoot = createRoot(host);
+  await act(async () => {
+    pageRoot.render(
+      React.createElement(
+        AdminTheme,
+        null,
+        React.createElement("p", null, "Host page content behind the dialog."),
+        dialog,
+      ),
+    );
+  });
+  const portaled = Array.from(document.body.children).filter((node) => node !== host && node !== container);
+  const html = host.innerHTML + portaled.map((node) => node.outerHTML).join("");
+  await act(async () => {
+    pageRoot.unmount();
+  });
+  host.remove();
+  const file = resolve(packageRoot, "tests/browser", fileName);
+  writeFileSync(file, page(title, html, head));
+  console.log(`[render-browser-fixture] wrote ${file} (${html.length} bytes of rendered markup)`);
+}
+
+// A host rebrand as documented in the README: a compound selector on the theme wrapper.
+const hostRebrand = "<style>.admin-kit.admin-kit--theme-core { --admin-kit-accent: #6b5b45; }</style>";
+
+await renderPortaledPage(
+  "admin-dialog.html",
+  "Admin Kit dialog fixture",
+  React.createElement(
+    AdminDialog,
+    {
+      open: true,
+      title: "Invite teammates",
+      description: "Each teammate gets a one-time setup link.",
+      onClose: () => undefined,
+      actions: React.createElement(
+        React.Fragment,
+        null,
+        React.createElement("button", { type: "button" }, "Cancel"),
+        React.createElement("button", { type: "button" }, "Send invites"),
+      ),
+    },
+    Array.from({ length: 24 }, (_, index) =>
+      React.createElement(
+        AdminField,
+        { key: index, label: `Teammate ${index + 1} email` },
+        React.createElement("input", { type: "email" }),
+      ),
+    ),
+  ),
+  hostRebrand,
+);
+
+await renderPortaledPage(
+  "admin-confirmation-dialog.html",
+  "Admin Kit confirmation dialog fixture",
+  React.createElement(AdminConfirmationDialog, {
+    open: true,
+    title: "Revoke key?",
+    description: "Anything using this key stops working immediately.",
+    confirmLabel: "Revoke key",
+    onCancel: () => undefined,
+    onConfirm: () => undefined,
+  }),
+  hostRebrand,
+);

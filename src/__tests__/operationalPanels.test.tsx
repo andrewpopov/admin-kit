@@ -167,6 +167,31 @@ describe("operational panels", () => {
     expect(screen.getByRole("table").classList.contains("admin-kit__table")).toBe(true);
   });
 
+  it("stacks the jobs table into labelled cards on phones", async () => {
+    const { container } = render(
+      <OperationalJobsPanel
+        adapter={{
+          list: vi.fn().mockResolvedValue({
+            items: [
+              { id: "r1", label: "Retention policy", startedAt: "Today", state: "completed" },
+            ],
+            page: 1,
+            pageSize: 25,
+            total: 1,
+          }),
+        }}
+      />,
+    );
+    const table = await screen.findByRole("table");
+    expect(table.classList.contains("admin-kit__table--stack")).toBe(true);
+    expect(table.parentElement?.classList.contains("admin-kit__table-wrap--stack")).toBe(true);
+    expect(
+      Array.from(container.querySelectorAll(".admin-kit__mobile-cell-label")).map(
+        (label) => label.textContent,
+      ),
+    ).toEqual(["Job", "Started", "Finished", "Status"]);
+  });
+
   it("explains the zero-run state while keeping the run action available", async () => {
     const run = vi.fn().mockResolvedValue(undefined);
     const list = vi.fn().mockResolvedValue({ items: [], page: 1, pageSize: 25, total: 0 });

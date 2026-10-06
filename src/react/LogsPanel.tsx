@@ -50,48 +50,51 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
   const scrollPosition = useRef(0);
   const previousEntryIds = useRef<Set<string>>();
 
-  const load = useCallback(async (announce = false) => {
-    const loadId = ++latestLoadId.current;
-    setIsLoading(true);
-    setError(undefined);
-    try {
-      const next = validateAdminLogsSnapshot(
-        await adapter.read({
-          source: source || undefined,
-          limit,
-          level: level || undefined,
-          category: category || undefined,
-          search: appliedSearch || undefined,
-        }),
-      );
-      if (loadId === latestLoadId.current) {
-        // Render the adapter's canonicalized source (see `selectedSource`
-        // below) without feeding it back into request state: echoing it
-        // into `source` would re-trigger this effect, and an adapter that
-        // canonicalizes non-idempotently could loop indefinitely.
-        const newLineCount = previousEntryIds.current
-          ? next.entries.filter((entry) => !previousEntryIds.current?.has(entry.id)).length
-          : 0;
-        previousEntryIds.current = new Set(next.entries.map((entry) => entry.id));
-        setSnapshot(next);
-        if (announce) {
-          setRefreshFeedback(
-            newLineCount === 1
-              ? "Refreshed: 1 new log line."
-              : `Refreshed: ${newLineCount} new log lines.`,
-          );
+  const load = useCallback(
+    async (announce = false) => {
+      const loadId = ++latestLoadId.current;
+      setIsLoading(true);
+      setError(undefined);
+      try {
+        const next = validateAdminLogsSnapshot(
+          await adapter.read({
+            source: source || undefined,
+            limit,
+            level: level || undefined,
+            category: category || undefined,
+            search: appliedSearch || undefined,
+          }),
+        );
+        if (loadId === latestLoadId.current) {
+          // Render the adapter's canonicalized source (see `selectedSource`
+          // below) without feeding it back into request state: echoing it
+          // into `source` would re-trigger this effect, and an adapter that
+          // canonicalizes non-idempotently could loop indefinitely.
+          const newLineCount = previousEntryIds.current
+            ? next.entries.filter((entry) => !previousEntryIds.current?.has(entry.id)).length
+            : 0;
+          previousEntryIds.current = new Set(next.entries.map((entry) => entry.id));
+          setSnapshot(next);
+          if (announce) {
+            setRefreshFeedback(
+              newLineCount === 1
+                ? "Refreshed: 1 new log line."
+                : `Refreshed: ${newLineCount} new log lines.`,
+            );
+          }
         }
+      } catch (reason) {
+        if (loadId === latestLoadId.current) {
+          setError(reason instanceof Error ? reason.message : "Unable to load runtime logs.");
+          if (announce)
+            setRefreshFeedback("Refresh failed. The previously loaded output remains available.");
+        }
+      } finally {
+        if (loadId === latestLoadId.current) setIsLoading(false);
       }
-    } catch (reason) {
-      if (loadId === latestLoadId.current) {
-        setError(reason instanceof Error ? reason.message : "Unable to load runtime logs.");
-        if (announce)
-          setRefreshFeedback("Refresh failed. The previously loaded output remains available.");
-      }
-    } finally {
-      if (loadId === latestLoadId.current) setIsLoading(false);
-    }
-  }, [adapter, appliedSearch, category, level, limit, source]);
+    },
+    [adapter, appliedSearch, category, level, limit, source],
+  );
 
   useEffect(() => {
     void load();

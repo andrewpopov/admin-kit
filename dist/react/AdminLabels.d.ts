@@ -6,6 +6,7 @@ export interface AdminLabels {
     cancel: string;
     previousPage: string;
     nextPage: string;
+    skipToContent: string;
     pageStatus: (page: number, pageCount: number) => string;
 }
 export declare const defaultAdminLabels: AdminLabels;

@@ -8,6 +8,7 @@
   --admin-kit-surface-subtle: #f6f8fc;
   --admin-kit-border: #dfe4ee;
   --admin-kit-border-strong: #c7d0df;
+  --admin-kit-control-border: #7c8798;
   --admin-kit-text: #172033;
   --admin-kit-muted: #61708a;
   --admin-kit-accent: #3156c7;
@@ -39,6 +40,7 @@
   --admin-kit-surface-subtle: #f6f8fc;
   --admin-kit-border: #dfe4ee;
   --admin-kit-border-strong: #c7d0df;
+  --admin-kit-control-border: #7c8798;
   --admin-kit-text: #172033;
   --admin-kit-muted: #61708a;
   --admin-kit-accent: #3156c7;
@@ -66,6 +68,7 @@
   --admin-kit-dark-surface-subtle: #202c43;
   --admin-kit-dark-border: #35435c;
   --admin-kit-dark-border-strong: #50617e;
+  --admin-kit-dark-control-border: #6f80a0;
   --admin-kit-dark-text: #f5f7fb;
   --admin-kit-dark-muted: #b7c3d8;
   --admin-kit-dark-accent: #a9c4ff;
@@ -88,6 +91,7 @@
   --admin-kit-surface-subtle: var(--admin-kit-dark-surface-subtle);
   --admin-kit-border: var(--admin-kit-dark-border);
   --admin-kit-border-strong: var(--admin-kit-dark-border-strong);
+  --admin-kit-control-border: var(--admin-kit-dark-control-border);
   --admin-kit-text: var(--admin-kit-dark-text);
   --admin-kit-muted: var(--admin-kit-dark-muted);
   --admin-kit-accent: var(--admin-kit-dark-accent);
@@ -110,6 +114,7 @@
   --admin-kit-surface-subtle: var(--admin-kit-dark-surface-subtle);
   --admin-kit-border: var(--admin-kit-dark-border);
   --admin-kit-border-strong: var(--admin-kit-dark-border-strong);
+  --admin-kit-control-border: var(--admin-kit-dark-control-border);
   --admin-kit-text: var(--admin-kit-dark-text);
   --admin-kit-muted: var(--admin-kit-dark-muted);
   --admin-kit-accent: var(--admin-kit-dark-accent);
@@ -137,6 +142,30 @@
     --admin-kit-surface-subtle: var(--admin-kit-dark-surface-subtle);
     --admin-kit-border: var(--admin-kit-dark-border);
     --admin-kit-border-strong: var(--admin-kit-dark-border-strong);
+    --admin-kit-control-border: var(--admin-kit-dark-control-border);
+    --admin-kit-text: var(--admin-kit-dark-text);
+    --admin-kit-muted: var(--admin-kit-dark-muted);
+    --admin-kit-accent: var(--admin-kit-dark-accent);
+    --admin-kit-accent-strong: var(--admin-kit-dark-accent-strong);
+    --admin-kit-accent-soft: var(--admin-kit-dark-accent-soft);
+    --admin-kit-on-accent: var(--admin-kit-dark-on-accent);
+    --admin-kit-danger: var(--admin-kit-dark-danger);
+    --admin-kit-danger-strong: var(--admin-kit-dark-danger-strong);
+    --admin-kit-danger-soft: var(--admin-kit-dark-danger-soft);
+    --admin-kit-on-danger: var(--admin-kit-dark-on-danger);
+    --admin-kit-success: var(--admin-kit-dark-success);
+    --admin-kit-success-soft: var(--admin-kit-dark-success-soft);
+    --admin-kit-warning: var(--admin-kit-dark-warning);
+    --admin-kit-warning-soft: var(--admin-kit-dark-warning-soft);
+    --admin-kit-shadow: var(--admin-kit-dark-shadow);
+  }
+  /* Portaled dialogs and nested AdminTheme wrappers carry .admin-kit--theme-core, which re-declares the light tokens on the element itself; like `.dark .admin-kit--theme-core` above, this descendant rule keeps them dark under an auto host. */
+  [data-admin-kit-theme="auto"] .admin-kit--theme-core {
+    --admin-kit-surface: var(--admin-kit-dark-surface);
+    --admin-kit-surface-subtle: var(--admin-kit-dark-surface-subtle);
+    --admin-kit-border: var(--admin-kit-dark-border);
+    --admin-kit-border-strong: var(--admin-kit-dark-border-strong);
+    --admin-kit-control-border: var(--admin-kit-dark-control-border);
     --admin-kit-text: var(--admin-kit-dark-text);
     --admin-kit-muted: var(--admin-kit-dark-muted);
     --admin-kit-accent: var(--admin-kit-dark-accent);
@@ -344,7 +373,12 @@
 }
 .admin-kit__portal-link[aria-current="page"] { color: var(--admin-kit-accent); font-weight: 700; }
 .admin-kit__portal-link[aria-disabled="true"], .admin-kit__portal-link:disabled { cursor: not-allowed; opacity: 0.55; }
+/* The skip link focuses this region programmatically; it is not an interactive control, so no ring. */
 .admin-kit__portal-content { min-width: 0; }
+.admin-kit__portal-content:focus, .admin-kit__portal-empty:focus { outline: none; }
+/* Visually hidden until keyboard focus, then pinned to the viewport corner so it never takes a grid row. */
+.admin-kit__skip-link { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: hidden; position: fixed; white-space: nowrap; }
+.admin-kit__skip-link:focus-visible { background: var(--admin-kit-surface); border-radius: var(--admin-kit-radius-sm); block-size: auto; box-shadow: var(--admin-kit-shadow); clip-path: none; color: var(--admin-kit-accent); font-weight: 700; inline-size: auto; inset-block-start: 0.5rem; inset-inline-start: 0.5rem; overflow: visible; padding: 0.75rem 1rem; z-index: 1100; }
 .admin-kit__workspace { box-sizing: border-box; display: grid; gap: 1rem; margin-inline: auto; max-width: 80rem; min-width: 0; padding: 1rem; width: 100%; }
 .admin-kit__workspace-header { align-items: start; display: flex; gap: 1rem; justify-content: space-between; }
 .admin-kit__workspace-header > * { min-width: 0; }
@@ -366,13 +400,13 @@
 .admin-kit__status { border-left: 3px solid var(--admin-kit-border-strong); padding: 0.5rem 0.75rem; }.admin-kit__status--healthy { border-color: var(--admin-kit-success); }.admin-kit__status--warning { border-color: var(--admin-kit-warning); }.admin-kit__status--critical { border-color: var(--admin-kit-danger); }
 .admin-kit__status dt, .admin-kit__status small, .admin-kit__operations header p, .admin-kit__settings header p, .admin-kit__operations td small, .admin-kit__settings label small { color: var(--admin-kit-muted); }.admin-kit__status dd { font-weight: 700; margin: 0.125rem 0; }
 .admin-kit__operations, .admin-kit__settings { display: grid; gap: 1rem; }.admin-kit__operations header, .admin-kit__settings header { align-items: center; display: flex; justify-content: space-between; gap: 1rem; }.admin-kit__operations h2, .admin-kit__operations p, .admin-kit__settings h2, .admin-kit__settings p { margin: 0; }
-.admin-kit__table-wrap { border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); overflow-x: auto; container-name: admin-kit-table; container-type: inline-size; }.admin-kit__table { border-collapse: collapse; min-width: 42rem; width: 100%; }.admin-kit__table th, .admin-kit__table td { border-bottom: 1px solid var(--admin-kit-border); padding: 0.75rem 1rem; text-align: left; vertical-align: middle; }.admin-kit__table th { background: var(--admin-kit-surface-subtle); color: var(--admin-kit-muted); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }.admin-kit__table tbody tr:last-child td { border-bottom: 0; }.admin-kit__table tbody tr:hover { background: var(--admin-kit-surface-subtle); }.admin-kit__operations td small { display: block; }.admin-kit__state-pill { border-radius: 999px; font-size: .8125rem; padding: .25rem .5rem; }.admin-kit__state-pill--completed { background: var(--admin-kit-success-soft); color: var(--admin-kit-success); }.admin-kit__state-pill--running { background: var(--admin-kit-warning-soft); color: var(--admin-kit-warning); }.admin-kit__state-pill--failed { background: var(--admin-kit-danger-soft); color: var(--admin-kit-danger); }
+.admin-kit__table-wrap { border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); overflow-x: auto; container-name: admin-kit-table; container-type: inline-size; }.admin-kit__table { border-collapse: collapse; min-width: 42rem; width: 100%; }.admin-kit__table th, .admin-kit__table td { border-bottom: 1px solid var(--admin-kit-border); padding: 0.75rem 1rem; text-align: left; vertical-align: middle; }.admin-kit__table thead th { background: var(--admin-kit-surface-subtle); color: var(--admin-kit-muted); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }.admin-kit__table tbody th { font-weight: 600; }.admin-kit__table tbody tr:last-child td { border-bottom: 0; }.admin-kit__table tbody tr:hover { background: var(--admin-kit-surface-subtle); }.admin-kit__operations td small { display: block; }.admin-kit__state-pill { border-radius: 999px; font-size: .8125rem; padding: .25rem .5rem; }.admin-kit__state-pill--completed { background: var(--admin-kit-success-soft); color: var(--admin-kit-success); }.admin-kit__state-pill--running { background: var(--admin-kit-warning-soft); color: var(--admin-kit-warning); }.admin-kit__state-pill--failed { background: var(--admin-kit-danger-soft); color: var(--admin-kit-danger); }
 .admin-kit__table-cell--nowrap { white-space: nowrap; }
 /* Background refetch (page change / search / manual refresh) with results
    already on screen: dim in place rather than dropping back to the
    full-panel loading state, which would discard the visible data. */
 .admin-kit__table[aria-busy="true"], .admin-kit__events-list[aria-busy="true"], .admin-kit__logs-output[aria-busy="true"] { opacity: 0.72; transition: opacity 150ms ease; }
-.admin-kit__settings > label { display: grid; gap: .375rem; max-width: 38rem; }.admin-kit__settings input[type="text"], .admin-kit__settings input[type="password"] { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: .5rem .75rem; }
+.admin-kit__settings > label { display: grid; gap: .375rem; max-width: 38rem; }.admin-kit__settings input[type="text"], .admin-kit__settings input[type="password"] { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-control-border); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: .5rem .75rem; }
 .admin-kit__settings-toggle { max-width: 38rem; }
 .admin-kit__portal-empty { color: var(--admin-kit-muted); padding: 1rem; }
 
@@ -384,9 +418,9 @@
 .admin-kit__card-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .admin-kit__card-content { min-width: 0; padding: 1rem; }
 .admin-kit__stack { display: grid; }.admin-kit__stack--sm { gap: 0.5rem; }.admin-kit__stack--md { gap: 1rem; }.admin-kit__stack--lg { gap: 1.5rem; }
-.admin-kit__field { display: grid; gap: 0.375rem; max-width: 38rem; }.admin-kit__field-label { font-size: 0.875rem; font-weight: 700; }.admin-kit__field input, .admin-kit__field select, .admin-kit__field textarea { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: 0.5rem 0.75rem; }.admin-kit__field textarea { min-block-size: 6rem; resize: vertical; }.admin-kit__field-error { color: var(--admin-kit-danger); }
+.admin-kit__field { display: grid; gap: 0.375rem; max-width: 38rem; }.admin-kit__field-label { font-size: 0.875rem; font-weight: 700; }.admin-kit__field input, .admin-kit__field select, .admin-kit__field textarea { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-control-border); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: 0.5rem 0.75rem; }.admin-kit__field textarea { min-block-size: 6rem; resize: vertical; }.admin-kit__field-error { color: var(--admin-kit-danger); }
 .admin-kit__switch { align-items: center; display: grid; gap: 0.75rem; grid-template-columns: auto minmax(0, 1fr) auto; min-block-size: 3.5rem; text-align: left; width: min(100%, 38rem); }
-.admin-kit__switch-track { background: var(--admin-kit-border-strong); border-radius: 999px; display: flex; inline-size: 2.5rem; padding: 0.1875rem; }
+.admin-kit__switch-track { background: var(--admin-kit-control-border); border-radius: 999px; display: flex; inline-size: 2.5rem; padding: 0.1875rem; }
 .admin-kit__switch-track > span { background: var(--admin-kit-surface); border-radius: 50%; block-size: 1rem; inline-size: 1rem; transform: translateX(0); }
 .admin-kit__switch[data-state="on"] { border-color: var(--admin-kit-accent); }
 .admin-kit__switch[data-state="on"] .admin-kit__switch-track { background: var(--admin-kit-accent); }
@@ -405,6 +439,14 @@
   box-shadow: var(--admin-kit-shadow);
 }
 .admin-kit__state { color: var(--admin-kit-muted); padding: 1rem; }
+.admin-kit__visually-hidden { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: hidden; position: absolute; white-space: nowrap; }
+.admin-kit__skeleton { display: grid; gap: 0.75rem; position: relative; }
+.admin-kit__skeleton-bar { background: var(--admin-kit-border); block-size: 0.875rem; border-radius: var(--admin-kit-radius-sm); display: block; }
+.admin-kit__skeleton-bar:last-child { inline-size: 60%; }
+@media (prefers-reduced-motion: no-preference) {
+  .admin-kit__skeleton-bar { animation: admin-kit-skeleton-pulse 1.4s ease-in-out infinite; }
+}
+@keyframes admin-kit-skeleton-pulse { 50% { opacity: 0.45; } }
 .admin-kit__state--error, .admin-kit__action-error { border-color: var(--admin-kit-danger); color: var(--admin-kit-danger); }
 .admin-kit__action-error { background: var(--admin-kit-danger-soft); border: 1px solid var(--admin-kit-danger); border-radius: var(--admin-kit-radius); margin: 1rem 0; padding: 0.75rem 1rem; }
 
@@ -418,7 +460,7 @@
 .admin-kit__events-filters label, .admin-kit__events-search, .admin-kit__users-search, .admin-kit__user-controls label { display: grid; font-size: 0.875rem; gap: 0.375rem; }
 .admin-kit__events-filters input, .admin-kit__events-filters select, .admin-kit__events-search input, .admin-kit__users-search input, .admin-kit__user-controls select {
   background: var(--admin-kit-surface);
-  border: 1px solid var(--admin-kit-border-strong);
+  border: 1px solid var(--admin-kit-control-border);
   border-radius: var(--admin-kit-radius-sm);
   color: var(--admin-kit-text);
   min-block-size: 2.75rem;
@@ -448,18 +490,30 @@
 .admin-kit__event-outcome--unknown { background: var(--admin-kit-surface-subtle); color: var(--admin-kit-muted); }
 
 .admin-kit__dialog-backdrop { align-items: center; background: rgb(8 15 30 / 58%); display: flex; inset: 0; justify-content: center; padding: 1rem; position: fixed; z-index: 1000; }
-.admin-kit__dialog { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: calc(var(--admin-kit-radius) + 0.125rem); box-shadow: 0 24px 60px rgb(0 0 0 / 30%); color: var(--admin-kit-text); max-width: 34rem; padding: 1.5rem; width: 100%; }
+/* The backdrop is a fixed, centred flex box, so a dialog taller than the
+   viewport would overflow both ends and never scroll. Cap the dialog at the
+   viewport minus the backdrop padding and make it a flex column in which only
+   the body scrolls: the header (Close) and actions stay in place, and nothing
+   is stacked over a scrolled field, so a focused control is never obscured
+   (WCAG 2.4.11). 100vh is the fallback for browsers without dynamic viewport
+   units. */
+.admin-kit__dialog { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: calc(var(--admin-kit-radius) + 0.125rem); box-shadow: 0 24px 60px rgb(0 0 0 / 30%); box-sizing: border-box; color: var(--admin-kit-text); display: flex; flex-direction: column; max-block-size: calc(100vh - 2rem); max-block-size: calc(100dvh - 2rem); max-width: 34rem; overflow: hidden; padding: 1.5rem; width: 100%; }
 .admin-kit__dialog h2 { font-size: 1.25rem; letter-spacing: -0.015em; margin: 0; }
-.admin-kit__dialog-header { align-items: start; display: flex; gap: 1rem; justify-content: space-between; }
-.admin-kit__dialog-close { align-items: center; background: transparent; border: 0; border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-muted); cursor: pointer; display: inline-flex; flex: 0 0 auto; font-size: 1.5rem; justify-content: center; line-height: 1; min-block-size: 2.25rem; min-inline-size: 2.25rem; padding: 0; }
+.admin-kit__dialog-header { align-items: start; display: flex; flex: 0 0 auto; gap: 1rem; justify-content: space-between; }
+.admin-kit__dialog-close { align-items: center; background: transparent; border: 0; border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-muted); cursor: pointer; display: inline-flex; flex: 0 0 auto; font-size: 1.5rem; justify-content: center; line-height: 1; min-block-size: 2.75rem; min-inline-size: 2.75rem; padding: 0; }
 .admin-kit__dialog-close:hover:not(:disabled) { background: var(--admin-kit-surface-subtle); color: var(--admin-kit-text); }
-.admin-kit__dialog-description { color: var(--admin-kit-muted); margin: 0.75rem 0 0; }
-.admin-kit__dialog-body { margin-top: 1.25rem; }
-.admin-kit__dialog-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: flex-end; margin-top: 1.75rem; }
+.admin-kit__dialog-description { color: var(--admin-kit-muted); flex: 0 0 auto; margin: 0.75rem 0 0; }
+/* The 0.25rem padding (pulled back out by the negative inline margin and a smaller top margin, so spacing is unchanged) keeps a focus ring at the body edge from being clipped by its own scrollport. */
+.admin-kit__dialog-body { flex: 1 1 auto; margin: 1rem -0.25rem 0; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0.25rem; }
+.admin-kit__dialog-body--message > p { margin: 0; }
+.admin-kit__dialog-actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; gap: 0.75rem; justify-content: flex-end; margin-top: 1.75rem; }
+/* Portaled dialogs sit outside the host's themed wrapper, so they re-enter the theme through this element. It carries the theme classes (tokens, host overrides) but must not gain a box or change inherited type: the dialog already renders against the document's own font and color. */
+.admin-kit--layer { color: inherit; display: contents; font: inherit; }
 .admin-kit__button { appearance: none; background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); cursor: pointer; font: inherit; min-block-size: 2.75rem; padding: 0.5rem 0.75rem; }
 .admin-kit__button:hover:not(:disabled) { background: var(--admin-kit-surface-subtle); }
 .admin-kit__button:disabled { cursor: not-allowed; opacity: 0.55; }
 .admin-kit__button--primary, .admin-kit__dialog-actions button:last-child:not(.admin-kit__button--danger) { background: var(--admin-kit-accent); border-color: var(--admin-kit-accent); color: var(--admin-kit-on-accent); }
+.admin-kit__button--primary:disabled, .admin-kit__dialog-actions button:last-child:not(.admin-kit__button--danger):disabled, .admin-kit__events-header > button:disabled, .admin-kit__keys > button:disabled, .admin-kit__state button:disabled { background: var(--admin-kit-surface-subtle); border-color: var(--admin-kit-border-strong); color: var(--admin-kit-muted); cursor: not-allowed; opacity: 1; }
 .admin-kit__button--primary:hover:not(:disabled) { background: var(--admin-kit-accent-strong); border-color: var(--admin-kit-accent-strong); }
 .admin-kit__button--danger { background: var(--admin-kit-danger); border-color: var(--admin-kit-danger); color: var(--admin-kit-on-danger); }
 .admin-kit__button--danger:hover:not(:disabled) { background: var(--admin-kit-danger-strong); border-color: var(--admin-kit-danger-strong); }
@@ -482,7 +536,7 @@
 .admin-kit__users-table th, .admin-kit__users-table td { vertical-align: top; }
 .admin-kit__users-table th:first-child, .admin-kit__users-table td:first-child { min-width: 16rem; }
 .admin-kit__users-table th:last-child, .admin-kit__users-table td:last-child { white-space: nowrap; width: 1%; }
-.admin-kit__users-table select { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: 0.375rem 0.5rem; }
+.admin-kit__users-table select { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-control-border); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: 0.375rem 0.5rem; }
 .admin-kit__mobile-cell-label { display: none; }
 .admin-kit__sort-button { background: transparent; border: 0; color: inherit; gap: 0.375rem; justify-content: flex-start; letter-spacing: inherit; margin: -0.5rem -0.75rem; min-block-size: 2.75rem; padding: 0.5rem 0.75rem; text-transform: inherit; width: calc(100% + 1.5rem); }
 .admin-kit__sort-button:hover:not(:disabled) { background: color-mix(in srgb, var(--admin-kit-accent) 8%, transparent); border-color: transparent; color: var(--admin-kit-text); }
@@ -506,7 +560,7 @@
 .admin-kit__memberships-table { min-width: 42rem; }
 .admin-kit__memberships-table th:first-child, .admin-kit__memberships-table td:first-child { min-width: 14rem; }
 .admin-kit__memberships-table th:last-child, .admin-kit__memberships-table td:last-child { white-space: nowrap; width: 1%; }
-.admin-kit__memberships-table select { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: 0.375rem 0.5rem; }
+.admin-kit__memberships-table select { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-control-border); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: 0.375rem 0.5rem; }
 .admin-kit__membership-identity { display: flex; flex-direction: column; gap: 0.25rem; }
 .admin-kit__membership-identity span { overflow-wrap: anywhere; }
 .admin-kit__membership-source, .admin-kit__membership-role { border-radius: 999px; display: inline-block; font-size: 0.8125rem; font-weight: 700; padding: 0.25rem 0.5rem; }
@@ -524,7 +578,7 @@
 .admin-kit__logs-filters { align-items: end; display: flex; flex-wrap: wrap; gap: 0.75rem; }
 .admin-kit__logs-filters label { display: grid; gap: 0.375rem; }
 .admin-kit__logs-filters label > span { color: var(--admin-kit-muted); font-size: 0.8125rem; font-weight: 700; }
-.admin-kit__logs-filters input, .admin-kit__logs-filters select { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: 0.375rem 0.5rem; }
+.admin-kit__logs-filters input, .admin-kit__logs-filters select { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-control-border); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: 0.375rem 0.5rem; }
 .admin-kit__logs-search { flex: 1 1 16rem; }
 .admin-kit__logs-output { background: color-mix(in srgb, var(--admin-kit-text) 95%, black); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius); color: var(--admin-kit-surface); margin: 0; max-block-size: 34rem; overflow: auto; padding: 0.5rem 0; }
 .admin-kit__logs-list { list-style: none; margin: 0; padding: 0; }
@@ -653,13 +707,18 @@
 .admin-kit__key-edit-header p { color: var(--admin-kit-muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.8125rem; margin: 0; }
 
 @media (max-width: 48rem) {
-  .admin-kit__app { padding: 1rem; }
-  .admin-kit__app-shell { padding: 1rem; }
+  .admin-kit__app { gap: 0.5rem; padding: 1rem; }
+  .admin-kit__app-shell { gap: 0.5rem; padding: 1rem; }
   .admin-kit__app-shell-body { grid-template-columns: minmax(0, 1fr); }
   .admin-kit__app-shell-navigation { display: none; }
   .admin-kit__app-shell-mobile-toggle { align-items: center; display: inline-flex; font: inherit; font-weight: 600; justify-self: start; min-height: 2.75rem; padding: 0.5rem 0.75rem; width: fit-content; }
   .admin-kit__app-shell-mobile-navigation { background: var(--admin-kit-surface-subtle); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); display: block; padding: 1rem; }
-  .admin-kit__app-header, .admin-kit__app-actions { align-items: stretch; flex-direction: column; }
+  /* Compact frame header: title and the actions line share a row when they fit, and wrap to a single small line when they do not. */
+  .admin-kit__app-header, .admin-kit__app-actions { align-items: baseline; gap: 0.125rem 0.75rem; justify-content: flex-start; }
+  .admin-kit__app-header h1 { font-size: 1.25rem; letter-spacing: -0.02em; line-height: 1.3; }
+  .admin-kit__app-header p { font-size: 0.875rem; margin-top: 0.125rem; }
+  .admin-kit__app-actions { color: var(--admin-kit-muted); font-size: 0.875rem; }
+  .admin-kit__app-portal { gap: 0.75rem; }
   .admin-kit__workspace-header { align-items: stretch; flex-direction: column; }
   .admin-kit__panel-header-main { align-items: stretch; flex-direction: column; }
   .admin-kit__panel-header-actions, .admin-kit__panel-toolbar { align-items: stretch; flex-direction: column; }
@@ -697,7 +756,7 @@
   .admin-kit__table--stack thead { clip: rect(0 0 0 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
   .admin-kit__table--stack tbody { display: grid; gap: 0.75rem; }
   .admin-kit__table--stack tr { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius-sm); display: grid; overflow: hidden; }
-  .admin-kit__table--stack td { align-items: start; display: grid; gap: 0.75rem; grid-template-columns: minmax(5.5rem, 0.35fr) minmax(0, 1fr); min-width: 0; white-space: normal; width: auto; }
+  .admin-kit__table--stack td, .admin-kit__table--stack tbody th { align-items: start; display: grid; gap: 0.75rem; grid-template-columns: minmax(5.5rem, 0.35fr) minmax(0, 1fr); min-width: 0; white-space: normal; width: auto; }
   .admin-kit__table--stack td:last-child { border-bottom: 0; }
   .admin-kit__table--stack .admin-kit__mobile-cell-label { color: var(--admin-kit-muted); display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
   .admin-kit__table--stack td > :last-child { max-width: 100%; overflow-wrap: anywhere; }

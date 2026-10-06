@@ -70,23 +70,26 @@ export function EventsPanel({
   const latestLoadId = useRef(0);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const load = useCallback(async (nextQuery = query) => {
-    const loadId = ++latestLoadId.current;
-    setLoading(true);
-    setError(undefined);
-    try {
-      const nextResult = validateAdminEventsPage(await adapter.list(nextQuery));
-      if (loadId === latestLoadId.current) setResult(nextResult);
-    } catch (reason) {
-      if (loadId === latestLoadId.current) {
-        setError(
-          reason instanceof Error ? reason.message : "Unable to load administrative events.",
-        );
+  const load = useCallback(
+    async (nextQuery = query) => {
+      const loadId = ++latestLoadId.current;
+      setLoading(true);
+      setError(undefined);
+      try {
+        const nextResult = validateAdminEventsPage(await adapter.list(nextQuery));
+        if (loadId === latestLoadId.current) setResult(nextResult);
+      } catch (reason) {
+        if (loadId === latestLoadId.current) {
+          setError(
+            reason instanceof Error ? reason.message : "Unable to load administrative events.",
+          );
+        }
+      } finally {
+        if (loadId === latestLoadId.current) setLoading(false);
       }
-    } finally {
-      if (loadId === latestLoadId.current) setLoading(false);
-    }
-  }, [adapter, query]);
+    },
+    [adapter, query],
+  );
 
   useEffect(() => {
     void load();
@@ -260,7 +263,10 @@ export function EventsPanel({
         ))
       ) : presentation === "table" ? (
         <div className="admin-kit__table-wrap admin-kit__table-wrap--stack admin-kit__events-table-wrap">
-          <table className="admin-kit__table admin-kit__table--stack admin-kit__events-table" aria-busy={loading}>
+          <table
+            className="admin-kit__table admin-kit__table--stack admin-kit__events-table"
+            aria-busy={loading}
+          >
             <thead>
               <tr>
                 {show("occurred") ? <th scope="col">Occurred</th> : null}

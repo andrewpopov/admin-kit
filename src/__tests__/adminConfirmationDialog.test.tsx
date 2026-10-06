@@ -176,4 +176,12 @@ describe("AdminConfirmationDialog", () => {
     const dialog = screen.getByRole("dialog");
     expect(dialog.contains(document.activeElement)).toBe(true);
   });
+  it("keeps a long description in the scrolling body so the actions stay in view", () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByRole("button", { name: "Open dialog" }));
+    const dialog = screen.getByRole("dialog");
+    const description = document.getElementById(dialog.getAttribute("aria-describedby")!)!;
+    expect(description.parentElement?.classList.contains("admin-kit__dialog-body")).toBe(true);
+    expect(dialog.querySelector(":scope > .admin-kit__dialog-actions")).toBeTruthy();
+  });
 });

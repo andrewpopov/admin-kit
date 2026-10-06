@@ -13,6 +13,7 @@ exports.defaultAdminLabels = {
     cancel: "Cancel",
     previousPage: "Previous",
     nextPage: "Next",
+    skipToContent: "Skip to content",
     pageStatus: (page, pageCount) => `Page ${page} of ${pageCount}`,
 };
 const AdminLabelsContext = (0, react_1.createContext)(exports.defaultAdminLabels);

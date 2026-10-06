@@ -4,9 +4,19 @@ import { useAdminLabels } from "./AdminLabels";
 
 export type AdminPanelState =
   | { kind: "ready"; children: ReactNode }
-  | { kind: "loading"; label?: string }
+  | {
+      kind: "loading";
+      label?: string;
+      /**
+       * Render this many placeholder bars instead of bare text. The label stays
+       * available to screen readers; omit it (or pass 0) for the plain label.
+       */
+      skeletonRows?: number;
+    }
   | { kind: "empty"; title: string; detail?: string }
   | { kind: "error"; title?: string; detail: string; onRetry?: () => void };
+
+const MAX_SKELETON_ROWS = 12;
 
 /** Accessible, framework-style-neutral state surface for adapter-backed panels. */
 export function AdminPanelStateView({
@@ -21,9 +31,26 @@ export function AdminPanelStateView({
   if (state.kind === "ready") return <>{state.children}</>;
 
   if (state.kind === "loading") {
+    const label = state.label ?? labels.loading;
+    const skeletonRows = Math.min(Math.floor(state.skeletonRows ?? 0), MAX_SKELETON_ROWS);
+    if (skeletonRows >= 1) {
+      return (
+        <p
+          aria-live="polite"
+          className={["admin-kit__state", "admin-kit__skeleton", className]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          <span className="admin-kit__visually-hidden">{label}</span>
+          {Array.from({ length: skeletonRows }, (_, row) => (
+            <span aria-hidden="true" className="admin-kit__skeleton-bar" key={row} />
+          ))}
+        </p>
+      );
+    }
     return (
       <p aria-live="polite" className={["admin-kit__state", className].filter(Boolean).join(" ")}>
-        {state.label ?? labels.loading}
+        {label}
       </p>
     );
   }
