@@ -112,6 +112,8 @@ export function AdminPortal({
     .filter((group) => group.sections.length > 0);
   const sections = visibleGroups.flatMap((group) => group.sections);
   const active = sections.find((section) => section.id === activeSection);
+  // One section leaves nothing to navigate to: no rail, no Menu toggle, content at full width.
+  const hasNavigation = sections.length > 1;
 
   if (!active) {
     return (
@@ -137,79 +139,89 @@ export function AdminPortal({
     <AdminContentTargetReset>
       <AdminThemeProvider theme="core">
         <section
-          className={["admin-kit", "admin-kit--theme-core", "admin-kit__portal", className]
+          className={[
+            "admin-kit",
+            "admin-kit--theme-core",
+            "admin-kit__portal",
+            hasNavigation ? null : "admin-kit__portal--single",
+            className,
+          ]
             .filter(Boolean)
             .join(" ")}
           data-admin-kit-theme="core"
         >
-          <button
-            aria-controls={mobileNavigationId}
-            aria-expanded={mobileNavigationOpen}
-            className="admin-kit__app-shell-mobile-toggle"
-            onClick={() => setMobileNavigationOpen((open) => !open)}
-            onKeyDown={closeOnEscape}
-            ref={toggleRef}
-            type="button"
-          >
-            {mobileNavigationLabel}
-          </button>
-          <nav
-            aria-label={ariaLabel}
-            className="admin-kit__portal-navigation"
-            data-open={mobileNavigationOpen ? "" : undefined}
-            id={mobileNavigationId}
-            onClick={closeOnNavigate}
-            onKeyDown={closeOnEscape}
-          >
-            {visibleGroups.map((group) => (
-              <section className="admin-kit__portal-group" key={group.id}>
-                <header className="admin-kit__portal-group-header">
-                  <p className="admin-kit__portal-group-label">{group.label}</p>
-                  {group.description ? <p>{group.description}</p> : null}
-                </header>
-                <ul className="admin-kit__portal-list">
-                  {group.sections.map((section) => {
-                    const isActive = section.id === active.id;
-                    const onClick: MouseEventHandler<HTMLElement> = (event) => {
-                      if (section.disabled) {
-                        event.preventDefault();
-                        return;
-                      }
-                      onSectionChange?.(section.id);
-                    };
-                    const navigationProps: AdminPortalNavigationItemProps = {
-                      section,
-                      active: isActive,
-                      className: "admin-kit__portal-link",
-                      ariaCurrent: isActive ? "page" : undefined,
-                      ariaDisabled: section.disabled ? true : undefined,
-                      tabIndex: section.disabled ? -1 : undefined,
-                      onClick,
-                    };
+          {hasNavigation ? (
+            <>
+              <button
+                aria-controls={mobileNavigationId}
+                aria-expanded={mobileNavigationOpen}
+                className="admin-kit__app-shell-mobile-toggle"
+                onClick={() => setMobileNavigationOpen((open) => !open)}
+                onKeyDown={closeOnEscape}
+                ref={toggleRef}
+                type="button"
+              >
+                {mobileNavigationLabel}
+              </button>
+              <nav
+                aria-label={ariaLabel}
+                className="admin-kit__portal-navigation"
+                data-open={mobileNavigationOpen ? "" : undefined}
+                id={mobileNavigationId}
+                onClick={closeOnNavigate}
+                onKeyDown={closeOnEscape}
+              >
+                {visibleGroups.map((group) => (
+                  <section className="admin-kit__portal-group" key={group.id}>
+                    <header className="admin-kit__portal-group-header">
+                      <p className="admin-kit__portal-group-label">{group.label}</p>
+                      {group.description ? <p>{group.description}</p> : null}
+                    </header>
+                    <ul className="admin-kit__portal-list">
+                      {group.sections.map((section) => {
+                        const isActive = section.id === active.id;
+                        const onClick: MouseEventHandler<HTMLElement> = (event) => {
+                          if (section.disabled) {
+                            event.preventDefault();
+                            return;
+                          }
+                          onSectionChange?.(section.id);
+                        };
+                        const navigationProps: AdminPortalNavigationItemProps = {
+                          section,
+                          active: isActive,
+                          className: "admin-kit__portal-link",
+                          ariaCurrent: isActive ? "page" : undefined,
+                          ariaDisabled: section.disabled ? true : undefined,
+                          tabIndex: section.disabled ? -1 : undefined,
+                          onClick,
+                        };
 
-                    return (
-                      <li key={section.id}>
-                        {renderNavigationItem ? (
-                          renderNavigationItem(navigationProps)
-                        ) : (
-                          <button
-                            aria-current={navigationProps.ariaCurrent}
-                            className={navigationProps.className}
-                            disabled={section.disabled}
-                            onClick={onClick}
-                            type="button"
-                          >
-                            <span>{section.label}</span>
-                            {section.description ? <small>{section.description}</small> : null}
-                          </button>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            ))}
-          </nav>
+                        return (
+                          <li key={section.id}>
+                            {renderNavigationItem ? (
+                              renderNavigationItem(navigationProps)
+                            ) : (
+                              <button
+                                aria-current={navigationProps.ariaCurrent}
+                                className={navigationProps.className}
+                                disabled={section.disabled}
+                                onClick={onClick}
+                                type="button"
+                              >
+                                <span>{section.label}</span>
+                                {section.description ? <small>{section.description}</small> : null}
+                              </button>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </section>
+                ))}
+              </nav>
+            </>
+          ) : null}
 
           <div
             className="admin-kit__portal-content"

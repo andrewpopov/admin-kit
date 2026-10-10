@@ -247,8 +247,8 @@ describe("Admin Kit styles", () => {
     expect(outlines[0]).toContain("outline: 2px solid var(--admin-kit-accent);");
     expect(outlines[0]).toContain("outline-offset: 2px;");
     expect(styles).toMatch(/\.admin-kit :where\(a, button, .*\):focus-visible/);
-    expect(styles).toMatch(/\.admin-kit__app \{ background: var\(--admin-kit-surface\);/);
-    expect(styles).toMatch(/\.admin-kit__app-shell \{ background: var\(--admin-kit-surface\);/);
+    expect(styles).toMatch(/\.admin-kit__app \{[^}]*background: var\(--admin-kit-surface\);/);
+    expect(styles).toMatch(/\.admin-kit__app-shell \{[^}]*background: var\(--admin-kit-surface\);/);
   });
   describe("WCAG 1.4.11 non-text contrast for form control boundaries", () => {
     const THREE_TO_ONE = 3;
