@@ -316,13 +316,14 @@
   gap: 1.5rem;
   grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
 }
-.admin-kit__app { background: var(--admin-kit-surface); box-sizing: border-box; display: grid; gap: 1.5rem; margin-inline: auto; max-width: 96rem; min-width: 0; padding: 1.5rem; }
+.admin-kit__portal--single { grid-template-columns: minmax(0, 1fr); }
+.admin-kit__app { align-content: start; background: var(--admin-kit-surface); box-sizing: border-box; display: grid; gap: 1.5rem; margin-inline: auto; max-width: 96rem; min-block-size: 100dvh; min-width: 0; padding: 1.5rem; }
 .admin-kit__app-header, .admin-kit__app-actions { align-items: start; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
 .admin-kit__app-header > div:first-child { min-width: 0; }
 .admin-kit__app-header h1 { font-size: clamp(1.75rem, 3vw, 2.25rem); letter-spacing: -0.035em; margin: 0; }
 .admin-kit__app-header p { color: var(--admin-kit-muted); margin: 0.375rem 0 0; max-width: 48rem; }
 .admin-kit__app-actions { justify-content: flex-end; }
-.admin-kit__app-shell { background: var(--admin-kit-surface); box-sizing: border-box; display: grid; gap: 1rem; margin-inline: auto; max-width: 100rem; min-width: 0; padding: 1rem; }
+.admin-kit__app-shell { align-content: start; background: var(--admin-kit-surface); box-sizing: border-box; display: grid; gap: 1rem; margin-inline: auto; max-width: 100rem; min-block-size: 100dvh; min-width: 0; padding: 1rem; }
 .admin-kit__app-shell-body { display: grid; gap: 1.5rem; grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr); min-height: 0; }
 .admin-kit__app-shell-navigation, .admin-kit__portal-navigation { align-self: start; max-height: calc(100dvh - (var(--admin-kit-sticky-top) * 2)); overflow-y: auto; position: sticky; scrollbar-gutter: stable; top: var(--admin-kit-sticky-top); }
 .admin-kit__app-shell-navigation { background: var(--admin-kit-surface-subtle); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); padding: 1rem; }
@@ -709,6 +710,8 @@
 @media (max-width: 48rem) {
   .admin-kit__app { gap: 0.5rem; padding: 1rem; }
   .admin-kit__app-shell { gap: 0.5rem; padding: 1rem; }
+  /* The frame already insets its content by 1rem; a workspace inside it must not add a second inset. */
+  .admin-kit__app .admin-kit__workspace, .admin-kit__app-shell .admin-kit__workspace { padding-inline: 0; }
   .admin-kit__app-shell-body { grid-template-columns: minmax(0, 1fr); }
   .admin-kit__app-shell-navigation { display: none; }
   .admin-kit__app-shell-mobile-toggle { align-items: center; display: inline-flex; font: inherit; font-weight: 600; justify-self: start; min-height: 2.75rem; padding: 0.5rem 0.75rem; width: fit-content; }

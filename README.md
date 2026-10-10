@@ -328,6 +328,10 @@ application-specific pages. The package owns grouping, current-page and
 disabled semantics, responsive layout, and empty or unavailable-section states. The host
 still owns URLs and renders its router's link component.
 
+When only one section is visible there is nothing to navigate to, so the portal
+(and `AdminApp`) omits the section rail and the phone Menu toggle and lets the
+content span the full width.
+
 When using the default button navigation, `onSectionChange` is required. A
 custom router-link renderer satisfies navigation by itself and may optionally
 receive `onSectionChange` as a selection notification.

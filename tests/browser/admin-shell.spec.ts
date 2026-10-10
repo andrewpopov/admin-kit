@@ -409,3 +409,106 @@ for (const [name, url] of [
     expect(await surface(), "no auto opt-in, dark OS").toBe(light);
   });
 }
+
+const shortFrames = [
+  { name: "AdminApp", file: "admin-app-short.html", frame: ".admin-kit__app", body: ".admin-kit__app-portal", gap: 24, framePadding: 24, workspaceX: 336 },
+  { name: "AdminAppShell", file: "admin-app-shell-short.html", frame: ".admin-kit__app-shell", body: ".admin-kit__app-shell-body", gap: 16, framePadding: 16, workspaceX: 328 },
+] as const;
+
+for (const { name, file, frame, body, gap } of shortFrames) {
+  const shortFixture = pathToFileURL(resolve("tests/browser", file)).href;
+
+  for (const scheme of ["light", "dark"] as const) {
+    test(`${name} fills the viewport on a short page (${scheme})`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto(shortFixture);
+      await page.evaluate((dark) => document.documentElement.classList.toggle("dark", dark), scheme === "dark");
+      const bounds = await page.locator(frame).boundingBox();
+      expect(bounds?.y).toBe(0);
+      expect(
+        (bounds?.y ?? 0) + (bounds?.height ?? 0),
+        "a short page's frame must reach the bottom of the viewport, not leave the host background showing",
+      ).toBe(900);
+      expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(900);
+
+      const header = await page.locator(`${frame} > .admin-kit__app-header`).boundingBox();
+      const nextRow = await page.locator(`${frame} > ${body}`).boundingBox();
+      const headerTitleBlock = await page
+        .locator(`${frame} > .admin-kit__app-header > div:first-child`)
+        .boundingBox();
+      expect(
+        header?.height,
+        "the extra frame height must fall below the content, not stretch the header row",
+      ).toBe(headerTitleBlock?.height);
+      expect(
+        (nextRow?.y ?? 0) - ((header?.y ?? 0) + (header?.height ?? 0)),
+        "the header row and the content row must stay one grid gap apart",
+      ).toBe(gap);
+    });
+  }
+
+  test(`${name} aligns page content with the frame header on phones`, async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto(shortFixture);
+    const frameTitle = await page
+      .getByRole("heading", { name: "Admin console", level: 1 })
+      .boundingBox();
+    const pageTitle = await page.getByRole("heading", { name: "Overview", level: 1 }).boundingBox();
+    expect(
+      pageTitle?.x,
+      "the page title's left edge must match the frame header's, not sit one extra inset in",
+    ).toBe(frameTitle?.x);
+  });
+}
+
+for (const { name, file, frame, framePadding, workspaceX } of shortFrames) {
+  test(`${name} keeps its desktop content position and padding at 1440px`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(pathToFileURL(resolve("tests/browser", file)).href);
+    const workspace = page.locator(".admin-kit__workspace");
+    expect((await workspace.boundingBox())?.x).toBe(workspaceX);
+    expect(
+      await workspace.evaluate((node) => {
+        const { paddingLeft, paddingRight } = getComputedStyle(node);
+        return `${paddingLeft} ${paddingRight}`;
+      }),
+    ).toBe("16px 16px");
+    expect(
+      await page.locator(frame).evaluate((node) => {
+        const { paddingLeft, paddingRight } = getComputedStyle(node);
+        return `${paddingLeft} ${paddingRight}`;
+      }),
+    ).toBe(`${framePadding}px ${framePadding}px`);
+    expect(
+      (await page.getByRole("heading", { name: "Overview", level: 1 }).boundingBox())?.x,
+    ).toBe(workspaceX + 16);
+  });
+}
+
+test("AdminApp omits navigation for a single section and gives the content the full width", async ({
+  page,
+}) => {
+  const single = pathToFileURL(resolve("tests/browser/admin-app-single-short.html")).href;
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(single);
+  await expect(page.locator("nav")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Menu" })).toHaveCount(0);
+  const content = await page.locator(".admin-kit__portal-content").boundingBox();
+  expect(content?.x, "content starts at the frame padding, not after a rail").toBe(24);
+  expect(content?.width, "content spans the frame body").toBe(1440 - 2 * 24);
+  await expect(page.getByRole("link", { name: "Skip to content" })).toHaveCount(1);
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(page.getByRole("button", { name: "Menu" })).toHaveCount(0);
+});
+
+test("AdminApp keeps the navigation and Menu toggle when there are two sections", async ({
+  page,
+}) => {
+  const two = pathToFileURL(resolve("tests/browser/admin-app-short.html")).href;
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(two);
+  await expect(page.locator("nav.admin-kit__portal-navigation")).toBeVisible();
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(page.getByRole("button", { name: "Menu" })).toBeVisible();
+});

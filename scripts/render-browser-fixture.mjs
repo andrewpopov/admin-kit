@@ -34,6 +34,8 @@ const {
   AdminWorkspace,
   AdminActionButton,
   AdminApp,
+  AdminAppShell,
+  AdminCard,
   ApiKeysPanel,
   UsersPanel,
   LogsPanel,
@@ -396,3 +398,68 @@ await renderPortaledPage(
   }),
   hostRebrand,
 );
+
+// A deliberately short page inside both frames (AdminApp and AdminAppShell), with a host
+// background that differs from the frame surface, so a frame that stops short of the
+// viewport shows the host colour as a band below it.
+const shortHead = "<style>html, body { background: rgb(255, 0, 255); margin: 0; }</style>";
+const shortSection = {
+  id: "overview",
+  label: "Overview",
+  capability: "custom:overview",
+  render: () => React.createElement(
+    AdminWorkspace,
+    { title: "Overview", description: "A short page." },
+    React.createElement(AdminCard, { title: "Status" }, "All systems normal."),
+  ),
+};
+await renderShortPage(
+  "admin-app-short.html",
+  "Admin Kit short AdminApp fixture",
+  React.createElement(AdminApp, {
+    frame: { title: "Admin console", actions: React.createElement("span", null, "Signed in") },
+    activeSection: "overview",
+    onSectionChange: () => undefined,
+    groups: [{
+      id: "main",
+      label: "Main",
+      sections: [shortSection, { ...shortSection, id: "other", label: "Other", capability: "custom:other" }],
+    }],
+  }),
+);
+// One visible section: the kit omits the navigation rail and the phone Menu toggle.
+await renderShortPage(
+  "admin-app-single-short.html",
+  "Admin Kit single-section AdminApp fixture",
+  React.createElement(AdminApp, {
+    frame: { title: "Admin console", actions: React.createElement("span", null, "Signed in") },
+    activeSection: "overview",
+    onSectionChange: () => undefined,
+    groups: [{ id: "main", label: "Main", sections: [shortSection] }],
+  }),
+);
+await renderShortPage(
+  "admin-app-shell-short.html",
+  "Admin Kit short AdminAppShell fixture",
+  React.createElement(AdminAppShell, {
+    frame: { title: "Admin console", actions: React.createElement("span", null, "Signed in") },
+    renderNavigation: () => React.createElement("a", { href: "#overview" }, "Overview"),
+  }, shortSection.render()),
+);
+
+async function renderShortPage(fileName, title, tree) {
+  const host = document.createElement("div");
+  document.body.append(host);
+  const shortRoot = createRoot(host);
+  await act(async () => {
+    shortRoot.render(tree);
+  });
+  const html = host.innerHTML;
+  await act(async () => {
+    shortRoot.unmount();
+  });
+  host.remove();
+  const file = resolve(packageRoot, "tests/browser", fileName);
+  writeFileSync(file, page(title, html, shortHead));
+  console.log(`[render-browser-fixture] wrote ${file} (${html.length} bytes of rendered markup)`);
+}

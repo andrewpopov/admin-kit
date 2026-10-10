@@ -110,6 +110,31 @@ describe("AdminPortal", () => {
     expect(onSectionChange).toHaveBeenCalledOnce();
   });
 
+  it("omits the navigation and Menu toggle when only one section is visible", () => {
+    const { container } = render(
+      <AdminPortal
+        activeSection="users"
+        groups={[{ id: "core", label: "Core", sections: [groups[0].sections[0]] }]}
+        onSectionChange={() => undefined}
+      />,
+    );
+
+    expect(container.querySelector("nav")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Menu" })).toBeNull();
+    expect(screen.getByText("User content")).toBeTruthy();
+    expect(container.querySelector(".admin-kit__portal--single")).not.toBeNull();
+  });
+
+  it("keeps the navigation and Menu toggle when several sections are visible", () => {
+    const { container } = render(
+      <AdminPortal activeSection="users" groups={groups} onSectionChange={() => undefined} />,
+    );
+
+    expect(container.querySelector("nav.admin-kit__portal-navigation")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Menu" })).toBeTruthy();
+    expect(container.querySelector(".admin-kit__portal--single")).toBeNull();
+  });
+
   it("renders an explicit empty state when capabilities hide every section", () => {
     render(
       <AdminPortal
