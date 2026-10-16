@@ -512,3 +512,27 @@ test("AdminApp keeps the navigation and Menu toggle when there are two sections"
   await page.setViewportSize({ width: 375, height: 812 });
   await expect(page.getByRole("button", { name: "Menu" })).toBeVisible();
 });
+
+
+for (const width of [320, 375]) {
+  test(`event feed wraps long values at ${width}px with enlarged text and expanded details`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 812 });
+    await page.goto(fixture);
+    await page.addStyleTag({ content: "html { font-size: 200%; }" });
+    const feed = page.locator(".admin-kit__events-list");
+    await expect(feed.locator("li")).toHaveCount(1);
+    const overflows = () => feed.evaluate((node) => {
+      const viewportWidth = document.documentElement.clientWidth;
+      return [...node.querySelectorAll("li, strong, p, span, summary, dd")].filter((item) => {
+        const rect = item.getBoundingClientRect();
+        return rect.width > 0 && (rect.right > viewportWidth + 1 || item.scrollWidth > item.clientWidth + 1);
+      }).map((item) => item.tagName);
+    });
+    expect(await overflows(), "closed event feed must fit without clipping or horizontal scrolling").toEqual([]);
+    await feed.locator("summary").click();
+    await expect(feed.locator("dd").first()).toBeVisible();
+    expect(await overflows(), "expanded event metadata must wrap within the phone").toEqual([]);
+    await expect(feed).toContainText("avery.long.operator.identity.for.catalog@example.test");
+    await expect(feed).toContainText("correlation-fedcba9876543210fedcba9876543210fedcba9876543210");
+  });
+}
