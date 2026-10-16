@@ -46,8 +46,19 @@ describe("the graphite palette is opt-in", () => {
     expect(document.querySelector("[class*='admin-kit--palette-']")).toBeNull();
   });
 
-  it("treats an explicit core palette as the default", () => {
-    render(<AdminTheme palette="core">content</AdminTheme>);
+  it("keeps an omitted palette at the default for descendants and portals", () => {
+    render(
+      <AdminTheme>
+        <AdminTheme className="inner">
+          <AdminDialog open title="Invite" onClose={noop}>
+            body
+          </AdminDialog>
+        </AdminTheme>
+      </AdminTheme>,
+    );
+    expect(document.querySelector(".inner")!.className).toBe("admin-kit admin-kit--theme-core");
+    const layer = screen.getByRole("dialog").parentElement!.parentElement!;
+    expect(layer.className).toBe("admin-kit admin-kit--theme-core admin-kit--layer");
     expect(document.querySelector("[class*='admin-kit--palette-']")).toBeNull();
   });
 

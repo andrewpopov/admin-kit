@@ -3,7 +3,9 @@ import { createContext, useContext, type ReactNode } from "react";
 import type { AdminPaletteName, AdminThemeName } from "./AdminTheme";
 
 const AdminThemeContext = createContext<AdminThemeName | undefined>(undefined);
-const AdminPaletteContext = createContext<AdminPaletteName>("core");
+// Internal only: the resolved default. Public `AdminPaletteName` omits it so a
+// boundary cannot claim a reset that the descendant CSS would not honour.
+const AdminPaletteContext = createContext<AdminPaletteName | "core">("core");
 
 /**
  * Lets portaled surfaces learn which theme boundary they were opened from.

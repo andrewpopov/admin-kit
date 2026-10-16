@@ -197,6 +197,28 @@ needs a form control's boundary to reach 3:1 against the adjacent surface;
 (`#7c8798` light, `#6f80a0` dark) clear 3:1 against both `surface` and
 `surface-subtle`, and a stylesheet test recomputes that from the CSS.
 
+Admin Kit also ships one opt-in palette, `graphite`, which swaps the accent,
+surface, border and text tokens for a neutral grey-blue ramp. It is a palette,
+not a theme: `theme` stays `core`, `data-admin-kit-theme` stays `core`, and
+conformance keeps enforcing the same contrast contract against the palette's
+own values in both light and dark.
+
+```tsx
+<AdminApp palette="graphite" groups={groups} /* … */ />
+```
+
+`palette="graphite"` on `AdminApp` or a standalone `AdminTheme` adds
+`admin-kit--palette-graphite` to that boundary, and every nested Admin Kit
+boundary inherits it — including `AdminAppShell` and `AdminPortal`, which take
+no `palette` of their own and simply pick up the surrounding one, and the
+dialogs and confirmations that portal to `document.body`, whose wrapper
+re-enters the palette the same way it re-enters the theme. A boundary that
+omits `palette` inherits the surrounding one, so there is no way to opt a
+nested surface back out of graphite: the default palette is not nameable, and
+`AdminPaletteName` is `"graphite"` only. Leave `palette` off everywhere to get
+the unchanged default surface, which is what every existing consumer keeps
+getting.
+
 Admin Kit is intentionally opinionated about shared administrative UI. Every
 admin route must import `@andrewpopov/admin-kit/styles.css` and render through
 `AdminApp`, `AdminWorkspace`, or `AdminTheme`; those boundaries apply the named
