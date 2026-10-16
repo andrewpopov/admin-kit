@@ -14,7 +14,7 @@ import type {
   AdminSectionId,
 } from "../core/contracts";
 import { AdminContentTargetReset, useAdminContentTargetId } from "./AdminSkipLink";
-import { AdminThemeProvider } from "./AdminThemeContext";
+import { AdminThemeProvider, useAdminPaletteClass } from "./AdminThemeContext";
 
 export interface AdminPortalReactSection extends AdminPortalSectionDefinition {
   render: () => ReactNode;
@@ -87,6 +87,8 @@ export function AdminPortal({
   // An AdminApp skip link targets this id; standalone portals mint their own.
   const ownContentId = `admin-kit-content-${useId().replace(/:/g, "")}`;
   const contentId = useAdminContentTargetId() ?? ownContentId;
+  // This boundary re-enters the core theme but inherits the host's palette.
+  const paletteClass = useAdminPaletteClass();
 
   const closeMobileNavigation = () => {
     setMobileNavigationOpen(false);
@@ -118,7 +120,13 @@ export function AdminPortal({
   if (!active) {
     return (
       <section
-        className={["admin-kit", "admin-kit--theme-core", "admin-kit__portal-empty", className]
+        className={[
+          "admin-kit",
+          "admin-kit--theme-core",
+          paletteClass,
+          "admin-kit__portal-empty",
+          className,
+        ]
           .filter(Boolean)
           .join(" ")}
         data-admin-kit-theme="core"
@@ -142,6 +150,7 @@ export function AdminPortal({
           className={[
             "admin-kit",
             "admin-kit--theme-core",
+            paletteClass,
             "admin-kit__portal",
             hasNavigation ? null : "admin-kit__portal--single",
             className,

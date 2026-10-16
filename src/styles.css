@@ -60,6 +60,27 @@
   --admin-kit-shadow: 0 1px 2px rgb(15 23 42 / 6%), 0 8px 20px rgb(15 23 42 / 5%);
 }
 
+/* Graphite is an opt-in palette, not a theme: the boundary stays
+   `.admin-kit--theme-core` (and `data-admin-kit-theme="core"`), and these
+   declarations only recolor it. They are scoped more specifically than the
+   core preset so they win on the palette boundary itself and on any nested
+   Admin Kit boundary inside it. Tokens the palette does not name (radius,
+   shadow, semantic status colors) keep their core values. */
+.admin-kit--theme-core.admin-kit--palette-graphite,
+.admin-kit--palette-graphite .admin-kit--theme-core {
+  --admin-kit-surface: #f3f5f5;
+  --admin-kit-surface-subtle: #edf2f1;
+  --admin-kit-border: #d9e0e0;
+  --admin-kit-border-strong: #c2cccc;
+  --admin-kit-control-border: #7c898b;
+  --admin-kit-text: #20292b;
+  --admin-kit-muted: #586568;
+  --admin-kit-accent: #0b756b;
+  --admin-kit-accent-strong: #095d55;
+  --admin-kit-accent-soft: #dceee9;
+  --admin-kit-on-accent: #ffffff;
+}
+
 /* Dark token values, shared by the authoritative `.dark` class and the
    opt-in `[data-admin-kit-theme="auto"]` media hook below, so the two
    never drift out of sync. */
@@ -84,6 +105,24 @@
   --admin-kit-dark-warning: #fbbf24;
   --admin-kit-dark-warning-soft: #422006;
   --admin-kit-dark-shadow: 0 2px 4px rgb(0 0 0 / 25%), 0 16px 32px rgb(0 0 0 / 18%);
+}
+
+/* Graphite's dark values ride the same `.dark` / `auto` mechanisms as core:
+   they only re-declare the shared dark variables on the palette boundary, so
+   every existing dark mapping below resolves to graphite automatically. The
+   palette names no dark status token, so semantic colors stay core's. */
+:where(.dark, [data-admin-kit-theme="auto"]) .admin-kit--palette-graphite {
+  --admin-kit-dark-surface: #151819;
+  --admin-kit-dark-surface-subtle: #242b2d;
+  --admin-kit-dark-border: #343c3e;
+  --admin-kit-dark-border-strong: #4b5658;
+  --admin-kit-dark-control-border: #718183;
+  --admin-kit-dark-text: #edf2f1;
+  --admin-kit-dark-muted: #a1afb0;
+  --admin-kit-dark-accent: #78d9c9;
+  --admin-kit-dark-accent-strong: #96e4d6;
+  --admin-kit-dark-accent-soft: #213e39;
+  --admin-kit-dark-on-accent: #0d1a18;
 }
 
 .dark {
