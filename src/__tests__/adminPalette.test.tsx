@@ -56,7 +56,7 @@ describe("the graphite palette is opt-in", () => {
         </AdminTheme>
       </AdminTheme>,
     );
-    expect(document.querySelector(".inner")!.className).toBe("admin-kit admin-kit--theme-core");
+    expect(document.querySelector(".inner")!.className).toBe("admin-kit admin-kit--theme-core inner");
     const layer = screen.getByRole("dialog").parentElement!.parentElement!;
     expect(layer.className).toBe("admin-kit admin-kit--theme-core admin-kit--layer");
     expect(document.querySelector("[class*='admin-kit--palette-']")).toBeNull();
