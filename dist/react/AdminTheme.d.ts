@@ -4,8 +4,13 @@ export type AdminThemeName = "core";
  * Opt-in color palettes layered on top of the core theme. A palette only
  * re-declares color tokens, so `theme` stays `"core"` (and so does
  * `data-admin-kit-theme`) for every palette.
+ *
+ * The default palette is not nameable: omit `palette` to keep it, and a
+ * boundary that omits it inherits the surrounding one. Descendant rules pin
+ * nested surfaces to the inherited palette, so no value here can reset an
+ * opted-in boundary back to the default.
  */
-export type AdminPaletteName = "core" | "graphite";
+export type AdminPaletteName = "graphite";
 export interface AdminThemeProps {
     /** The named visual contract shared by every Admin Kit surface. */
     theme?: AdminThemeName;

@@ -7,6 +7,8 @@ exports.AdminThemeLayer = AdminThemeLayer;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const AdminThemeContext = (0, react_1.createContext)(undefined);
+// Internal only: the resolved default. Public `AdminPaletteName` omits it so a
+// boundary cannot claim a reset that the descendant CSS would not honour.
 const AdminPaletteContext = (0, react_1.createContext)("core");
 /**
  * Lets portaled surfaces learn which theme boundary they were opened from.
