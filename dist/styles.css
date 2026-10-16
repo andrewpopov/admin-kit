@@ -467,8 +467,8 @@
   min-block-size: 2.75rem;
   padding: 0.5rem 0.75rem;
 }
-.admin-kit__events-list { display: grid; gap: 0.75rem; list-style: none; margin: 1rem 0; padding: 0; }
-.admin-kit__events-list > li { padding: 1rem; }
+.admin-kit__events-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem; list-style: none; margin: 1rem 0; padding: 0; }
+.admin-kit__events-list > li { min-inline-size: 0; overflow-wrap: anywhere; padding: 1rem; }
 .admin-kit__events-list p { margin: 0.25rem 0; }
 .admin-kit__events-list details { border-top: 1px solid var(--admin-kit-border); margin-top: 0.75rem; padding-top: 0.75rem; }
 .admin-kit__events-list summary { color: var(--admin-kit-accent); cursor: pointer; font-weight: 600; }

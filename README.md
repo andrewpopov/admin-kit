@@ -628,7 +628,7 @@ filters the host can execute.
 />
 ```
 
-The default `feed` presentation favors narrative inspection. Use `table` for
+The default `feed` presentation favors narrative inspection. Long identifiers and metadata wrap within the feed at phone widths, including when details are expanded. Use `table` for
 high-volume audit trails where operators compare timestamps, actors, resources,
 outcomes, and details across rows.
 
