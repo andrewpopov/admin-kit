@@ -336,4 +336,85 @@ describe("Admin Kit styles", () => {
     );
     expect(styles.match(/^\.admin-kit__skeleton-bar \{[^}]*\}/m)?.[0]).not.toContain("animation");
   });
+
+  describe("the opt-in graphite palette", () => {
+    // First block: the light selector list. Second: the shared dark variables.
+    const lightBlock = styles.match(/--palette-graphite,[\s\S]*?\{([^}]*)\}/)?.[1] ?? "";
+    const darkBlock = styles.match(/--palette-graphite \{([^}]*)\}/)?.[1] ?? "";
+    const graphite = (block: string, name: string) =>
+      block.match(new RegExp(`${name}:\\s*(#[0-9a-fA-F]{6});`))?.[1] ?? "";
+
+    it("adds a palette, never a second theme name", () => {
+      expect(styles).not.toContain("admin-kit--theme-graphite");
+      expect(lightBlock).toContain("--admin-kit-surface: #f3f5f5;");
+      expect(darkBlock).toContain("--admin-kit-dark-surface: #151819;");
+      // Nested Admin Kit boundaries inside a graphite boundary stay graphite.
+      expect(styles).toContain(".admin-kit--palette-graphite .admin-kit--theme-core {");
+    });
+
+    it("leaves every existing core value untouched", () => {
+      expect(resolvedHex("--admin-kit-surface", "root")).toBe("#ffffff");
+      expect(resolvedHex("--admin-kit-accent", "root")).toBe("#3156c7");
+      expect(resolvedHex("--admin-kit-control-border", "root")).toBe("#7c8798");
+      expect(resolvedHex("--admin-kit-surface", "dark")).toBe("#172033");
+      expect(resolvedHex("--admin-kit-accent", "dark")).toBe("#a9c4ff");
+      expect(resolvedHex("--admin-kit-on-accent", "dark")).toBe("#0d1526");
+    });
+
+    it("keeps status colors, radii and shadows on their core values", () => {
+      for (const token of ["danger", "success", "warning"]) {
+        expect(lightBlock).not.toContain(`--admin-kit-${token}`);
+        expect(darkBlock).not.toContain(`--admin-kit-dark-${token}`);
+      }
+      expect(lightBlock).not.toContain("--admin-kit-radius");
+      expect(lightBlock).not.toContain("--admin-kit-shadow");
+      expect(darkBlock).not.toContain("--admin-kit-dark-shadow");
+    });
+
+    it("reuses the .dark / auto dark mechanism instead of a palette media query", () => {
+      expect(styles).toContain(
+        ':where(.dark, [data-admin-kit-theme="auto"]) .admin-kit--palette-graphite {',
+      );
+      // Graphite light is declared before the dark mappings, which share its
+      // specificity and must win later in the sheet.
+      const lightAt = styles.indexOf(".admin-kit--theme-core.admin-kit--palette-graphite");
+      const darkAt = styles.indexOf(".dark .admin-kit--theme-core {");
+      expect(lightAt).toBeGreaterThan(-1);
+      expect(darkAt).toBeGreaterThan(lightAt);
+    });
+
+    it("clears 4.5:1 for graphite foregrounds in both modes", () => {
+      const pairs: Array<[string, string, string]> = [
+        [lightBlock, "--admin-kit-text", "--admin-kit-surface"],
+        [lightBlock, "--admin-kit-text", "--admin-kit-surface-subtle"],
+        [lightBlock, "--admin-kit-muted", "--admin-kit-surface"],
+        [lightBlock, "--admin-kit-muted", "--admin-kit-surface-subtle"],
+        [lightBlock, "--admin-kit-on-accent", "--admin-kit-accent"],
+        [lightBlock, "--admin-kit-on-accent", "--admin-kit-accent-strong"],
+        [darkBlock, "--admin-kit-dark-text", "--admin-kit-dark-surface"],
+        [darkBlock, "--admin-kit-dark-text", "--admin-kit-dark-surface-subtle"],
+        [darkBlock, "--admin-kit-dark-muted", "--admin-kit-dark-surface"],
+        [darkBlock, "--admin-kit-dark-muted", "--admin-kit-dark-surface-subtle"],
+        [darkBlock, "--admin-kit-dark-on-accent", "--admin-kit-dark-accent"],
+        [darkBlock, "--admin-kit-dark-on-accent", "--admin-kit-dark-accent-strong"],
+      ];
+      for (const [block, fg, bg] of pairs) {
+        const ratio = contrastRatio(graphite(block, fg), graphite(block, bg));
+        expect(ratio, `${fg} on ${bg}`).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+      }
+    });
+
+    it("clears 3:1 for graphite control borders against both graphite surfaces", () => {
+      const pairs: Array<[string, string, string]> = [
+        [lightBlock, "--admin-kit-control-border", "--admin-kit-surface"],
+        [lightBlock, "--admin-kit-control-border", "--admin-kit-surface-subtle"],
+        [darkBlock, "--admin-kit-dark-control-border", "--admin-kit-dark-surface"],
+        [darkBlock, "--admin-kit-dark-control-border", "--admin-kit-dark-surface-subtle"],
+      ];
+      for (const [block, border, surface] of pairs) {
+        const ratio = contrastRatio(graphite(block, border), graphite(block, surface));
+        expect(ratio, `${border} on ${surface}`).toBeGreaterThanOrEqual(3);
+      }
+    });
+  });
 });

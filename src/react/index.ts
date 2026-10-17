@@ -42,7 +42,12 @@ export {
   type AdminPanelHeaderProps,
 } from "./AdminPanelHeader";
 export { AdminWorkspace, type AdminWorkspaceProps } from "./AdminWorkspace";
-export { AdminTheme, type AdminThemeName, type AdminThemeProps } from "./AdminTheme";
+export {
+  AdminTheme,
+  type AdminPaletteName,
+  type AdminThemeName,
+  type AdminThemeProps,
+} from "./AdminTheme";
 export {
   AdminCard,
   type AdminCardProps,

@@ -10,7 +10,7 @@ export { AdminMobileCellLabel } from "./AdminTablePrimitives";
 export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";
 export { AdminPanelHeader, type AdminPanelHeaderPresentation, type AdminPanelHeaderProps, } from "./AdminPanelHeader";
 export { AdminWorkspace, type AdminWorkspaceProps } from "./AdminWorkspace";
-export { AdminTheme, type AdminThemeName, type AdminThemeProps } from "./AdminTheme";
+export { AdminTheme, type AdminPaletteName, type AdminThemeName, type AdminThemeProps, } from "./AdminTheme";
 export { AdminCard, type AdminCardProps, AdminField, type AdminFieldProps, AdminStack, type AdminStackProps, AdminSwitch, type AdminSwitchProps, } from "./AdminPrimitives";
 export { UsersPanel, type AdminUserTableCellContext, type AdminUserTableColumn, type AdminUserTableSort, type UsersPanelProps, } from "./UsersPanel";
 export { FeatureFlagsPanel, type FeatureFlagsPanelProps } from "./FeatureFlagsPanel";

@@ -21,6 +21,8 @@ function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationI
     // An AdminApp skip link targets this id; standalone portals mint their own.
     const ownContentId = `admin-kit-content-${(0, react_1.useId)().replace(/:/g, "")}`;
     const contentId = (0, AdminSkipLink_1.useAdminContentTargetId)() ?? ownContentId;
+    // This boundary re-enters the core theme but inherits the host's palette.
+    const paletteClass = (0, AdminThemeContext_1.useAdminPaletteClass)();
     const closeMobileNavigation = () => {
         setMobileNavigationOpen(false);
         toggleRef.current?.focus();
@@ -48,7 +50,13 @@ function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationI
     // One section leaves nothing to navigate to: no rail, no Menu toggle, content at full width.
     const hasNavigation = sections.length > 1;
     if (!active) {
-        return ((0, jsx_runtime_1.jsx)("section", { className: ["admin-kit", "admin-kit--theme-core", "admin-kit__portal-empty", className]
+        return ((0, jsx_runtime_1.jsx)("section", { className: [
+                "admin-kit",
+                "admin-kit--theme-core",
+                paletteClass,
+                "admin-kit__portal-empty",
+                className,
+            ]
                 .filter(Boolean)
                 .join(" "), "data-admin-kit-theme": "core", id: contentId, tabIndex: -1, children: (0, jsx_runtime_1.jsx)(AdminSkipLink_1.AdminContentTargetReset, { children: sections.length === 0
                     ? emptyState
@@ -58,6 +66,7 @@ function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationI
     return ((0, jsx_runtime_1.jsx)(AdminSkipLink_1.AdminContentTargetReset, { children: (0, jsx_runtime_1.jsx)(AdminThemeContext_1.AdminThemeProvider, { theme: "core", children: (0, jsx_runtime_1.jsxs)("section", { className: [
                     "admin-kit",
                     "admin-kit--theme-core",
+                    paletteClass,
                     "admin-kit__portal",
                     hasNavigation ? null : "admin-kit__portal--single",
                     className,

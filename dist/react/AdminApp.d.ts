@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { type AdminAppGroupDefinition, type AdminAppSectionDefinition } from "../core";
 import { type AdminLabels } from "./AdminLabels";
 import { type AdminPortalNavigationItemProps, type AdminPortalProps } from "./AdminPortal";
-import { type AdminThemeName } from "./AdminTheme";
+import { type AdminPaletteName, type AdminThemeName } from "./AdminTheme";
 export interface AdminAppReactSection extends AdminAppSectionDefinition {
     render: () => ReactNode;
 }
@@ -21,6 +21,8 @@ export type AdminAppProps = WithAdminAppGroups<AdminPortalProps> & {
     /** Optional application-level framing; omit it when host chrome already supplies page identity. */
     frame?: AdminAppFrame;
     theme?: AdminThemeName;
+    /** Opt-in recolor of the core theme, inherited by every nested Admin Kit boundary. */
+    palette?: AdminPaletteName;
     /** Localizes shared Admin Kit chrome strings (loading/error/pagination copy) for the whole app. */
     labels?: Partial<AdminLabels>;
 };
@@ -29,5 +31,5 @@ export type AdminAppProps = WithAdminAppGroups<AdminPortalProps> & {
  * administration area; the lower-level AdminPortal remains available only for
  * product-specific navigation that has no capability registry.
  */
-export declare function AdminApp({ frame, theme, labels, className, ...portalProps }: AdminAppProps): import("react").JSX.Element;
+export declare function AdminApp({ frame, theme, palette, labels, className, ...portalProps }: AdminAppProps): import("react").JSX.Element;
 export type { AdminPortalNavigationItemProps };
