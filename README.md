@@ -57,6 +57,37 @@ contract across products.
 import "@andrewpopov/admin-kit/styles.css";
 ```
 
+## Release notes for signed-in users
+
+`ReleaseNotesPanel` is a read-only product page, available from
+`@andrewpopov/admin-kit/react`. Mount it in the normal signed-in shell,
+**outside an admin-role gate**. Every live user session should be able to read
+both the history and a linked release. The host owns authentication, routes,
+API transport and the notes' source of truth; release-kit supplies a reader for
+dated Markdown files committed to each app's repository.
+
+```tsx
+<ReleaseNotesPanel
+  adapter={{ list: query => api.releases.list(query), get: id => api.releases.get(id) }}
+  releaseId={routeReleaseId}
+  listHref="/releases"
+  hrefForRelease={id => `/releases/${encodeURIComponent(id)}`}
+  renderLink={(href, children) => <Link to={href}>{children}</Link>}
+  renderNotes={markdown => <Markdown skipHtml>{markdown}</Markdown>}
+/>
+```
+
+Use a stable adapter object. `get` returns `null` for a missing release. List
+queries carry `page` and `pageSize` and return `{ items, page, pageSize,
+hasMore }`. A preview has `id`, `product`, `version`, `releasedAt` and
+`summary`; details add `notesMarkdown`. The host's Markdown renderer must
+escape raw HTML and reject unsafe link schemes. No raw HTML is rendered by
+this package. The panel provides its own theme boundary, loading, retry,
+empty/not-found states and paging, and discards outdated requests when routes
+change. The host supplies the page's H1. Add a “What's new” link to account or
+help navigation and preserve detail URLs through login. Optional admin
+navigation can register the `release-notes` capability using this same reader.
+
 ## Consumer migration policy
 
 Use the kit by default whenever an administration feature matches one of its

@@ -123,3 +123,5 @@ export type {
   AdminSettingsAdapter,
 } from "./operations";
 export { formatAdminTimestamp } from "./timestamps";
+export { validateReleaseNote, validateReleaseNoteDetail, validateReleaseNotesPage,
+  type ReleaseNoteSummary, type ReleaseNoteDetail, type ReleaseNotesPage, type ReleaseNotesAdapter } from "./releaseNotes";

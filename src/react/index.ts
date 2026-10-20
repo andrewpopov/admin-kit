@@ -73,6 +73,7 @@ export { EventsPanel, type EventsPanelColumn, type EventsPanelProps } from "./Ev
 export { MembershipsPanel, type MembershipsPanelProps } from "./MembershipsPanel";
 export { LogsPanel, type LogsPanelProps } from "./LogsPanel";
 export { SessionsPanel, type SessionsPanelProps } from "./SessionsPanel";
+export { ReleaseNotesPanel, type ReleaseNotesPanelProps } from "./ReleaseNotesPanel";
 export {
   AdminStatusSummary,
   type AdminStatusSummaryProps,

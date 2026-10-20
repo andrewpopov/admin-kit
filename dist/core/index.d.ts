@@ -9,3 +9,4 @@ export { defineAdminLogsAdapter, validateAdminLogsSnapshot, type AdminLogEntry, 
 export { defineAdminSessionsAdapter, validateAdminSessions, type AdminSessionBulkAction, type AdminSessionDetail, type AdminSessionMutation, type AdminSessionsAdapter, type AdminSessionScope, type AdminSessionSummary, } from "./sessions";
 export type { AdminBackupsAdapter, AdminBackupSummary, AdminHealthTone, AdminOperationalJob, AdminOperationalJobsAdapter, AdminOperationalStatus, AdminSettingField, AdminSettingsAdapter, } from "./operations";
 export { formatAdminTimestamp } from "./timestamps";
+export { validateReleaseNote, validateReleaseNoteDetail, validateReleaseNotesPage, type ReleaseNoteSummary, type ReleaseNoteDetail, type ReleaseNotesPage, type ReleaseNotesAdapter } from "./releaseNotes";
