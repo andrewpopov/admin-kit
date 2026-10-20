@@ -21,6 +21,7 @@ test("release notes fit the supported phone sizes in light and dark", async ({
         { width: 667, height: 375 },
       ]) {
         await page.setViewportSize(size);
+        await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
         await expect(page.getByRole("heading", { name: "What's new", level: 1 })).toBeVisible();
         await expect(page.getByText("Jun October 20 update")).toBeVisible();
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
@@ -34,7 +35,7 @@ test("release notes fit the supported phone sizes in light and dark", async ({
           path: testInfo.outputPath(
             `${detail ? "detail" : "list"}-${dark ? "dark" : "light"}-${size.width}x${size.height}.png`,
           ),
-          fullPage: true,
+          animations: "disabled",
         });
       }
     }

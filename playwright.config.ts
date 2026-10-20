@@ -6,6 +6,7 @@ const localChrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrom
 export default defineConfig({
   testDir: "tests/browser",
   fullyParallel: true,
+  workers: Number(process.env.LANE_BROKER_CPU_CORES || 2),
   use: {
     browserName: "chromium",
     headless: true,
