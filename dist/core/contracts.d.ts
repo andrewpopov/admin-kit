@@ -33,7 +33,7 @@ export interface AdminPortalDefinition {
  * product-specific sections, but it must not register a generic workflow more
  * than once under different local names.
  */
-export declare const ADMIN_CAPABILITIES: readonly ["users", "sessions", "logs", "events", "feature-flags", "api-keys", "memberships", "backups", "operational-jobs", "settings"];
+export declare const ADMIN_CAPABILITIES: readonly ["users", "sessions", "logs", "events", "feature-flags", "api-keys", "memberships", "backups", "operational-jobs", "settings", "release-notes"];
 export type AdminKitCapability = (typeof ADMIN_CAPABILITIES)[number];
 export type AdminCustomCapability = `custom:${string}`;
 export type AdminCapability = AdminKitCapability | AdminCustomCapability;

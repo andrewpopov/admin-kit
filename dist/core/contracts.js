@@ -21,6 +21,7 @@ exports.ADMIN_CAPABILITIES = [
     "backups",
     "operational-jobs",
     "settings",
+    "release-notes",
 ];
 /**
  * Validates configuration at definition time so ambiguous navigation never

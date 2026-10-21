@@ -47,6 +47,7 @@ const {
   AdminDialog,
   AdminConfirmationDialog,
   AdminField,
+  ReleaseNotesPanel,
 } = await import(resolve(packageRoot, "dist/index.js"));
 
 const usersAdapter = {
@@ -325,6 +326,31 @@ const page = (title, body, head = "") => `<!doctype html>
 
 writeFileSync(fixturePath, page("Admin Kit browser fixture", bodyHtml));
 console.log(`[render-browser-fixture] wrote ${fixturePath} (${bodyHtml.length} bytes of rendered markup)`);
+
+const releaseNote = {
+  id: "2026-10-20-care-and-feeding", product: "Jun", version: "October 20 update",
+  releasedAt: "2026-10-20T19:23:06.000Z",
+  summary: "Health care plans, feeding calendar controls, and illustrated training guides.",
+  notesMarkdown: "Log a dose or vet visit from Health. Use the feeding calendar to skip a day or one meal, with Undo. Follow illustrated guides for Heel and Post.",
+};
+const releaseAdapter = {
+  list: async query => ({ ...query, items: [releaseNote], hasMore: false }),
+  get: async () => releaseNote,
+};
+for (const detail of [false, true]) {
+  const host = document.createElement("div");
+  document.body.append(host);
+  const releaseRoot = createRoot(host);
+  await act(async () => releaseRoot.render(React.createElement("main", { style: { maxWidth: "48rem", padding: "1rem", margin: "auto" } },
+    React.createElement("h1", null, "What's new"),
+    React.createElement(ReleaseNotesPanel, { adapter: releaseAdapter, ...(detail ? { releaseId: releaseNote.id } : {}),
+      listHref: "./release-notes.html", hrefForRelease: () => "./release-note.html",
+      renderNotes: markdown => React.createElement("p", null, markdown) }))));
+  const html = host.innerHTML;
+  await act(async () => releaseRoot.unmount());
+  host.remove();
+  writeFileSync(resolve(packageRoot, "tests/browser", detail ? "release-note.html" : "release-notes.html"), page("What's new", html, "<style>body { margin: 0; background: white; color: #172033; font: 16px system-ui; } .dark body { background: #0e1420; color: #edf3ff; }</style>"));
+}
 
 // Dialogs portal to document.body once mounted, which is the layout the
 // browser tests need to see. Render each in jsdom (effects flushed), then

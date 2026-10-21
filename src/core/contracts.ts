@@ -50,6 +50,7 @@ export const ADMIN_CAPABILITIES = [
   "backups",
   "operational-jobs",
   "settings",
+  "release-notes",
 ] as const;
 
 export type AdminKitCapability = (typeof ADMIN_CAPABILITIES)[number];
