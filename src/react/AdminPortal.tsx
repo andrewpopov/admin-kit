@@ -44,6 +44,8 @@ interface AdminPortalBaseProps {
   className?: string;
   emptyState?: ReactNode;
   inactiveSectionState?: (sectionId: AdminSectionId) => ReactNode;
+  /** Pins the phone Menu toggle to the top of the viewport so it stays reachable on long pages. Off by default. */
+  stickyMobileToggle?: boolean;
 }
 
 export type AdminPortalProps = AdminPortalBaseProps &
@@ -76,6 +78,7 @@ export function AdminPortal({
   className,
   emptyState = "No administration sections are available.",
   inactiveSectionState,
+  stickyMobileToggle = false,
 }: AdminPortalProps) {
   if (!renderNavigationItem && !onSectionChange) {
     throw new Error("AdminPortal default navigation needs onSectionChange.");
@@ -117,7 +120,7 @@ export function AdminPortal({
   // One section leaves nothing to navigate to: no rail, no Menu toggle, content at full width.
   const hasNavigation = sections.length > 1;
 
-  if (!active) {
+  if (sections.length === 0) {
     return (
       <section
         className={[
@@ -133,12 +136,7 @@ export function AdminPortal({
         id={contentId}
         tabIndex={-1}
       >
-        <AdminContentTargetReset>
-          {sections.length === 0
-            ? emptyState
-            : (inactiveSectionState?.(activeSection) ??
-              "This administration section is unavailable.")}
-        </AdminContentTargetReset>
+        <AdminContentTargetReset>{emptyState}</AdminContentTargetReset>
       </section>
     );
   }
@@ -164,7 +162,12 @@ export function AdminPortal({
               <button
                 aria-controls={mobileNavigationId}
                 aria-expanded={mobileNavigationOpen}
-                className="admin-kit__app-shell-mobile-toggle"
+                className={[
+                  "admin-kit__app-shell-mobile-toggle",
+                  stickyMobileToggle ? "admin-kit__app-shell-mobile-toggle--sticky" : null,
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
                 onClick={() => setMobileNavigationOpen((open) => !open)}
                 onKeyDown={closeOnEscape}
                 ref={toggleRef}
@@ -188,7 +191,7 @@ export function AdminPortal({
                     </header>
                     <ul className="admin-kit__portal-list">
                       {group.sections.map((section) => {
-                        const isActive = section.id === active.id;
+                        const isActive = section.id === active?.id;
                         const onClick: MouseEventHandler<HTMLElement> = (event) => {
                           if (section.disabled) {
                             event.preventDefault();
@@ -233,12 +236,17 @@ export function AdminPortal({
           ) : null}
 
           <div
-            className="admin-kit__portal-content"
-            data-admin-section={active.id}
+            className={["admin-kit__portal-content", active ? null : "admin-kit__portal-empty"]
+              .filter(Boolean)
+              .join(" ")}
+            data-admin-section={active?.id}
             id={contentId}
             tabIndex={-1}
           >
-            {active.render()}
+            {active
+              ? active.render()
+              : (inactiveSectionState?.(activeSection) ??
+                "This administration section is unavailable.")}
           </div>
         </section>
       </AdminThemeProvider>

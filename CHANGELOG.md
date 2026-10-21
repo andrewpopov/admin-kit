@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.43.0
+
+### Added
+
+- AdminPortal stickyMobileToggle option pins the phone Menu toggle to the top of the viewport
+  Pass `stickyMobileToggle` to AdminPortal (or AdminApp) to keep the phone Menu toggle pinned to the top of the viewport on long pages. Off by default; desktop is unaffected.
+- Opt-in admin-kit__table--stack-narrow stacks tables into cards only below 30rem
+  Put `admin-kit__table-wrap--stack-narrow` on the wrap and `admin-kit__table--stack-narrow` on the table to get the labelled-card layout only at 30rem and below, so a landscape phone keeps the table. The existing `--stack` modifier still stacks at 48rem.
+
+### Changed
+
+- Update shared release notes tooling
+  Refresh the shared release notes package pins and lockfiles. Full release verification and production rollout remain with the next release candidate.
+
+### Fixed
+
+- admin-kit__stack and admin-kit__panel-header use a shrinkable column so wide nowrap children scroll instead of widening the page
+  Both grids had an implicit auto column, so a wide nowrap child such as a tab strip widened the page. They now use `minmax(0, 1fr)`, and the child scrolls inside its own box.
+- AdminPortal keeps its navigation and Menu toggle around the not-found and unavailable-section fallback
+  When the active section was unknown, unavailable or gated, AdminPortal returned only the fallback with no navigation. It now renders the normal shell around it, and a custom `inactiveSectionState` still shows inside the shell. With zero visible sections the empty state is unchanged.
+- Row-header th cells in the last table row no longer draw a stub bottom border
+  The last-row border reset covered `td` only, so a row-header `th` drew a hairline under every table. The reset now covers `th` too, and stacked cards keep their divider under the row header.
+
 ## 0.42.0
 
 ### Added
