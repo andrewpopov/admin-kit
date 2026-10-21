@@ -164,6 +164,55 @@ describe("AdminPortal", () => {
     expect(screen.queryByText("Catalog content")).toBeNull();
   });
 
+  it("keeps the navigation and Menu toggle around the fallback for an unmatched section", () => {
+    const { container } = render(
+      <AdminPortal
+        activeSection="nowhere"
+        groups={groups}
+        onSectionChange={() => undefined}
+        inactiveSectionState={(sectionId) => <p>Unavailable: {sectionId}</p>}
+      />,
+    );
+
+    const navigation = container.querySelector("nav.admin-kit__portal-navigation");
+    expect(navigation).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Menu" })).toBeTruthy();
+    expect(navigation?.querySelector("[aria-current]")).toBeNull();
+    const content = container.querySelector(".admin-kit__portal-content");
+    expect(content?.textContent).toBe("Unavailable: nowhere");
+    expect(content?.hasAttribute("data-admin-section")).toBe(false);
+  });
+
+  it("shows the default fallback inside the shell when no custom one is given", () => {
+    const { container } = render(
+      <AdminPortal activeSection="nowhere" groups={groups} onSectionChange={() => undefined} />,
+    );
+
+    expect(container.querySelector(".admin-kit__portal-content")?.textContent).toBe(
+      "This administration section is unavailable.",
+    );
+    expect(container.querySelector("nav.admin-kit__portal-navigation")).not.toBeNull();
+  });
+
+  it("pins the Menu toggle only when stickyMobileToggle is set", () => {
+    const { container, rerender } = render(
+      <AdminPortal activeSection="users" groups={groups} onSectionChange={() => undefined} />,
+    );
+    expect(container.querySelector(".admin-kit__app-shell-mobile-toggle--sticky")).toBeNull();
+
+    rerender(
+      <AdminPortal
+        activeSection="users"
+        groups={groups}
+        onSectionChange={() => undefined}
+        stickyMobileToggle
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Menu" }).className).toContain(
+      "admin-kit__app-shell-mobile-toggle--sticky",
+    );
+  });
+
   it("rejects inert default navigation from untyped consumers", () => {
     const invalid = { activeSection: "users", groups } as unknown as AdminPortalProps;
     expect(() => AdminPortal(invalid)).toThrow(/needs onSectionChange/i);

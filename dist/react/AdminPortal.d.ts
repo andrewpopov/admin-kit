@@ -25,6 +25,8 @@ interface AdminPortalBaseProps {
     className?: string;
     emptyState?: ReactNode;
     inactiveSectionState?: (sectionId: AdminSectionId) => ReactNode;
+    /** Pins the phone Menu toggle to the top of the viewport so it stays reachable on long pages. Off by default. */
+    stickyMobileToggle?: boolean;
 }
 export type AdminPortalProps = AdminPortalBaseProps & ({
     /** Required when the portal renders its default controlled buttons. */
@@ -41,5 +43,5 @@ export type AdminPortalProps = AdminPortalBaseProps & ({
  * navigation, and authorization; the portal owns grouping, selection,
  * responsive layout, disabled behavior, and accessible page semantics.
  */
-export declare function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationItem, ariaLabel, mobileNavigationLabel, className, emptyState, inactiveSectionState, }: AdminPortalProps): import("react").JSX.Element;
+export declare function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationItem, ariaLabel, mobileNavigationLabel, className, emptyState, inactiveSectionState, stickyMobileToggle, }: AdminPortalProps): import("react").JSX.Element;
 export {};

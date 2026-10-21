@@ -418,3 +418,27 @@ describe("Admin Kit styles", () => {
     });
   });
 });
+
+describe("shell and table layout contracts (ZIRK-1150)", () => {
+  it("resets the last-row bottom border for row-header th as well as td", () => {
+    expect(styles).toContain(
+      ".admin-kit__table tbody tr:last-child td, .admin-kit__table tbody tr:last-child th { border-bottom: 0; }",
+    );
+  });
+
+  it("pins stack and panel-header grids to a shrinkable column", () => {
+    expect(styles).toMatch(/\.admin-kit__stack \{[^}]*grid-template-columns: minmax\(0, 1fr\)/);
+    expect(styles).toMatch(
+      /\.admin-kit__panel-header \{[^}]*grid-template-columns: minmax\(0, 1fr\)/,
+    );
+  });
+
+  it("stacks --stack-narrow tables only at 30rem and leaves --stack on 48rem", () => {
+    const narrow = styles.match(/@media \(max-width: 30rem\) \{([\s\S]*?)\n\}\n/);
+    expect(narrow?.[1]).toContain(".admin-kit__table--stack-narrow");
+    expect(narrow?.[1]).not.toContain(".admin-kit__table--stack ");
+    const wide = styles.slice(styles.indexOf("@media (max-width: 48rem) {"));
+    expect(wide).toContain(".admin-kit__table--stack {");
+    expect(wide).not.toContain("--stack-narrow");
+  });
+});
