@@ -9,6 +9,7 @@ module.exports = defineConfig({
   productName: "@andrewpopov/admin-kit",
   stage: "stable",
   rootDir: __dirname,
+  installFromGit: true,
   // changelogTarget writes CHANGELOG.md; indexPath is unused by it but required by the type.
   paths: { notesDir: ".changes", indexPath: ".changes/INDEX.md" },
   // groupByKind mirrors this package's existing CHANGELOG convention (### Added /

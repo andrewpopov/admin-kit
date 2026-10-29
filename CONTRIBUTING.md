@@ -9,10 +9,11 @@ Use the Node version declared in `package.json`, then run:
 
 ```bash
 npm ci
+npm run hooks # once after cloning: enables the pre-push gate
 npm run typecheck
 npm run test
 npm run test:browser
-npm run build
+npm run compile
 npm run verify:pack
 npm audit --audit-level=high
 ```

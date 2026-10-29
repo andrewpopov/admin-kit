@@ -1059,7 +1059,7 @@ Run:
 ```sh
 npm test
 npm run typecheck
-npm run build
+npm run compile
 npm run verify:pack
 npm run test:browser
 ```

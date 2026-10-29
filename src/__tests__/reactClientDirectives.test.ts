@@ -110,7 +110,7 @@ describe("dist/react 'use client' conformance", () => {
       throw new Error(
         "dist/react does not exist. This suite checks BUILT dist/ output (the artifact " +
           "consumers actually load), not src/, because the 'use client' directive must " +
-          "survive TypeScript compilation to matter. Run `npm run build` before `npm test` " +
+          "survive TypeScript compilation to matter. Run `npm run compile` before `npm test` " +
           "-- the release battery (RELEASING.md / verify:dist-fresh) always builds first -- " +
           "then re-run this suite.",
       );
