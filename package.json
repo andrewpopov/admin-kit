@@ -56,14 +56,14 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsc && node scripts/copy-assets.mjs",
+    "compile": "tsc && node scripts/copy-assets.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:browser": "npm run build && node scripts/render-browser-fixture.mjs && playwright test",
+    "test:browser": "npm run compile && node scripts/render-browser-fixture.mjs && playwright test",
     "verify:pack": "node scripts/verify-pack.mjs",
     "verify:dist-fresh": "node scripts/verify-dist-fresh.mjs",
-    "verify": "npm run lint && npm run typecheck && npm test && npm run test:browser && npm run build && npm run verify:dist-fresh && npm run verify:pack && npm run verify:bins && npm audit --audit-level=high",
+    "verify": "npm run lint && npm run typecheck && npm test && npm run test:browser && npm run compile && npm run verify:dist-fresh && npm run verify:pack && npm run verify:bins && npm audit --audit-level=high",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -74,7 +74,7 @@
     "release:check": "release-kit check",
     "release:hygiene": "release-kit hygiene",
     "verify:bins": "release-kit verify-bins",
-    "prepare": "git config core.hooksPath .githooks || true"
+    "hooks": "git config core.hooksPath .githooks"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",

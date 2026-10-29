@@ -50,7 +50,7 @@ function expectConformanceFailure(directory, message) {
 
 try {
   console.log('[verify:pack] Building...');
-  run('npm', ['run', 'build'], { cwd: packageRoot, stdio: 'inherit' });
+  run('npm', ['run', 'compile'], { cwd: packageRoot, stdio: 'inherit' });
 
   for (const file of ['dist/index.js', 'dist/index.d.ts', 'dist/styles.css', 'dist/admin-kit-conformance.mjs']) {
     if (!existsSync(join(packageRoot, file))) fail(`${file} is missing after build.`);
