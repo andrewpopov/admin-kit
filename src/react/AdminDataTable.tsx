@@ -1,7 +1,6 @@
 "use client";
 import {
   Fragment,
-  useCallback,
   useId,
   useRef,
   useState,
@@ -106,30 +105,47 @@ export function AdminDataTable<Row>({
   wrapClassName,
 }: AdminDataTableProps<Row>) {
   const idPrefix = useId();
-  const [overrides, setOverrides] = useState<Widths>(() => readStoredWidths(storageKey));
+  const [stored, setStored] = useState(() => ({
+    key: storageKey,
+    widths: readStoredWidths(storageKey),
+  }));
+  if (stored.key !== storageKey) {
+    setStored({ key: storageKey, widths: readStoredWidths(storageKey) });
+  }
+  const overrides = stored.key === storageKey ? stored.widths : {};
+  const latest = useRef(overrides);
+  latest.current = overrides;
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set());
   const drag = useRef<{ id: string; startX: number; startWidth: number }>();
 
-  const widthOf = useCallback(
-    (column: AdminDataTableColumn<Row>) => {
-      if (column.defaultWidth === undefined) return undefined;
-      const { min, max } = bounds(column);
-      return clamp(overrides[column.id] ?? column.defaultWidth, min, max);
-    },
-    [overrides],
-  );
+  const widthOf = (column: AdminDataTableColumn<Row>) => {
+    if (column.defaultWidth === undefined) return undefined;
+    const { min, max } = bounds(column);
+    return clamp(overrides[column.id] ?? column.defaultWidth, min, max);
+  };
 
-  const setWidth = (column: AdminDataTableColumn<Row>, width: number | undefined) => {
-    setOverrides((current) => {
-      const next = { ...current };
-      if (width === undefined) delete next[column.id];
-      else {
-        const { min, max } = bounds(column);
-        next[column.id] = clamp(width, min, max);
-      }
-      writeStoredWidths(storageKey, next);
-      return next;
-    });
+  const persist = (widths: Widths) => {
+    const known = new Set(columns.map((column) => column.id));
+    writeStoredWidths(
+      storageKey,
+      Object.fromEntries(Object.entries(widths).filter(([id]) => known.has(id))),
+    );
+  };
+
+  const setWidth = (
+    column: AdminDataTableColumn<Row>,
+    width: number | undefined,
+    { save }: { save: boolean },
+  ) => {
+    const next = { ...latest.current };
+    if (width === undefined) delete next[column.id];
+    else {
+      const { min, max } = bounds(column);
+      next[column.id] = clamp(width, min, max);
+    }
+    latest.current = next;
+    setStored({ key: storageKey, widths: next });
+    if (save) persist(next);
   };
 
   const onHandleKeyDown = (column: AdminDataTableColumn<Row>, event: KeyboardEvent) => {
@@ -146,7 +162,7 @@ export function AdminDataTable<Row>({
     else if (event.key === "End") next = max;
     if (next === null) return;
     event.preventDefault();
-    setWidth(column, next === undefined ? undefined : clamp(next, min, max));
+    setWidth(column, next === undefined ? undefined : clamp(next, min, max), { save: true });
   };
 
   const onPointerDown = (column: AdminDataTableColumn<Row>, event: PointerEvent<HTMLElement>) => {
@@ -159,10 +175,12 @@ export function AdminDataTable<Row>({
   const onPointerMove = (column: AdminDataTableColumn<Row>, event: PointerEvent<HTMLElement>) => {
     const active = drag.current;
     if (!active || active.id !== column.id) return;
-    setWidth(column, active.startWidth + (event.clientX - active.startX));
+    setWidth(column, active.startWidth + (event.clientX - active.startX), { save: false });
   };
   const endDrag = () => {
+    if (!drag.current) return;
     drag.current = undefined;
+    persist(latest.current);
   };
 
   const toggle = (key: string) =>
@@ -179,6 +197,11 @@ export function AdminDataTable<Row>({
       0,
     ) + (renderDetails ? DETAILS_COLUMN_WIDTH : 0);
   const columnCount = columns.length + (renderDetails ? 1 : 0);
+  const hasFillColumn = columns.some((column) => column.defaultWidth === undefined);
+  const tableSize = {
+    "--admin-kit-data-table-min-width": `${fixedWidth}px`,
+    ...(hasFillColumn ? {} : { "--admin-kit-data-table-width": `${fixedWidth}px` }),
+  } as CSSProperties;
 
   return (
     <div
@@ -195,7 +218,7 @@ export function AdminDataTable<Row>({
         className={["admin-kit__table admin-kit__table--stack admin-kit__data-table", className]
           .filter(Boolean)
           .join(" ")}
-        style={{ "--admin-kit-data-table-min-width": `${fixedWidth}px` } as CSSProperties}
+        style={tableSize}
       >
         <colgroup>
           {columns.map((column) => {
@@ -233,7 +256,7 @@ export function AdminDataTable<Row>({
                       aria-valuenow={width}
                       aria-valuetext={`${width} pixels`}
                       className="admin-kit__column-resizer"
-                      onDoubleClick={() => setWidth(column, undefined)}
+                      onDoubleClick={() => setWidth(column, undefined, { save: true })}
                       onKeyDown={(event) => onHandleKeyDown(column, event)}
                       onLostPointerCapture={endDrag}
                       onPointerCancel={endDrag}

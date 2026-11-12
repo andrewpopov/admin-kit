@@ -689,7 +689,9 @@ The `table` presentation is an `AdminDataTable`: the Event column fills the
 remaining width, the others can be resized by drag or keyboard, long values
 truncate with the full value in a tooltip and in the row's expandable details,
 and timestamps show the absolute time with a relative one beneath. Pass
-`storageKey` to keep each viewer's column widths across visits.
+`storageKey` to keep each viewer's column widths across visits. The table scrolls
+inside its own box so the header stays pinned; set
+`--admin-kit-data-table-max-height: none` to scroll with the page instead.
 
 ### Data tables
 

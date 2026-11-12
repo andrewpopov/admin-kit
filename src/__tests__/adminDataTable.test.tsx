@@ -145,4 +145,45 @@ describe("AdminDataTable", () => {
     expect(details.textContent).toContain("Full note:");
     expect(details.querySelector("td")!.getAttribute("colspan")).toBe("3");
   });
+
+  it("saves a drag once, on release", () => {
+    render(
+      <AdminDataTable columns={columns} rowKey={(r) => r.id} rows={rows} storageKey="people" />,
+    );
+    const handle = screen.getByRole("separator");
+    fireEvent.pointerDown(handle, { button: 0, clientX: 100, pointerId: 1 });
+    fireEvent.pointerMove(handle, { clientX: 140, pointerId: 1 });
+    expect(window.localStorage.getItem(STORAGE)).toBeNull();
+    fireEvent.pointerUp(handle, { pointerId: 1 });
+    expect(JSON.parse(window.localStorage.getItem(STORAGE)!)).toEqual({ name: 200 });
+  });
+
+  it("reloads widths when the storage key changes", () => {
+    window.localStorage.setItem("admin-kit:table-widths:other", JSON.stringify({ name: 300 }));
+    const { container, rerender } = render(
+      <AdminDataTable columns={columns} rowKey={(r) => r.id} rows={rows} storageKey="people" />,
+    );
+    expect(colWidth(container, "name")).toBe("160px");
+    rerender(
+      <AdminDataTable columns={columns} rowKey={(r) => r.id} rows={rows} storageKey="other" />,
+    );
+    expect(colWidth(container, "name")).toBe("300px");
+    fireEvent.keyDown(screen.getByRole("separator"), { key: "ArrowRight" });
+    expect(window.localStorage.getItem(STORAGE)).toBeNull();
+    expect(JSON.parse(window.localStorage.getItem("admin-kit:table-widths:other")!)).toEqual({
+      name: 316,
+    });
+  });
+
+  it("sizes the table to its columns when no column fills", () => {
+    const sized = columns.map((column) => ({
+      ...column,
+      defaultWidth: column.defaultWidth ?? 200,
+    }));
+    const { container } = render(
+      <AdminDataTable columns={sized} rowKey={(r) => r.id} rows={rows} />,
+    );
+    const table = container.querySelector("table")!;
+    expect(table.style.getPropertyValue("--admin-kit-data-table-width")).toBe("360px");
+  });
 });
