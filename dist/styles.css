@@ -530,6 +530,10 @@
 .admin-kit__data-table thead th { position: sticky; top: 0; z-index: 1; }
 .admin-kit__data-table-heading-text { display: block; overflow: hidden; padding-inline-end: 1rem; text-overflow: ellipsis; white-space: nowrap; }
 .admin-kit__column-resizer { cursor: col-resize; display: flex; inset-block: 0; inset-inline-end: 0; justify-content: center; position: absolute; touch-action: none; width: 1.5rem; z-index: 2; }
+.admin-kit__data-table thead .admin-kit__data-table-heading--menu-open { z-index: 3; }
+.admin-kit__column-menu { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius-sm); box-shadow: var(--admin-kit-shadow); display: flex; gap: 0.25rem; inset-block-start: 100%; inset-inline-start: 0; padding: 0.25rem; position: absolute; text-transform: none; white-space: nowrap; z-index: 3; }
+.admin-kit__column-menu button { background: none; border: 0; border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-accent); cursor: pointer; font: inherit; font-size: 0.875rem; font-weight: 700; letter-spacing: normal; min-height: 2rem; padding: 0 0.625rem; }
+.admin-kit__column-menu button:hover { background: var(--admin-kit-surface-subtle); }
 .admin-kit__column-resizer::after { background: var(--admin-kit-border); content: ""; width: 2px; }
 .admin-kit__column-resizer:hover::after, .admin-kit__column-resizer:focus-visible::after { background: var(--admin-kit-accent); width: 3px; }
 .admin-kit__table-cell--truncate, .admin-kit__table-cell--truncate > :not(.admin-kit__mobile-cell-label) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -1,6 +1,7 @@
 "use client";
 import {
   Fragment,
+  useEffect,
   useId,
   useRef,
   useState,
@@ -15,6 +16,8 @@ const DEFAULT_MIN_WIDTH = 64;
 const DEFAULT_MAX_WIDTH = 960;
 const KEYBOARD_STEP = 16;
 const KEYBOARD_LARGE_STEP = 64;
+const MENU_STEP = 32;
+const DRAG_THRESHOLD = 4;
 const STORAGE_PREFIX = "admin-kit:table-widths:";
 const DETAILS_COLUMN_WIDTH = 96;
 const SORT_ARROWS = { ascending: "↑", descending: "↓", none: "↕" } as const;
@@ -130,6 +133,20 @@ export function AdminDataTable<Row>({
   latest.current = overrides;
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set());
   const drag = useRef<{ id: string; startX: number; startWidth: number }>();
+  const dragged = useRef(false);
+  const handles = useRef(new Map<string, HTMLElement>());
+  const [menuFor, setMenuFor] = useState<string>();
+
+  useEffect(() => {
+    if (menuFor === undefined) return;
+    document.getElementById(`${idPrefix}-resize-${menuFor}`)?.querySelector("button")?.focus();
+    const closeOutside = (event: globalThis.PointerEvent) => {
+      const owner = event.target instanceof Element && event.target.closest("[data-resize-column]");
+      if (!owner || owner.getAttribute("data-resize-column") !== menuFor) setMenuFor(undefined);
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, [idPrefix, menuFor]);
 
   const widthOf = (column: AdminDataTableColumn<Row>) => {
     if (column.defaultWidth === undefined) return undefined;
@@ -167,6 +184,10 @@ export function AdminDataTable<Row>({
     const step = event.shiftKey ? KEYBOARD_LARGE_STEP : KEYBOARD_STEP;
     const { min, max } = bounds(column);
     let next: number | undefined | null = null;
+    if (event.key === "Escape" && menuFor === column.id) {
+      setMenuFor(undefined);
+      return;
+    }
     if (event.key === "ArrowRight" || event.key === "ArrowUp") next = current + step;
     else if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = current - step;
     else if (event.key === "PageUp") next = current + KEYBOARD_LARGE_STEP;
@@ -184,16 +205,35 @@ export function AdminDataTable<Row>({
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
     drag.current = { id: column.id, startX: event.clientX, startWidth };
+    dragged.current = false;
   };
   const onPointerMove = (column: AdminDataTableColumn<Row>, event: PointerEvent<HTMLElement>) => {
     const active = drag.current;
     if (!active || active.id !== column.id) return;
-    setWidth(column, active.startWidth + (event.clientX - active.startX), { save: false });
+    const travelled = event.clientX - active.startX;
+    if (!dragged.current && Math.abs(travelled) < DRAG_THRESHOLD) return;
+    dragged.current = true;
+    setMenuFor(undefined);
+    setWidth(column, active.startWidth + travelled, { save: false });
   };
   const endDrag = () => {
     if (!drag.current) return;
     drag.current = undefined;
-    persist(latest.current);
+    if (dragged.current) persist(latest.current);
+  };
+
+  const closeMenu = (column: AdminDataTableColumn<Row>) => {
+    setMenuFor(undefined);
+    handles.current.get(column.id)?.focus();
+  };
+  const stepWidth = (column: AdminDataTableColumn<Row>, delta: number) => {
+    const current = widthOf(column);
+    if (current !== undefined) setWidth(column, current + delta, { save: true });
+  };
+  const onMenuKeyDown = (column: AdminDataTableColumn<Row>, event: KeyboardEvent) => {
+    if (event.key !== "Escape") return;
+    event.stopPropagation();
+    closeMenu(column);
   };
 
   const toggle = (key: string) =>
@@ -253,11 +293,17 @@ export function AdminDataTable<Row>({
               const width = widthOf(column);
               const resizable = width !== undefined && column.resizable !== false;
               const { min, max } = bounds(column);
+              const menuOpen = resizable && menuFor === column.id;
+              const menuId = `${idPrefix}-resize-${column.id}`;
               return (
                 <th
                   aria-label={column.header}
                   aria-sort={column.sort?.direction}
-                  className={["admin-kit__data-table-heading", column.headerClassName]
+                  className={[
+                    "admin-kit__data-table-heading",
+                    menuOpen ? "admin-kit__data-table-heading--menu-open" : undefined,
+                    column.headerClassName,
+                  ]
                     .filter(Boolean)
                     .join(" ")}
                   key={column.id}
@@ -278,25 +324,73 @@ export function AdminDataTable<Row>({
                     )}
                   </span>
                   {resizable ? (
-                    <span
-                      aria-label={`Resize ${column.header} column`}
-                      aria-orientation="vertical"
-                      aria-valuemax={max}
-                      aria-valuemin={min}
-                      aria-valuenow={width}
-                      aria-valuetext={`${width} pixels`}
-                      className="admin-kit__column-resizer"
-                      onDoubleClick={() => setWidth(column, undefined, { save: true })}
-                      onKeyDown={(event) => onHandleKeyDown(column, event)}
-                      onLostPointerCapture={endDrag}
-                      onPointerCancel={endDrag}
-                      onPointerDown={(event) => onPointerDown(column, event)}
-                      onPointerMove={(event) => onPointerMove(column, event)}
-                      onPointerUp={endDrag}
-                      role="separator"
-                      tabIndex={0}
-                      title="Drag, or use the arrow keys, to resize. Home or double-click resets."
-                    />
+                    <>
+                      <span
+                        aria-label={`Resize ${column.header} column`}
+                        aria-orientation="vertical"
+                        aria-valuemax={max}
+                        aria-valuemin={min}
+                        aria-valuenow={width}
+                        aria-valuetext={`${width} pixels`}
+                        className="admin-kit__column-resizer"
+                        data-resize-column={column.id}
+                        onClick={() => {
+                          if (!dragged.current) setMenuFor(menuOpen ? undefined : column.id);
+                        }}
+                        onDoubleClick={() => {
+                          setMenuFor(undefined);
+                          setWidth(column, undefined, { save: true });
+                        }}
+                        onKeyDown={(event) => onHandleKeyDown(column, event)}
+                        onLostPointerCapture={endDrag}
+                        onPointerCancel={endDrag}
+                        onPointerDown={(event) => onPointerDown(column, event)}
+                        onPointerMove={(event) => onPointerMove(column, event)}
+                        onPointerUp={endDrag}
+                        ref={(node) => {
+                          if (node) handles.current.set(column.id, node);
+                          else handles.current.delete(column.id);
+                        }}
+                        role="separator"
+                        tabIndex={0}
+                        title="Click for a width menu, or drag or use the arrow keys to resize. Home or double-click resets."
+                      />
+                      {menuOpen ? (
+                        <div
+                          aria-label={`${column.header} column width`}
+                          className="admin-kit__column-menu"
+                          data-resize-column={column.id}
+                          id={menuId}
+                          onKeyDown={(event) => onMenuKeyDown(column, event)}
+                          role="group"
+                        >
+                          <button
+                            aria-label={`Narrow ${column.header} column`}
+                            onClick={() => stepWidth(column, -MENU_STEP)}
+                            type="button"
+                          >
+                            Narrower
+                          </button>
+                          <button
+                            aria-label={`Widen ${column.header} column`}
+                            onClick={() => stepWidth(column, MENU_STEP)}
+                            type="button"
+                          >
+                            Wider
+                          </button>
+                          <button
+                            aria-label={`Reset ${column.header} column width`}
+                            onClick={() => {
+                              setWidth(column, undefined, { save: true });
+                              closeMenu(column);
+                            }}
+                            type="button"
+                          >
+                            Reset width
+                          </button>
+                        </div>
+                      ) : null}
+                    </>
                   ) : null}
                 </th>
               );

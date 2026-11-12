@@ -455,8 +455,8 @@ function ApiKeysPanelImpl({
     {
       id: "scope",
       header: "Scope",
-      defaultWidth: 192,
-      minWidth: 160,
+      defaultWidth: 176,
+      minWidth: 144,
       cell: (key) =>
         key.scopes.length ? (
           <ul className="admin-kit__scope-chips">
@@ -475,8 +475,8 @@ function ApiKeysPanelImpl({
           {
             id: "details",
             header: "Details",
-            defaultWidth: 208,
-            minWidth: 160,
+            defaultWidth: 176,
+            minWidth: 144,
             cell: (key: AdminApiKey) =>
               key.details?.length ? (
                 <dl className="admin-kit__key-details">
@@ -496,8 +496,8 @@ function ApiKeysPanelImpl({
     {
       id: "state",
       header: "State",
-      defaultWidth: 96,
-      minWidth: 88,
+      defaultWidth: 88,
+      minWidth: 80,
       cell: (key) => (
         <span className={`admin-kit__state-pill admin-kit__state-pill--key-${key.state}`}>
           {key.state}
@@ -507,16 +507,16 @@ function ApiKeysPanelImpl({
     {
       id: "created",
       header: "Created",
-      defaultWidth: 152,
-      minWidth: 112,
+      defaultWidth: 120,
+      minWidth: 104,
       className: "admin-kit__key-timestamp",
       cell: (key) => formatAdminTimestamp(key.createdAt, formatTimestamp),
     },
     {
       id: "lastUsed",
       header: "Last used",
-      defaultWidth: 152,
-      minWidth: 112,
+      defaultWidth: 120,
+      minWidth: 104,
       className: "admin-kit__key-timestamp",
       cell: (key) =>
         key.lastUsedAt ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp) : "never",
@@ -524,8 +524,8 @@ function ApiKeysPanelImpl({
     {
       id: "expires",
       header: "Expires",
-      defaultWidth: 152,
-      minWidth: 112,
+      defaultWidth: 120,
+      minWidth: 104,
       className: "admin-kit__key-timestamp",
       cell: (key) =>
         key.expiresAt ? formatAdminTimestamp(key.expiresAt, formatTimestamp) : "never",

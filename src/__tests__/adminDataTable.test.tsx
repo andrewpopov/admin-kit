@@ -236,4 +236,110 @@ describe("AdminDataTable", () => {
     expect(screen.queryByText("Editing Ada")).toBeNull();
     expect(screen.getByText("Ada").closest("tr")!.className).toBe("");
   });
+
+  describe("click menu (single-pointer resize)", () => {
+    const click = (handle: HTMLElement) => {
+      fireEvent.pointerDown(handle, { button: 0, clientX: 100, pointerId: 1 });
+      fireEvent.pointerUp(handle, { clientX: 101, pointerId: 1 });
+      fireEvent.click(handle);
+    };
+    const renderTable = () =>
+      render(
+        <AdminDataTable columns={columns} rowKey={(r) => r.id} rows={rows} storageKey="people" />,
+      );
+    const button = (name: string) => screen.getByRole("button", { name });
+
+    it("opens from a plain click and steps the width by 32px, persisting each change", () => {
+      renderTable();
+      const handle = screen.getByRole("separator");
+      expect(screen.queryByRole("group", { name: "Name column width" })).toBeNull();
+      click(handle);
+      expect(screen.getByRole("group", { name: "Name column width" })).toBeTruthy();
+      expect(document.activeElement).toBe(button("Narrow Name column"));
+
+      fireEvent.click(button("Widen Name column"));
+      expect(handle.getAttribute("aria-valuenow")).toBe("192");
+      expect(JSON.parse(window.localStorage.getItem(STORAGE)!)).toEqual({ name: 192 });
+      fireEvent.click(button("Narrow Name column"));
+      fireEvent.click(button("Narrow Name column"));
+      expect(handle.getAttribute("aria-valuenow")).toBe("128");
+      expect(JSON.parse(window.localStorage.getItem(STORAGE)!)).toEqual({ name: 128 });
+      expect(screen.getByRole("group", { name: "Name column width" })).toBeTruthy();
+    });
+
+    it("clamps at the column minimum and maximum", () => {
+      renderTable();
+      const handle = screen.getByRole("separator");
+      click(handle);
+      for (let i = 0; i < 4; i += 1) fireEvent.click(button("Narrow Name column"));
+      expect(handle.getAttribute("aria-valuenow")).toBe("96");
+      for (let i = 0; i < 12; i += 1) fireEvent.click(button("Widen Name column"));
+      expect(handle.getAttribute("aria-valuenow")).toBe("400");
+    });
+
+    it("resets the override, closes the menu and refocuses the handle", () => {
+      renderTable();
+      const handle = screen.getByRole("separator");
+      click(handle);
+      fireEvent.click(button("Widen Name column"));
+      fireEvent.click(button("Reset Name column width"));
+      expect(handle.getAttribute("aria-valuenow")).toBe("160");
+      expect(window.localStorage.getItem(STORAGE)).toBeNull();
+      expect(screen.queryByRole("group")).toBeNull();
+      expect(document.activeElement).toBe(handle);
+    });
+
+    it("closes with Escape and returns focus to the handle", () => {
+      renderTable();
+      const handle = screen.getByRole("separator");
+      click(handle);
+      fireEvent.keyDown(button("Widen Name column"), { key: "Escape" });
+      expect(screen.queryByRole("group")).toBeNull();
+      expect(document.activeElement).toBe(handle);
+    });
+
+    it("closes on a pointerdown outside and on a second click of the handle", () => {
+      renderTable();
+      const handle = screen.getByRole("separator");
+      click(handle);
+      fireEvent.pointerDown(document.body);
+      expect(screen.queryByRole("group")).toBeNull();
+      click(handle);
+      click(handle);
+      expect(screen.queryByRole("group")).toBeNull();
+    });
+
+    it("does not open after a real drag", () => {
+      renderTable();
+      const handle = screen.getByRole("separator");
+      fireEvent.pointerDown(handle, { button: 0, clientX: 100, pointerId: 1 });
+      fireEvent.pointerMove(handle, { clientX: 150, pointerId: 1 });
+      fireEvent.pointerUp(handle, { clientX: 150, pointerId: 1 });
+      fireEvent.click(handle);
+      expect(screen.queryByRole("group")).toBeNull();
+      expect(handle.getAttribute("aria-valuenow")).toBe("210");
+    });
+
+    it("leaves the width alone for sub-threshold pointer jitter", () => {
+      renderTable();
+      const handle = screen.getByRole("separator");
+      fireEvent.pointerDown(handle, { button: 0, clientX: 100, pointerId: 1 });
+      fireEvent.pointerMove(handle, { clientX: 102, pointerId: 1 });
+      fireEvent.pointerUp(handle, { clientX: 102, pointerId: 1 });
+      fireEvent.click(handle);
+      expect(handle.getAttribute("aria-valuenow")).toBe("160");
+      expect(screen.getByRole("group")).toBeTruthy();
+    });
+
+    it("keeps double-click reset working and leaves no menu open", () => {
+      renderTable();
+      const handle = screen.getByRole("separator");
+      fireEvent.keyDown(handle, { key: "ArrowRight" });
+      click(handle);
+      click(handle);
+      fireEvent.doubleClick(handle);
+      expect(handle.getAttribute("aria-valuenow")).toBe("160");
+      expect(screen.queryByRole("group")).toBeNull();
+    });
+  });
 });
