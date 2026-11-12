@@ -418,6 +418,20 @@ test("renders the OperationalJobsPanel as a resizable data table on desktop and 
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
 });
 
+test("keeps every data-table cell inside its column at 1280px", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(fixture);
+  const overflowing = await page.evaluate(() =>
+    [...document.querySelectorAll(".admin-kit__data-table td:not(.admin-kit__table-cell--truncate)")]
+      .filter((cell) => cell.scrollWidth > cell.clientWidth + 1)
+      .map((cell) => cell.textContent?.slice(0, 40)),
+  );
+  expect(overflowing).toEqual([]);
+  const keys = page.locator(".admin-kit__keys-table");
+  const fits = await keys.evaluate((table) => table.scrollWidth <= table.parentElement!.clientWidth);
+  expect(fits, "the API keys table fits its panel without sideways scroll").toBe(true);
+});
+
 for (const [name, url] of [
   ["AdminDialog", dialogFixture],
   ["AdminConfirmationDialog", confirmationFixture],

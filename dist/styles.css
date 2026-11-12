@@ -526,6 +526,7 @@
 .admin-kit__event-details dd { margin-inline-start: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
 .admin-kit__data-table-wrap { max-height: var(--admin-kit-data-table-max-height, min(70vh, 48rem)); overflow: auto; }
 .admin-kit__data-table { min-width: var(--admin-kit-data-table-min-width, 42rem); table-layout: fixed; width: var(--admin-kit-data-table-width, 100%); }
+.admin-kit__data-table td { overflow-wrap: anywhere; }
 .admin-kit__data-table thead th { position: sticky; top: 0; z-index: 1; }
 .admin-kit__data-table-heading-text { display: block; overflow: hidden; padding-inline-end: 1rem; text-overflow: ellipsis; white-space: nowrap; }
 .admin-kit__column-resizer { cursor: col-resize; display: flex; inset-block: 0; inset-inline-end: 0; justify-content: center; position: absolute; touch-action: none; width: 1.5rem; z-index: 2; }
@@ -665,7 +666,6 @@
 
 /* API keys — compact cards keep broad credentials readable without a table scroller. */
 .admin-kit__keys > button { justify-self: start; }
-.admin-kit__key-timestamp { white-space: nowrap; }
 .admin-kit__key-cards { display: grid; gap: 0.75rem; list-style: none; margin: 0; padding: 0; }
 .admin-kit__key-card { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); box-shadow: var(--admin-kit-shadow); min-width: 0; padding: 1rem; }
 .admin-kit__key-card-header { align-items: start; display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: space-between; }

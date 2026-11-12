@@ -444,7 +444,7 @@ function ApiKeysPanelImpl({
     {
       id: "key",
       header: vocabulary ? capitalizedSingular : "Key",
-      minWidth: 224,
+      minWidth: 160,
       cell: (key) => (
         <div className="admin-kit__key-identity">
           <strong>{key.name}</strong>
@@ -455,7 +455,7 @@ function ApiKeysPanelImpl({
     {
       id: "scope",
       header: "Scope",
-      defaultWidth: 288,
+      defaultWidth: 192,
       minWidth: 160,
       cell: (key) =>
         key.scopes.length ? (
@@ -475,7 +475,7 @@ function ApiKeysPanelImpl({
           {
             id: "details",
             header: "Details",
-            defaultWidth: 240,
+            defaultWidth: 208,
             minWidth: 160,
             cell: (key: AdminApiKey) =>
               key.details?.length ? (
@@ -496,7 +496,7 @@ function ApiKeysPanelImpl({
     {
       id: "state",
       header: "State",
-      defaultWidth: 112,
+      defaultWidth: 96,
       minWidth: 88,
       cell: (key) => (
         <span className={`admin-kit__state-pill admin-kit__state-pill--key-${key.state}`}>
@@ -507,16 +507,16 @@ function ApiKeysPanelImpl({
     {
       id: "created",
       header: "Created",
-      defaultWidth: 176,
-      minWidth: 128,
+      defaultWidth: 152,
+      minWidth: 112,
       className: "admin-kit__key-timestamp",
       cell: (key) => formatAdminTimestamp(key.createdAt, formatTimestamp),
     },
     {
       id: "lastUsed",
       header: "Last used",
-      defaultWidth: 176,
-      minWidth: 128,
+      defaultWidth: 152,
+      minWidth: 112,
       className: "admin-kit__key-timestamp",
       cell: (key) =>
         key.lastUsedAt ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp) : "never",
@@ -524,8 +524,8 @@ function ApiKeysPanelImpl({
     {
       id: "expires",
       header: "Expires",
-      defaultWidth: 176,
-      minWidth: 128,
+      defaultWidth: 152,
+      minWidth: 112,
       className: "admin-kit__key-timestamp",
       cell: (key) =>
         key.expiresAt ? formatAdminTimestamp(key.expiresAt, formatTimestamp) : "never",
@@ -533,7 +533,7 @@ function ApiKeysPanelImpl({
     {
       id: "actions",
       header: "Actions",
-      defaultWidth: 288,
+      defaultWidth: 168,
       resizable: false,
       cell: (key) =>
         renderActions(key, builtInEditEnabled && editingKeyId === key.id, pending === key.id) ?? (

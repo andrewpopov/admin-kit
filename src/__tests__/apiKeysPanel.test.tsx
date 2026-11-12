@@ -843,7 +843,7 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
       key: "ArrowRight",
     });
     expect(JSON.parse(window.localStorage.getItem("admin-kit:table-widths:keys")!)).toEqual({
-      scope: 304,
+      scope: 208,
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Edit scopes for Automation" }));
