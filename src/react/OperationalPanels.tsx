@@ -12,9 +12,9 @@ import {
 } from "../core";
 import { useAdminLabels } from "./AdminLabels";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
+import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
 import { AdminPanelStateView } from "./AdminPanelState";
 import { AdminSwitch } from "./AdminPrimitives";
-import { AdminMobileCellLabel } from "./AdminTablePrimitives";
 
 export interface AdminStatusSummaryProps {
   items: readonly AdminOperationalStatus[];
@@ -48,6 +48,8 @@ export interface OperationalJobsPanelProps {
   formatTimestamp?: (iso: string) => string;
   /** Explains the useful zero-run state instead of rendering an unexplained empty table. */
   emptyState?: { title: string; detail?: string };
+  /** Persist this viewer's column widths under this key. */
+  storageKey?: string;
 }
 
 /** Displays host-owned scheduled, import, and retention runs without mislabeling them as backups. */
@@ -59,6 +61,7 @@ export function OperationalJobsPanel({
   className,
   formatTimestamp,
   emptyState = { title: "No operational runs yet." },
+  storageKey,
 }: OperationalJobsPanelProps) {
   const labels = useAdminLabels();
   const [result, setResult] = useState<{ items: readonly AdminOperationalJob[]; total: number }>();
@@ -110,6 +113,50 @@ export function OperationalJobsPanel({
       />
     );
   const totalPages = Math.max(1, Math.ceil(result.total / pageSize));
+  const jobColumns: AdminDataTableColumn<AdminOperationalJob>[] = [
+    {
+      id: "job",
+      header: "Job",
+      minWidth: 224,
+      cell: (item) => (
+        <span>
+          <strong>{item.label}</strong>
+          {item.detail ? <small>{item.detail}</small> : null}
+        </span>
+      ),
+    },
+    {
+      id: "started",
+      header: "Started",
+      defaultWidth: 184,
+      minWidth: 128,
+      cell: (item) => <span>{formatAdminTimestamp(item.startedAt, formatTimestamp)}</span>,
+    },
+    {
+      id: "finished",
+      header: "Finished",
+      defaultWidth: 184,
+      minWidth: 128,
+      cell: (item) => (
+        <span>
+          {item.finishedAt ? formatAdminTimestamp(item.finishedAt, formatTimestamp) : "In progress"}
+        </span>
+      ),
+    },
+    {
+      id: "status",
+      header: "Status",
+      defaultWidth: 128,
+      minWidth: 96,
+      cell: (item) => (
+        <span>
+          <span className={`admin-kit__state-pill admin-kit__state-pill--${item.state}`}>
+            {item.state}
+          </span>
+        </span>
+      ),
+    },
+  ];
   return (
     <section
       className={["admin-kit__operations", className].filter(Boolean).join(" ")}
@@ -152,56 +199,15 @@ export function OperationalJobsPanel({
           state={{ kind: "empty", title: emptyState.title, detail: emptyState.detail }}
         />
       ) : (
-        <div className="admin-kit__table-wrap admin-kit__table-wrap--stack admin-kit__operations-table-wrap">
-          <table
-            className="admin-kit__table admin-kit__table--stack admin-kit__operations-table"
-            aria-busy={busy || isLoading}
-          >
-            <thead>
-              <tr>
-                <th scope="col">Job</th>
-                <th scope="col">Started</th>
-                <th scope="col">Finished</th>
-                <th scope="col">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.items.map((item) => (
-                <tr key={item.id}>
-                  <td>
-                    <AdminMobileCellLabel>Job</AdminMobileCellLabel>
-                    <span>
-                      <strong>{item.label}</strong>
-                      {item.detail ? <small>{item.detail}</small> : null}
-                    </span>
-                  </td>
-                  <td>
-                    <AdminMobileCellLabel>Started</AdminMobileCellLabel>
-                    <span>{formatAdminTimestamp(item.startedAt, formatTimestamp)}</span>
-                  </td>
-                  <td>
-                    <AdminMobileCellLabel>Finished</AdminMobileCellLabel>
-                    <span>
-                      {item.finishedAt
-                        ? formatAdminTimestamp(item.finishedAt, formatTimestamp)
-                        : "In progress"}
-                    </span>
-                  </td>
-                  <td>
-                    <AdminMobileCellLabel>Status</AdminMobileCellLabel>
-                    <span>
-                      <span
-                        className={`admin-kit__state-pill admin-kit__state-pill--${item.state}`}
-                      >
-                        {item.state}
-                      </span>
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AdminDataTable
+          busy={busy || isLoading}
+          className="admin-kit__operations-table"
+          columns={jobColumns}
+          rowKey={(item) => item.id}
+          rows={result.items}
+          storageKey={storageKey}
+          wrapClassName="admin-kit__operations-table-wrap"
+        />
       )}
       {totalPages > 1 ? (
         <nav className="admin-kit__pagination" aria-label="Operational jobs pagination">
@@ -227,6 +233,8 @@ export interface BackupsPanelProps {
   className?: string;
   /** Overrides the default timestamp presentation for createdAt. */
   formatTimestamp?: (iso: string) => string;
+  /** Persist this viewer's column widths under this key. */
+  storageKey?: string;
 }
 
 export function BackupsPanel({
@@ -236,6 +244,7 @@ export function BackupsPanel({
   pageSize = 25,
   className,
   formatTimestamp,
+  storageKey,
 }: BackupsPanelProps) {
   const labels = useAdminLabels();
   const [result, setResult] = useState<{ items: readonly AdminBackupSummary[]; total: number }>();
@@ -316,6 +325,65 @@ export function BackupsPanel({
       />
     );
   const totalPages = Math.max(1, Math.ceil(result.total / pageSize));
+  const backupColumns: AdminDataTableColumn<AdminBackupSummary>[] = [
+    {
+      id: "backup",
+      header: "Backup",
+      minWidth: 224,
+      cell: (item) => (
+        <span>
+          <strong>{item.label}</strong>
+          {item.detail ? <small>{item.detail}</small> : null}
+        </span>
+      ),
+    },
+    {
+      id: "created",
+      header: "Created",
+      defaultWidth: 184,
+      minWidth: 128,
+      cell: (item) => <span>{formatAdminTimestamp(item.createdAt, formatTimestamp)}</span>,
+    },
+    {
+      id: "size",
+      header: "Size",
+      defaultWidth: 112,
+      minWidth: 80,
+      cell: (item) => <span>{item.size ?? "—"}</span>,
+    },
+    {
+      id: "status",
+      header: "Status",
+      defaultWidth: 128,
+      minWidth: 96,
+      cell: (item) => (
+        <span>
+          <span className={`admin-kit__state-pill admin-kit__state-pill--${item.state}`}>
+            {item.state}
+          </span>
+        </span>
+      ),
+    },
+    ...(adapter.restore
+      ? [
+          {
+            id: "actions",
+            header: "Actions",
+            defaultWidth: 128,
+            resizable: false,
+            cell: (item: AdminBackupSummary) => (
+              <button
+                disabled={busy || item.state !== "completed"}
+                type="button"
+                onClick={() => setRestoreTarget(item)}
+              >
+                Restore
+              </button>
+            ),
+          },
+        ]
+      : []),
+  ];
   return (
     <section
       className={["admin-kit__operations", className].filter(Boolean).join(" ")}
@@ -349,65 +417,15 @@ export function BackupsPanel({
           }}
         />
       ) : (
-        <div className="admin-kit__table-wrap admin-kit__operations-table-wrap admin-kit__backups-table-wrap">
-          <table
-            className="admin-kit__table admin-kit__operations-table admin-kit__backups-table"
-            aria-busy={busy || isLoading}
-          >
-            <thead>
-              <tr>
-                <th scope="col">Backup</th>
-                <th scope="col">Created</th>
-                <th scope="col">Size</th>
-                <th scope="col">Status</th>
-                {adapter.restore ? <th scope="col">Actions</th> : null}
-              </tr>
-            </thead>
-            <tbody>
-              {result.items.map((item) => (
-                <tr key={item.id}>
-                  <td>
-                    <AdminMobileCellLabel>Backup</AdminMobileCellLabel>
-                    <span>
-                      <strong>{item.label}</strong>
-                      {item.detail ? <small>{item.detail}</small> : null}
-                    </span>
-                  </td>
-                  <td>
-                    <AdminMobileCellLabel>Created</AdminMobileCellLabel>
-                    <span>{formatAdminTimestamp(item.createdAt, formatTimestamp)}</span>
-                  </td>
-                  <td>
-                    <AdminMobileCellLabel>Size</AdminMobileCellLabel>
-                    <span>{item.size ?? "—"}</span>
-                  </td>
-                  <td>
-                    <AdminMobileCellLabel>Status</AdminMobileCellLabel>
-                    <span>
-                      <span
-                        className={`admin-kit__state-pill admin-kit__state-pill--${item.state}`}
-                      >
-                        {item.state}
-                      </span>
-                    </span>
-                  </td>
-                  {adapter.restore ? (
-                    <td>
-                      <AdminMobileCellLabel>Actions</AdminMobileCellLabel>
-                      <button
-                        disabled={busy || item.state !== "completed"}
-                        type="button"
-                        onClick={() => setRestoreTarget(item)}
-                      >
-                        Restore
-                      </button>
-                    </td>
-                  ) : null}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AdminDataTable
+          busy={busy || isLoading}
+          className="admin-kit__operations-table admin-kit__backups-table"
+          columns={backupColumns}
+          rowKey={(item) => item.id}
+          rows={result.items}
+          storageKey={storageKey}
+          wrapClassName="admin-kit__operations-table-wrap admin-kit__backups-table-wrap"
+        />
       )}
       {totalPages > 1 ? (
         <nav className="admin-kit__pagination" aria-label="Backups pagination">

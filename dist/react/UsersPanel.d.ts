@@ -29,6 +29,8 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
     }) => ReactNode;
     /** Optional host class for local styling without replacing the panel. */
     className?: string;
+    /** Persist this viewer's column widths under this key. */
+    storageKey?: string;
 }
 export interface AdminUserTableColumn<User extends AdminUserSummary> {
     id: string;
@@ -56,4 +58,4 @@ export interface AdminUserTableCellContext {
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
  */
-export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, headerPresentation, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderUserActions, className, }: UsersPanelProps<User>): import("react").JSX.Element;
+export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, headerPresentation, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderUserActions, className, storageKey, }: UsersPanelProps<User>): import("react").JSX.Element;

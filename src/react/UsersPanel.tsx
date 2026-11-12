@@ -10,7 +10,7 @@ import {
 import { useAdminLabels } from "./AdminLabels";
 import { AdminPanelHeader, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
-import { AdminMobileCellLabel } from "./AdminTablePrimitives";
+import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
 
 export interface UsersPanelProps<User extends AdminUserSummary> {
   adapter: AdminUsersAdapter<User>;
@@ -34,6 +34,8 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
   ) => ReactNode;
   /** Optional host class for local styling without replacing the panel. */
   className?: string;
+  /** Persist this viewer's column widths under this key. */
+  storageKey?: string;
 }
 
 export interface AdminUserTableColumn<User extends AdminUserSummary> {
@@ -61,6 +63,8 @@ export interface AdminUserTableCellContext {
   setStatus: (status: string) => Promise<void>;
 }
 
+const CUSTOM_COLUMN_WIDTH = 160;
+
 /**
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
@@ -78,6 +82,7 @@ export function UsersPanel<User extends AdminUserSummary>({
   renderHeaderActions,
   renderUserActions,
   className,
+  storageKey,
 }: UsersPanelProps<User>) {
   const labels = useAdminLabels();
   const [page, setPage] = useState(1);
@@ -187,6 +192,147 @@ export function UsersPanel<User extends AdminUserSummary>({
     }
   };
 
+  const hasDetails = Boolean(result?.items.some((user) => user.details?.length));
+  const tableColumns: AdminDataTableColumn<User>[] = columns?.length
+    ? columns.map((column, index) => {
+        const layoutClassNames = [
+          column.nowrap ? "admin-kit__table-cell--nowrap" : undefined,
+          column.priority ? `admin-kit__table-cell--${column.priority}` : undefined,
+        ];
+        const direction = sort?.columnId === column.id ? sort.direction : undefined;
+        return {
+          id: column.id,
+          header: typeof column.label === "string" ? column.label : column.id,
+          headerContent: column.label,
+          headerClassName:
+            [column.headerClassName, ...layoutClassNames].filter(Boolean).join(" ") || undefined,
+          className: [column.className, ...layoutClassNames].filter(Boolean).join(" ") || undefined,
+          defaultWidth: index === 0 ? undefined : CUSTOM_COLUMN_WIDTH,
+          minWidth: index === 0 ? 200 : 96,
+          sort: column.sortable
+            ? {
+                direction:
+                  direction === "asc" ? "ascending" : direction === "desc" ? "descending" : "none",
+                onSort: () => updateSort(column.id),
+              }
+            : undefined,
+          cell: (user) =>
+            column.render(user, {
+              reload: load,
+              isPending: pendingUserId === user.id,
+              setRole: (role) => updateRole(user.id, role),
+              setStatus: (status) => updateStatus(user.id, status),
+            }),
+        };
+      })
+    : [
+        {
+          id: "user",
+          header: "User",
+          minWidth: 240,
+          cell: (user) => (
+            <div className="admin-kit__user-identity">
+              <strong>{user.label}</strong>
+              {user.secondaryLabel ? <span>{user.secondaryLabel}</span> : null}
+              {user.badges?.length ? <span>{user.badges.join(" · ")}</span> : null}
+            </div>
+          ),
+        },
+        ...(hasDetails
+          ? [
+              {
+                id: "details",
+                header: "Details",
+                defaultWidth: 280,
+                minWidth: 160,
+                cell: (user: User) =>
+                  user.details?.length ? (
+                    <dl className="admin-kit__user-details">
+                      {user.details.map((detail) => (
+                        <div key={detail.label}>
+                          <dt>{detail.label}</dt>
+                          <dd>{detail.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  ) : (
+                    <span className="admin-kit__user-empty">—</span>
+                  ),
+              },
+            ]
+          : []),
+        {
+          id: "role",
+          header: "Role",
+          defaultWidth: 168,
+          minWidth: 120,
+          cell: (user) =>
+            adapter.roles?.length &&
+            adapter.setRole &&
+            user.role &&
+            user.permissions?.canChangeRole !== false ? (
+              <select
+                aria-label={`Role for ${user.label}`}
+                disabled={pendingUserId === user.id}
+                value={user.role.value}
+                onChange={(event) => void updateRole(user.id, event.target.value)}
+              >
+                {adapter.roles.map((role) => (
+                  <option key={role.value} value={role.value}>
+                    {role.label}
+                  </option>
+                ))}
+              </select>
+            ) : user.role ? (
+              <span className="admin-kit__user-value">{user.role.label}</span>
+            ) : null,
+        },
+        {
+          id: "status",
+          header: "Status",
+          defaultWidth: 168,
+          minWidth: 120,
+          cell: (user) =>
+            adapter.statuses?.length &&
+            adapter.setStatus &&
+            user.status &&
+            user.permissions?.canChangeStatus !== false ? (
+              <select
+                aria-label={`Status for ${user.label}`}
+                disabled={pendingUserId === user.id}
+                value={user.status.value}
+                onChange={(event) => void updateStatus(user.id, event.target.value)}
+              >
+                {adapter.statuses.map((status) => (
+                  <option key={status.value} value={status.value}>
+                    {status.label}
+                  </option>
+                ))}
+              </select>
+            ) : user.status ? (
+              <span className="admin-kit__user-value">{user.status.label}</span>
+            ) : null,
+        },
+        ...(renderUserActions
+          ? [
+              {
+                id: "actions",
+                header: "Actions",
+                defaultWidth: 220,
+                resizable: false,
+                cell: (user: User) => (
+                  <div className="admin-kit__user-controls">
+                    {renderUserActions(user, {
+                      reload: load,
+                      isPending: pendingUserId === user.id,
+                    })}
+                  </div>
+                ),
+              },
+            ]
+          : []),
+      ];
+
   const searchControl =
     searchOptions !== false ? (
       <label className="admin-kit__users-search">
@@ -248,214 +394,22 @@ export function UsersPanel<User extends AdminUserSummary>({
               {actionError}
             </p>
           ) : null}
-          {presentation === "table"
-            ? (() => {
-                if (columns?.length)
-                  return (
-                    <div className="admin-kit__table-wrap admin-kit__users-table-wrap">
-                      <table
-                        className="admin-kit__table admin-kit__users-table admin-kit__users-table--custom"
-                        aria-busy={isLoading}
-                      >
-                        <thead>
-                          <tr>
-                            {columns.map((column) => {
-                              const direction =
-                                sort?.columnId === column.id ? sort.direction : undefined;
-                              const layoutClassName = [
-                                column.headerClassName,
-                                column.nowrap ? "admin-kit__table-cell--nowrap" : undefined,
-                                column.priority
-                                  ? `admin-kit__table-cell--${column.priority}`
-                                  : undefined,
-                              ]
-                                .filter(Boolean)
-                                .join(" ");
-                              return (
-                                <th
-                                  aria-sort={
-                                    column.sortable
-                                      ? direction === "asc"
-                                        ? "ascending"
-                                        : direction === "desc"
-                                          ? "descending"
-                                          : "none"
-                                      : undefined
-                                  }
-                                  className={layoutClassName || undefined}
-                                  key={column.id}
-                                  scope="col"
-                                >
-                                  {column.sortable ? (
-                                    <button
-                                      className="admin-kit__sort-button"
-                                      type="button"
-                                      onClick={() => updateSort(column.id)}
-                                    >
-                                      {column.label}
-                                      <span aria-hidden="true">
-                                        {direction === "asc"
-                                          ? "↑"
-                                          : direction === "desc"
-                                            ? "↓"
-                                            : "↕"}
-                                      </span>
-                                    </button>
-                                  ) : (
-                                    column.label
-                                  )}
-                                </th>
-                              );
-                            })}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {result.items.map((user) => (
-                            <tr key={user.id} aria-busy={pendingUserId === user.id}>
-                              {columns.map((column) => (
-                                <td
-                                  className={
-                                    [
-                                      column.className,
-                                      column.nowrap ? "admin-kit__table-cell--nowrap" : undefined,
-                                      column.priority
-                                        ? `admin-kit__table-cell--${column.priority}`
-                                        : undefined,
-                                    ]
-                                      .filter(Boolean)
-                                      .join(" ") || undefined
-                                  }
-                                  key={column.id}
-                                >
-                                  <AdminMobileCellLabel>{column.label}</AdminMobileCellLabel>
-                                  {column.render(user, {
-                                    reload: load,
-                                    isPending: pendingUserId === user.id,
-                                    setRole: (role) => updateRole(user.id, role),
-                                    setStatus: (status) => updateStatus(user.id, status),
-                                  })}
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  );
-                const hasDetails = result.items.some((user) => user.details?.length);
-                const hasActions = Boolean(renderUserActions);
-                return (
-                  <div className="admin-kit__table-wrap admin-kit__users-table-wrap">
-                    <table
-                      className={`admin-kit__table admin-kit__users-table${hasDetails ? " admin-kit__users-table--with-details" : ""}`}
-                      aria-busy={isLoading}
-                    >
-                      <thead>
-                        <tr>
-                          <th scope="col">User</th>
-                          {hasDetails ? <th scope="col">Details</th> : null}
-                          <th scope="col">Role</th>
-                          <th scope="col">Status</th>
-                          {hasActions ? <th scope="col">Actions</th> : null}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {result.items.map((user) => (
-                          <tr key={user.id} aria-busy={pendingUserId === user.id}>
-                            <td>
-                              <AdminMobileCellLabel>User</AdminMobileCellLabel>
-                              <div className="admin-kit__user-identity">
-                                <strong>{user.label}</strong>
-                                {user.secondaryLabel ? <span>{user.secondaryLabel}</span> : null}
-                                {user.badges?.length ? (
-                                  <span>{user.badges.join(" · ")}</span>
-                                ) : null}
-                              </div>
-                            </td>
-                            {hasDetails ? (
-                              <td>
-                                <AdminMobileCellLabel>Details</AdminMobileCellLabel>
-                                {user.details?.length ? (
-                                  <dl className="admin-kit__user-details">
-                                    {user.details.map((detail) => (
-                                      <div key={detail.label}>
-                                        <dt>{detail.label}</dt>
-                                        <dd>{detail.value}</dd>
-                                      </div>
-                                    ))}
-                                  </dl>
-                                ) : (
-                                  <span className="admin-kit__user-empty">—</span>
-                                )}
-                              </td>
-                            ) : null}
-                            <td>
-                              <AdminMobileCellLabel>Role</AdminMobileCellLabel>
-                              {adapter.roles?.length &&
-                              adapter.setRole &&
-                              user.role &&
-                              user.permissions?.canChangeRole !== false ? (
-                                <select
-                                  aria-label={`Role for ${user.label}`}
-                                  disabled={pendingUserId === user.id}
-                                  value={user.role.value}
-                                  onChange={(event) => void updateRole(user.id, event.target.value)}
-                                >
-                                  {adapter.roles.map((role) => (
-                                    <option key={role.value} value={role.value}>
-                                      {role.label}
-                                    </option>
-                                  ))}
-                                </select>
-                              ) : user.role ? (
-                                <span className="admin-kit__user-value">{user.role.label}</span>
-                              ) : null}
-                            </td>
-                            <td>
-                              <AdminMobileCellLabel>Status</AdminMobileCellLabel>
-                              {adapter.statuses?.length &&
-                              adapter.setStatus &&
-                              user.status &&
-                              user.permissions?.canChangeStatus !== false ? (
-                                <select
-                                  aria-label={`Status for ${user.label}`}
-                                  disabled={pendingUserId === user.id}
-                                  value={user.status.value}
-                                  onChange={(event) =>
-                                    void updateStatus(user.id, event.target.value)
-                                  }
-                                >
-                                  {adapter.statuses.map((status) => (
-                                    <option key={status.value} value={status.value}>
-                                      {status.label}
-                                    </option>
-                                  ))}
-                                </select>
-                              ) : user.status ? (
-                                <span className="admin-kit__user-value">{user.status.label}</span>
-                              ) : null}
-                            </td>
-                            {hasActions ? (
-                              <td>
-                                <AdminMobileCellLabel>Actions</AdminMobileCellLabel>
-                                <div className="admin-kit__user-controls">
-                                  {renderUserActions
-                                    ? renderUserActions(user, {
-                                        reload: load,
-                                        isPending: pendingUserId === user.id,
-                                      })
-                                    : null}
-                                </div>
-                              </td>
-                            ) : null}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              })()
-            : null}
+          {presentation === "table" ? (
+            <AdminDataTable
+              busy={isLoading}
+              className={
+                columns?.length
+                  ? "admin-kit__users-table admin-kit__users-table--custom"
+                  : `admin-kit__users-table${hasDetails ? " admin-kit__users-table--with-details" : ""}`
+              }
+              columns={tableColumns}
+              rowBusy={(user) => pendingUserId === user.id}
+              rowKey={(user) => user.id}
+              rows={result.items}
+              storageKey={storageKey}
+              wrapClassName="admin-kit__users-table-wrap"
+            />
+          ) : null}
           {Math.max(1, Math.ceil(result.total / result.pageSize)) > 1 ? (
             <nav className="admin-kit__pagination" aria-label="User pagination">
               <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>

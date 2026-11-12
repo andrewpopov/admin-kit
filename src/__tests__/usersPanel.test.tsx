@@ -397,4 +397,31 @@ describe("UsersPanel", () => {
     await reload?.();
     await waitFor(() => expect(screen.getByText("Page 2 of 2")).toBeTruthy());
   });
+
+  it("renders both table schemas through AdminDataTable and persists resized widths", async () => {
+    window.localStorage.clear();
+    const list = vi.fn().mockResolvedValue({ items: users, page: 1, pageSize: 25, total: 1 });
+    const { unmount } = render(<UsersPanel adapter={{ list }} storageKey="people" />);
+    await screen.findByText("ada@example.test");
+    expect(screen.getByRole("separator", { name: "Resize Role column" })).toBeTruthy();
+    fireEvent.keyDown(screen.getByRole("separator", { name: "Resize Role column" }), {
+      key: "ArrowRight",
+    });
+    expect(JSON.parse(window.localStorage.getItem("admin-kit:table-widths:people")!)).toEqual({
+      role: 184,
+    });
+    unmount();
+
+    render(
+      <UsersPanel
+        adapter={{ list }}
+        columns={[
+          { id: "email", label: "Email", render: (user) => user.label },
+          { id: "account", label: "Account", render: (user) => user.secondaryLabel },
+        ]}
+      />,
+    );
+    await screen.findByText("ada@example.test");
+    expect(screen.getByRole("separator", { name: "Resize Account column" })).toBeTruthy();
+  });
 });

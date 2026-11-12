@@ -186,4 +186,54 @@ describe("AdminDataTable", () => {
     const table = container.querySelector("table")!;
     expect(table.style.getPropertyValue("--admin-kit-data-table-width")).toBe("360px");
   });
+
+  it("marks a busy row aria-busy and leaves other rows unmarked", () => {
+    const two = [...rows, { id: "r2", name: "Bo", note: "short" }];
+    render(
+      <AdminDataTable
+        columns={columns}
+        rowBusy={(r) => r.id === "r2"}
+        rowKey={(r) => r.id}
+        rows={two}
+      />,
+    );
+    expect(screen.getByText("Bo").closest("tr")!.getAttribute("aria-busy")).toBe("true");
+    expect(screen.getByText("Ada").closest("tr")!.hasAttribute("aria-busy")).toBe(false);
+  });
+
+  it("renders a caller-controlled expansion row under its row, after details", () => {
+    const { rerender } = render(
+      <AdminDataTable
+        columns={columns}
+        renderDetails={() => <p>Details body</p>}
+        renderExpansion={(r) => (r.id === "r1" ? <p>Editing {r.name}</p> : null)}
+        rowKey={(r) => r.id}
+        rowLabel={(r) => r.name}
+        rows={rows}
+      />,
+    );
+    const row = screen.getByText("Ada").closest("tr")!;
+    expect(row.className).toContain("admin-kit__data-table-row--expanded");
+    const expansion = screen.getByText("Editing Ada").closest("tr")!;
+    expect(expansion.className).toContain("admin-kit__data-table-details-row");
+    expect(expansion.querySelector("td")!.getAttribute("colspan")).toBe("3");
+    expect(row.nextElementSibling).toBe(expansion);
+
+    fireEvent.click(screen.getByRole("button", { name: "View details for Ada" }));
+    const details = screen.getByText("Details body").closest("tr")!;
+    expect(row.nextElementSibling).toBe(details);
+    expect(details.nextElementSibling).toBe(expansion);
+    fireEvent.click(screen.getByRole("button", { name: "Hide details for Ada" }));
+
+    rerender(
+      <AdminDataTable
+        columns={columns}
+        renderExpansion={() => undefined}
+        rowKey={(r) => r.id}
+        rows={rows}
+      />,
+    );
+    expect(screen.queryByText("Editing Ada")).toBeNull();
+    expect(screen.getByText("Ada").closest("tr")!.className).toBe("");
+  });
 });

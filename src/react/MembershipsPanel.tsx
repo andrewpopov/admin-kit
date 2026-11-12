@@ -6,6 +6,7 @@ import {
   type AdminMembershipsAdapter,
 } from "../core";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
+import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
 import { AdminPanelStateView } from "./AdminPanelState";
 
 export interface MembershipsPanelProps<
@@ -28,6 +29,8 @@ export interface MembershipsPanelProps<
   getRemoveDescription?: (member: Member) => string;
   dialogClassName?: string;
   className?: string;
+  /** Persist this viewer's column widths under this key. */
+  storageKey?: string;
 }
 
 /**
@@ -45,6 +48,7 @@ export function MembershipsPanel<
   getRemoveDescription,
   dialogClassName,
   className,
+  storageKey,
 }: MembershipsPanelProps<InviteInput, Member>) {
   const [members, setMembers] = useState<readonly Member[]>();
   const [loadError, setLoadError] = useState<string>();
@@ -207,6 +211,96 @@ export function MembershipsPanel<
     (adapter.remove &&
       members.some((member) => member.mutable && member.permissions?.canRemove !== false)),
   );
+  const memberColumns: AdminDataTableColumn<Member>[] = [
+    {
+      id: "member",
+      header: "Member",
+      minWidth: 224,
+      cell: (member) => (
+        <div className="admin-kit__membership-identity">
+          <strong>{member.label}</strong>
+          {member.secondaryLabel ? <span>{member.secondaryLabel}</span> : null}
+        </div>
+      ),
+    },
+    {
+      id: "access",
+      header: "Access",
+      defaultWidth: 128,
+      minWidth: 96,
+      cell: (member) => (
+        <span className="admin-kit__membership-source">
+          {member.source === "inherited" ? "Inherited" : "Direct"}
+        </span>
+      ),
+    },
+    {
+      id: "role",
+      header: "Role",
+      defaultWidth: 176,
+      minWidth: 128,
+      cell: (member) => {
+        const pending = pendingMemberId === member.memberId;
+        const canChangeRole =
+          member.mutable && member.permissions?.canChangeRole !== false && Boolean(adapter.setRole);
+        const role = adapter.roles.find((candidate) => candidate.value === member.role)!;
+        return canChangeRole ? (
+          <select
+            aria-label={`Role for ${member.label}`}
+            disabled={pending}
+            value={member.role}
+            onChange={(event) => void updateRole(member.memberId, event.target.value)}
+          >
+            {adapter.roles.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span
+            className={`admin-kit__membership-role admin-kit__membership-role--${role.tone ?? "neutral"}`}
+          >
+            {role.label}
+          </span>
+        );
+      },
+    },
+    ...(hasActions
+      ? [
+          {
+            id: "actions",
+            header: "Actions",
+            defaultWidth: 208,
+            resizable: false,
+            cell: (member: Member) => {
+              const pending = pendingMemberId === member.memberId;
+              const canRemove =
+                member.mutable &&
+                member.permissions?.canRemove !== false &&
+                Boolean(adapter.remove);
+              return (
+                <div className="admin-kit__membership-controls">
+                  {renderMemberActions
+                    ? renderMemberActions(member, { reload: load, isPending: pending })
+                    : null}
+                  {canRemove ? (
+                    <button
+                      className="admin-kit__button"
+                      disabled={pending}
+                      type="button"
+                      onClick={() => setRemoveTarget(member)}
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
+              );
+            },
+          },
+        ]
+      : []),
+  ];
   return (
     <section
       className={["admin-kit__memberships", className].filter(Boolean).join(" ")}
@@ -236,88 +330,15 @@ export function MembershipsPanel<
       {members.length === 0 ? (
         <AdminPanelStateView state={{ kind: "empty", title: "No members found." }} />
       ) : (
-        <div className="admin-kit__table-wrap admin-kit__memberships-table-wrap">
-          <table className="admin-kit__table admin-kit__memberships-table">
-            <thead>
-              <tr>
-                <th scope="col">Member</th>
-                <th scope="col">Access</th>
-                <th scope="col">Role</th>
-                {hasActions ? <th scope="col">Actions</th> : null}
-              </tr>
-            </thead>
-            <tbody>
-              {members.map((member) => {
-                const pending = pendingMemberId === member.memberId;
-                const canChangeRole =
-                  member.mutable &&
-                  member.permissions?.canChangeRole !== false &&
-                  Boolean(adapter.setRole);
-                const canRemove =
-                  member.mutable &&
-                  member.permissions?.canRemove !== false &&
-                  Boolean(adapter.remove);
-                const role = adapter.roles.find((candidate) => candidate.value === member.role)!;
-                return (
-                  <tr key={member.memberId} aria-busy={pending}>
-                    <td>
-                      <div className="admin-kit__membership-identity">
-                        <strong>{member.label}</strong>
-                        {member.secondaryLabel ? <span>{member.secondaryLabel}</span> : null}
-                      </div>
-                    </td>
-                    <td>
-                      <span className="admin-kit__membership-source">
-                        {member.source === "inherited" ? "Inherited" : "Direct"}
-                      </span>
-                    </td>
-                    <td>
-                      {canChangeRole ? (
-                        <select
-                          aria-label={`Role for ${member.label}`}
-                          disabled={pending}
-                          value={member.role}
-                          onChange={(event) => void updateRole(member.memberId, event.target.value)}
-                        >
-                          {adapter.roles.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span
-                          className={`admin-kit__membership-role admin-kit__membership-role--${role.tone ?? "neutral"}`}
-                        >
-                          {role.label}
-                        </span>
-                      )}
-                    </td>
-                    {hasActions ? (
-                      <td>
-                        <div className="admin-kit__membership-controls">
-                          {renderMemberActions
-                            ? renderMemberActions(member, { reload: load, isPending: pending })
-                            : null}
-                          {canRemove ? (
-                            <button
-                              className="admin-kit__button"
-                              disabled={pending}
-                              type="button"
-                              onClick={() => setRemoveTarget(member)}
-                            >
-                              Remove
-                            </button>
-                          ) : null}
-                        </div>
-                      </td>
-                    ) : null}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <AdminDataTable
+          className="admin-kit__memberships-table"
+          columns={memberColumns}
+          rowBusy={(member) => pendingMemberId === member.memberId}
+          rowKey={(member) => member.memberId}
+          rows={members}
+          storageKey={storageKey}
+          wrapClassName="admin-kit__memberships-table-wrap"
+        />
       )}
       {adapter.remove ? (
         <AdminConfirmationDialog

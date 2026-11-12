@@ -41,6 +41,8 @@ interface ApiKeysPanelSharedProps {
     dialogClassName?: string;
     /** Overrides the default timestamp presentation for lastUsedAt / expiresAt. */
     formatTimestamp?: (iso: string) => string;
+    /** Table presentation: persist this viewer's column widths under this key. */
+    storageKey?: string;
 }
 /** The adapter-shaped props and render-prop escape hatches, keyed to CreateInput/UpdateInput. */
 interface ApiKeysPanelDataProps<CreateInput, UpdateInput> {

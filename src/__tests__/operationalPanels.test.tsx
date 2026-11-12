@@ -732,4 +732,50 @@ describe("operational panels", () => {
     await screen.findByText("Settings host unavailable");
     expect(screen.queryByDisplayValue("hello")).toBeNull();
   });
+
+  it("renders jobs and backups through AdminDataTable and persists widths under storageKey", async () => {
+    window.localStorage.clear();
+    render(
+      <>
+        <OperationalJobsPanel
+          adapter={{
+            list: vi.fn().mockResolvedValue({
+              items: [
+                { id: "j1", label: "Nightly", startedAt: "Today", state: "completed" as const },
+              ],
+              page: 1,
+              pageSize: 25,
+              total: 1,
+            }),
+          }}
+          storageKey="jobs"
+        />
+        <BackupsPanel
+          adapter={{
+            list: vi.fn().mockResolvedValue({
+              items: [{ id: "b1", label: "Daily", createdAt: "Today", state: "completed" }],
+              page: 1,
+              pageSize: 25,
+              total: 1,
+            }),
+          }}
+          storageKey="backups"
+        />
+      </>,
+    );
+    await screen.findByText("Nightly");
+    await screen.findByText("Daily");
+    fireEvent.keyDown(screen.getByRole("separator", { name: "Resize Started column" }), {
+      key: "ArrowRight",
+    });
+    fireEvent.keyDown(screen.getByRole("separator", { name: "Resize Size column" }), {
+      key: "ArrowRight",
+    });
+    expect(JSON.parse(window.localStorage.getItem("admin-kit:table-widths:jobs")!)).toEqual({
+      started: 200,
+    });
+    expect(JSON.parse(window.localStorage.getItem("admin-kit:table-widths:backups")!)).toEqual({
+      size: 128,
+    });
+  });
 });

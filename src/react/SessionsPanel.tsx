@@ -7,6 +7,7 @@ import {
   type AdminSessionsAdapter,
 } from "../core";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
+import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
 import { AdminPanelStateView } from "./AdminPanelState";
 
 export interface SessionsPanelProps<Session extends AdminSessionSummary = AdminSessionSummary> {
@@ -20,6 +21,8 @@ export interface SessionsPanelProps<Session extends AdminSessionSummary = AdminS
   formatTimestamp?: (iso: string) => string;
   dialogClassName?: string;
   className?: string;
+  /** Persist this viewer's column widths under this key. */
+  storageKey?: string;
 }
 
 /** Active-session administration with host-owned token and authorization semantics. */
@@ -31,6 +34,7 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
   formatTimestamp,
   dialogClassName,
   className,
+  storageKey,
 }: SessionsPanelProps<Session>) {
   const [sessions, setSessions] = useState<readonly Session[]>();
   const [loadError, setLoadError] = useState<string>();
@@ -173,6 +177,99 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
     (adapter.revoke && sessions.some((session) => session.permissions?.canRevoke !== false)),
   );
   const busy = pendingId !== undefined;
+  const sessionColumns: AdminDataTableColumn<Session>[] = [
+    {
+      id: "session",
+      header: "Session",
+      minWidth: 208,
+      cell: (session) => (
+        <div className="admin-kit__session-identity">
+          <strong>{session.label}</strong>
+          {session.secondaryLabel ? <span>{session.secondaryLabel}</span> : null}
+          {session.current ? <span className="admin-kit__session-current">Current</span> : null}
+        </div>
+      ),
+    },
+    ...(hasDetails
+      ? [
+          {
+            id: "details",
+            header: "Details",
+            defaultWidth: 256,
+            minWidth: 160,
+            cell: (session: Session) =>
+              session.details?.length ? (
+                <dl className="admin-kit__session-details">
+                  {session.details.map((detail) => (
+                    <div key={detail.label}>
+                      <dt>{detail.label}</dt>
+                      <dd>{detail.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <span className="admin-kit__session-empty">—</span>
+              ),
+          },
+        ]
+      : []),
+    {
+      id: "created",
+      header: "Created",
+      defaultWidth: 176,
+      minWidth: 128,
+      cell: (session) => formatAdminTimestamp(session.createdAt, formatTimestamp),
+    },
+    {
+      id: "lastActive",
+      header: "Last active",
+      defaultWidth: 176,
+      minWidth: 128,
+      cell: (session) =>
+        session.lastSeenAt ? formatAdminTimestamp(session.lastSeenAt, formatTimestamp) : "—",
+    },
+    {
+      id: "expires",
+      header: "Expires",
+      defaultWidth: 176,
+      minWidth: 128,
+      cell: (session) =>
+        session.expiresAt ? formatAdminTimestamp(session.expiresAt, formatTimestamp) : "—",
+    },
+    ...(hasActions
+      ? [
+          {
+            id: "actions",
+            header: "Actions",
+            defaultWidth: 208,
+            resizable: false,
+            cell: (session: Session) => {
+              const canRevoke = Boolean(adapter.revoke && session.permissions?.canRevoke !== false);
+              return (
+                <div className="admin-kit__session-controls">
+                  {renderSessionActions
+                    ? renderSessionActions(session, {
+                        reload: load,
+                        isPending: pendingId === session.id,
+                      })
+                    : null}
+                  {canRevoke ? (
+                    <button
+                      className="admin-kit__button"
+                      disabled={busy}
+                      type="button"
+                      onClick={() => setRevokeTarget(session)}
+                    >
+                      Revoke
+                    </button>
+                  ) : null}
+                </div>
+              );
+            },
+          },
+        ]
+      : []),
+  ];
   return (
     <section
       className={["admin-kit__sessions", className].filter(Boolean).join(" ")}
@@ -210,89 +307,15 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
       {sessions.length === 0 ? (
         <AdminPanelStateView state={{ kind: "empty", title: "No active sessions." }} />
       ) : (
-        <div className="admin-kit__table-wrap admin-kit__sessions-table-wrap">
-          <table
-            className={`admin-kit__table admin-kit__sessions-table${hasDetails ? " admin-kit__sessions-table--with-details" : ""}`}
-          >
-            <thead>
-              <tr>
-                <th scope="col">Session</th>
-                {hasDetails ? <th scope="col">Details</th> : null}
-                <th scope="col">Created</th>
-                <th scope="col">Last active</th>
-                <th scope="col">Expires</th>
-                {hasActions ? <th scope="col">Actions</th> : null}
-              </tr>
-            </thead>
-            <tbody>
-              {sessions.map((session) => {
-                const pending = pendingId === session.id;
-                const canRevoke = Boolean(
-                  adapter.revoke && session.permissions?.canRevoke !== false,
-                );
-                return (
-                  <tr key={session.id} aria-busy={pending}>
-                    <td>
-                      <div className="admin-kit__session-identity">
-                        <strong>{session.label}</strong>
-                        {session.secondaryLabel ? <span>{session.secondaryLabel}</span> : null}
-                        {session.current ? (
-                          <span className="admin-kit__session-current">Current</span>
-                        ) : null}
-                      </div>
-                    </td>
-                    {hasDetails ? (
-                      <td>
-                        {session.details?.length ? (
-                          <dl className="admin-kit__session-details">
-                            {session.details.map((detail) => (
-                              <div key={detail.label}>
-                                <dt>{detail.label}</dt>
-                                <dd>{detail.value}</dd>
-                              </div>
-                            ))}
-                          </dl>
-                        ) : (
-                          <span className="admin-kit__session-empty">—</span>
-                        )}
-                      </td>
-                    ) : null}
-                    <td>{formatAdminTimestamp(session.createdAt, formatTimestamp)}</td>
-                    <td>
-                      {session.lastSeenAt
-                        ? formatAdminTimestamp(session.lastSeenAt, formatTimestamp)
-                        : "—"}
-                    </td>
-                    <td>
-                      {session.expiresAt
-                        ? formatAdminTimestamp(session.expiresAt, formatTimestamp)
-                        : "—"}
-                    </td>
-                    {hasActions ? (
-                      <td>
-                        <div className="admin-kit__session-controls">
-                          {renderSessionActions
-                            ? renderSessionActions(session, { reload: load, isPending: pending })
-                            : null}
-                          {canRevoke ? (
-                            <button
-                              className="admin-kit__button"
-                              disabled={busy}
-                              type="button"
-                              onClick={() => setRevokeTarget(session)}
-                            >
-                              Revoke
-                            </button>
-                          ) : null}
-                        </div>
-                      </td>
-                    ) : null}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <AdminDataTable
+          className={`admin-kit__sessions-table${hasDetails ? " admin-kit__sessions-table--with-details" : ""}`}
+          columns={sessionColumns}
+          rowBusy={(session) => pendingId === session.id}
+          rowKey={(session) => session.id}
+          rows={sessions}
+          storageKey={storageKey}
+          wrapClassName="admin-kit__sessions-table-wrap"
+        />
       )}
       {adapter.revoke ? (
         <AdminConfirmationDialog

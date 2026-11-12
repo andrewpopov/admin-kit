@@ -1,13 +1,5 @@
 "use client";
-import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ReactElement,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import {
   type AdminApiKey,
   type AdminApiKeyCreateRequest,
@@ -27,6 +19,7 @@ import {
 } from "../core";
 import { AdminApiKeyForm } from "./AdminApiKeyForm";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
+import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
 import { AdminPanelHeader, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
 
@@ -71,6 +64,8 @@ interface ApiKeysPanelSharedProps {
   dialogClassName?: string;
   /** Overrides the default timestamp presentation for lastUsedAt / expiresAt. */
   formatTimestamp?: (iso: string) => string;
+  /** Table presentation: persist this viewer's column widths under this key. */
+  storageKey?: string;
 }
 
 /** The adapter-shaped props and render-prop escape hatches, keyed to CreateInput/UpdateInput. */
@@ -163,6 +158,7 @@ function ApiKeysPanelImpl({
   className,
   dialogClassName,
   formatTimestamp,
+  storageKey,
 }: ApiKeysPanelProps<AdminApiKeyCreateRequest, AdminApiKeyScopeUpdate>) {
   const singular = vocabulary?.singular ?? "API key";
   const plural = vocabulary?.plural ?? "API keys";
@@ -444,6 +440,107 @@ function ApiKeysPanelImpl({
         />
       </div>
     ) : null;
+  const keyColumns: AdminDataTableColumn<AdminApiKey>[] = [
+    {
+      id: "key",
+      header: vocabulary ? capitalizedSingular : "Key",
+      minWidth: 160,
+      cell: (key) => (
+        <div className="admin-kit__key-identity">
+          <strong>{key.name}</strong>
+          <code>{key.maskedKey}</code>
+        </div>
+      ),
+    },
+    {
+      id: "scope",
+      header: "Scope",
+      defaultWidth: 192,
+      minWidth: 160,
+      cell: (key) =>
+        key.scopes.length ? (
+          <ul className="admin-kit__scope-chips">
+            {key.scopes.map((scope) => (
+              <li className="admin-kit__scope-chip" key={scope}>
+                {scope}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <span className="admin-kit__key-empty">—</span>
+        ),
+    },
+    ...(hasDetails
+      ? [
+          {
+            id: "details",
+            header: "Details",
+            defaultWidth: 208,
+            minWidth: 160,
+            cell: (key: AdminApiKey) =>
+              key.details?.length ? (
+                <dl className="admin-kit__key-details">
+                  {key.details.map((detail) => (
+                    <div key={detail.label}>
+                      <dt>{detail.label}</dt>
+                      <dd>{detail.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <span className="admin-kit__key-empty">—</span>
+              ),
+          },
+        ]
+      : []),
+    {
+      id: "state",
+      header: "State",
+      defaultWidth: 96,
+      minWidth: 88,
+      cell: (key) => (
+        <span className={`admin-kit__state-pill admin-kit__state-pill--key-${key.state}`}>
+          {key.state}
+        </span>
+      ),
+    },
+    {
+      id: "created",
+      header: "Created",
+      defaultWidth: 152,
+      minWidth: 112,
+      className: "admin-kit__key-timestamp",
+      cell: (key) => formatAdminTimestamp(key.createdAt, formatTimestamp),
+    },
+    {
+      id: "lastUsed",
+      header: "Last used",
+      defaultWidth: 152,
+      minWidth: 112,
+      className: "admin-kit__key-timestamp",
+      cell: (key) =>
+        key.lastUsedAt ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp) : "never",
+    },
+    {
+      id: "expires",
+      header: "Expires",
+      defaultWidth: 152,
+      minWidth: 112,
+      className: "admin-kit__key-timestamp",
+      cell: (key) =>
+        key.expiresAt ? formatAdminTimestamp(key.expiresAt, formatTimestamp) : "never",
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      defaultWidth: 168,
+      resizable: false,
+      cell: (key) =>
+        renderActions(key, builtInEditEnabled && editingKeyId === key.id, pending === key.id) ?? (
+          <span className="admin-kit__key-empty">—</span>
+        ),
+    },
+  ];
   return (
     <section
       className={["admin-kit__keys", className].filter(Boolean).join(" ")}
@@ -537,101 +634,20 @@ function ApiKeysPanelImpl({
       ) : lifecycleKeys.length === 0 ? (
         <AdminPanelStateView state={{ kind: "empty", title: `No ${plural} yet.` }} />
       ) : resolvedPresentation === "table" ? (
-        <div className="admin-kit__table-wrap admin-kit__keys-table-wrap">
-          <table className="admin-kit__table admin-kit__keys-table">
-            <thead>
-              <tr>
-                <th scope="col">{vocabulary ? capitalizedSingular : "Key"}</th>
-                <th scope="col">Scope</th>
-                {hasDetails ? <th scope="col">Details</th> : null}
-                <th scope="col">State</th>
-                <th scope="col">Created</th>
-                <th scope="col">Last used</th>
-                <th scope="col">Expires</th>
-                <th scope="col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lifecycleKeys.map((key) => {
-                const isEditing = builtInEditEnabled && editingKeyId === key.id;
-                const isPending = pending === key.id;
-                return (
-                  <Fragment key={key.id}>
-                    <tr aria-busy={isPending}>
-                      <td>
-                        <div className="admin-kit__key-identity">
-                          <strong>{key.name}</strong>
-                          <code>{key.maskedKey}</code>
-                        </div>
-                      </td>
-                      <td>
-                        {key.scopes.length ? (
-                          <ul className="admin-kit__scope-chips">
-                            {key.scopes.map((scope) => (
-                              <li className="admin-kit__scope-chip" key={scope}>
-                                {scope}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <span className="admin-kit__key-empty">—</span>
-                        )}
-                      </td>
-                      {hasDetails ? (
-                        <td>
-                          {key.details?.length ? (
-                            <dl className="admin-kit__key-details">
-                              {key.details.map((detail) => (
-                                <div key={detail.label}>
-                                  <dt>{detail.label}</dt>
-                                  <dd>{detail.value}</dd>
-                                </div>
-                              ))}
-                            </dl>
-                          ) : (
-                            <span className="admin-kit__key-empty">—</span>
-                          )}
-                        </td>
-                      ) : null}
-                      <td>
-                        <span
-                          className={`admin-kit__state-pill admin-kit__state-pill--key-${key.state}`}
-                        >
-                          {key.state}
-                        </span>
-                      </td>
-                      <td className="admin-kit__key-timestamp">
-                        {formatAdminTimestamp(key.createdAt, formatTimestamp)}
-                      </td>
-                      <td className="admin-kit__key-timestamp">
-                        {key.lastUsedAt
-                          ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp)
-                          : "never"}
-                      </td>
-                      <td className="admin-kit__key-timestamp">
-                        {key.expiresAt
-                          ? formatAdminTimestamp(key.expiresAt, formatTimestamp)
-                          : "never"}
-                      </td>
-                      <td>
-                        {renderActions(key, isEditing, isPending) ?? (
-                          <span className="admin-kit__key-empty">—</span>
-                        )}
-                      </td>
-                    </tr>
-                    {isEditing ? (
-                      <tr>
-                        <td colSpan={hasDetails ? 8 : 7}>
-                          {renderEditor(key, isEditing, isPending)}
-                        </td>
-                      </tr>
-                    ) : null}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <AdminDataTable
+          className="admin-kit__keys-table"
+          columns={keyColumns}
+          renderExpansion={(key) =>
+            builtInEditEnabled && editingKeyId === key.id
+              ? renderEditor(key, true, pending === key.id)
+              : null
+          }
+          rowBusy={(key) => pending === key.id}
+          rowKey={(key) => key.id}
+          rows={lifecycleKeys}
+          storageKey={storageKey}
+          wrapClassName="admin-kit__keys-table-wrap"
+        />
       ) : (
         <ol className="admin-kit__key-cards">
           {lifecycleKeys.map((key) => {

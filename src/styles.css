@@ -526,6 +526,7 @@
 .admin-kit__event-details dd { margin-inline-start: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
 .admin-kit__data-table-wrap { max-height: var(--admin-kit-data-table-max-height, min(70vh, 48rem)); overflow: auto; }
 .admin-kit__data-table { min-width: var(--admin-kit-data-table-min-width, 42rem); table-layout: fixed; width: var(--admin-kit-data-table-width, 100%); }
+.admin-kit__data-table td { overflow-wrap: anywhere; }
 .admin-kit__data-table thead th { position: sticky; top: 0; z-index: 1; }
 .admin-kit__data-table-heading-text { display: block; overflow: hidden; padding-inline-end: 1rem; text-overflow: ellipsis; white-space: nowrap; }
 .admin-kit__column-resizer { cursor: col-resize; display: flex; inset-block: 0; inset-inline-end: 0; justify-content: center; position: absolute; touch-action: none; width: 1.5rem; z-index: 2; }
@@ -583,11 +584,7 @@
 .admin-kit__users-header p, .admin-kit__user-identity span, .admin-kit__user-controls label > span, .admin-kit__users-search span, .admin-kit__user-details dt { color: var(--admin-kit-muted); }
 .admin-kit__users-search { margin-top: 1.25rem; max-width: 28rem; }
 .admin-kit__users-table-wrap { margin-top: 1rem; }
-.admin-kit__users-table { min-width: 42rem; }
-.admin-kit__users-table--with-details { min-width: 54rem; }
 .admin-kit__users-table th, .admin-kit__users-table td { vertical-align: top; }
-.admin-kit__users-table th:first-child, .admin-kit__users-table td:first-child { min-width: 16rem; }
-.admin-kit__users-table th:last-child, .admin-kit__users-table td:last-child { white-space: nowrap; width: 1%; }
 .admin-kit__users-table select { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-control-border); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: 0.375rem 0.5rem; }
 .admin-kit__mobile-cell-label { display: none; }
 .admin-kit__sort-button { background: transparent; border: 0; color: inherit; gap: 0.375rem; justify-content: flex-start; letter-spacing: inherit; margin: -0.5rem -0.75rem; min-block-size: 2.75rem; padding: 0.5rem 0.75rem; text-transform: inherit; width: calc(100% + 1.5rem); }
@@ -609,9 +606,6 @@
 .admin-kit__memberships-header p, .admin-kit__membership-identity span { color: var(--admin-kit-muted); }
 .admin-kit__memberships-header p { margin: 0.25rem 0 0; }
 .admin-kit__memberships-table-wrap { margin-top: 1rem; }
-.admin-kit__memberships-table { min-width: 42rem; }
-.admin-kit__memberships-table th:first-child, .admin-kit__memberships-table td:first-child { min-width: 14rem; }
-.admin-kit__memberships-table th:last-child, .admin-kit__memberships-table td:last-child { white-space: nowrap; width: 1%; }
 .admin-kit__memberships-table select { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-control-border); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: 2.75rem; padding: 0.375rem 0.5rem; }
 .admin-kit__membership-identity { display: flex; flex-direction: column; gap: 0.25rem; }
 .admin-kit__membership-identity span { overflow-wrap: anywhere; }
@@ -648,10 +642,6 @@
 .admin-kit__sessions-header h2, .admin-kit__sessions-header p { margin: 0; }
 .admin-kit__sessions-header h2 { font-size: 1.125rem; letter-spacing: -0.01em; }
 .admin-kit__sessions-header p, .admin-kit__session-identity > span:not(.admin-kit__session-current), .admin-kit__session-details dt, .admin-kit__session-empty { color: var(--admin-kit-muted); }
-.admin-kit__sessions-table { min-width: 52rem; }
-.admin-kit__sessions-table--with-details { min-width: 62rem; }
-.admin-kit__sessions-table th:first-child, .admin-kit__sessions-table td:first-child { min-width: 13rem; }
-.admin-kit__sessions-table th:last-child, .admin-kit__sessions-table td:last-child { white-space: nowrap; width: 1%; }
 .admin-kit__session-identity { align-items: flex-start; display: flex; flex-direction: column; gap: 0.25rem; }
 .admin-kit__session-current { background: var(--admin-kit-accent-soft); border-radius: 999px; color: var(--admin-kit-accent); font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.45rem; }
 .admin-kit__session-details { display: grid; gap: 0.25rem; margin: 0; }
@@ -676,10 +666,6 @@
 
 /* API keys — compact cards keep broad credentials readable without a table scroller. */
 .admin-kit__keys > button { justify-self: start; }
-.admin-kit__keys-table { min-width: 64rem; }
-.admin-kit__keys-table th:first-child, .admin-kit__keys-table td:first-child { min-width: 14rem; }
-.admin-kit__keys-table th:last-child, .admin-kit__keys-table td:last-child { white-space: nowrap; width: 1%; }
-.admin-kit__key-timestamp { white-space: nowrap; }
 .admin-kit__key-cards { display: grid; gap: 0.75rem; list-style: none; margin: 0; padding: 0; }
 .admin-kit__key-card { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius); box-shadow: var(--admin-kit-shadow); min-width: 0; padding: 1rem; }
 .admin-kit__key-card-header { align-items: start; display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: space-between; }
@@ -801,23 +787,7 @@
   .admin-kit__events-header > button, .admin-kit__users-header > :last-child, .admin-kit__memberships-header > :last-child, .admin-kit__key-actions > button, .admin-kit__dialog-actions > button { width: 100%; }
   .admin-kit__events-filters label { flex: 1 1 12rem; }
   .admin-kit__user-controls { align-items: stretch; }
-  /* Recovery points are action-oriented too. Keep the semantic table for
-     desktop and assistive technology, but present each row as a labeled card
-     on phones so restore never depends on horizontal panning. */
-  .admin-kit__backups-table-wrap { overflow-x: visible; }
-  .admin-kit__backups-table { display: block; min-width: 0; }
-  .admin-kit__backups-table thead { clip: rect(0 0 0 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
-  .admin-kit__backups-table tbody { display: grid; gap: 0.75rem; }
-  .admin-kit__backups-table tr { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius-sm); display: grid; overflow: hidden; }
-  .admin-kit__backups-table td { align-items: start; display: grid; gap: 0.75rem; grid-template-columns: minmax(5.5rem, 0.35fr) minmax(0, 1fr); min-width: 0; white-space: normal; width: auto; }
-  .admin-kit__backups-table td:last-child { border-bottom: 0; }
-  .admin-kit__backups-table .admin-kit__mobile-cell-label { color: var(--admin-kit-muted); display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-  .admin-kit__backups-table td > :last-child { max-width: 100%; overflow-wrap: anywhere; }
   .admin-kit__backups-table td > button { justify-self: stretch; width: 100%; }
-  /* User management is action-oriented. At phone widths each semantic table
-     row becomes a card so lifecycle controls never require horizontal
-     discovery. The DOM remains one table, preserving its headers and focus
-     order for assistive technology. */
   /* Opt-in stacked table: put --stack on the wrap and the table, and render an
      AdminMobileCellLabel in each cell. Rows become labelled cards on phones;
      the DOM stays one semantic table. */
@@ -840,29 +810,13 @@
   .admin-kit__table--stack tbody tr:last-child th { border-bottom: 1px solid var(--admin-kit-border); }
   .admin-kit__table--stack .admin-kit__mobile-cell-label { color: var(--admin-kit-muted); display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
   .admin-kit__table--stack td > :last-child { max-width: 100%; overflow-wrap: anywhere; }
-  .admin-kit__users-table-wrap { overflow-x: visible; }
-  .admin-kit__users-table,
-  .admin-kit__users-table--with-details { display: block; min-width: 0; }
-  .admin-kit__users-table thead { clip: rect(0 0 0 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
-  .admin-kit__users-table tbody { display: grid; gap: 0.75rem; }
-  .admin-kit__users-table tr { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius-sm); display: grid; overflow: hidden; }
-  .admin-kit__users-table th:first-child,
-  .admin-kit__users-table td:first-child { min-width: 0; }
-  .admin-kit__users-table td,
-  .admin-kit__users-table td:last-child { align-items: start; display: grid; gap: 0.75rem; grid-template-columns: minmax(5.5rem, 0.35fr) minmax(0, 1fr); min-width: 0; white-space: normal; width: auto; }
-  .admin-kit__users-table td:last-child { border-bottom: 0; }
-  .admin-kit__users-table .admin-kit__mobile-cell-label { color: var(--admin-kit-muted); display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
   .admin-kit__users-table .admin-kit__user-controls { flex-wrap: wrap; min-width: 0; }
   .admin-kit__users-table .admin-kit__user-controls > * { max-width: 100%; overflow-wrap: anywhere; white-space: normal; }
-  .admin-kit__memberships-table { min-width: 34rem; }
   .admin-kit__logs-header { align-items: stretch; flex-direction: column; }
   .admin-kit__logs-actions > button { flex: 1 1 auto; }
   .admin-kit__sessions-header { align-items: stretch; flex-direction: column; }
   .admin-kit__sessions-header > button { width: 100%; }
-  .admin-kit__sessions-table { min-width: 42rem; }
-  .admin-kit__sessions-table--with-details { min-width: 48rem; }
   .admin-kit__keys-header { align-items: stretch; flex-direction: column; }
-  .admin-kit__keys-table { min-width: 48rem; }
   .admin-kit__keys > button { justify-self: stretch; }
   .admin-kit__scope-options { grid-template-columns: minmax(0, 1fr); }
   .admin-kit__key-form-grid { grid-template-columns: minmax(0, 1fr); }
@@ -884,6 +838,7 @@
    — a 64rem/1024px trigger sat just below that and never fired. */
 @container admin-kit-table (max-width: 72rem) {
   .admin-kit__users-table .admin-kit__table-cell--tertiary { display: none; }
+  .admin-kit__users-table--custom { min-width: 0; }
 }
 @container admin-kit-table (max-width: 56rem) {
   .admin-kit__users-table .admin-kit__table-cell--secondary { display: none; }
