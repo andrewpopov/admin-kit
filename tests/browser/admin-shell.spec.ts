@@ -155,7 +155,7 @@ test("keeps the phone app header compact so content starts near the top", async 
   expect(fontSize, "desktop frame title keeps its larger size").toBeGreaterThanOrEqual(28);
 });
 
-test("styles only column headers as uppercase headers, not row headers", async ({ page }) => {
+test("styles column headers as sentence-case caption headers, not row headers", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(fixture);
   const wrap = page.getByTestId("stack-table-wrap");
@@ -169,8 +169,12 @@ test("styles only column headers as uppercase headers, not row headers", async (
   expect(Number(rowStyle.fontWeight)).toBe(600);
   expect(
     await wrap.locator("thead th").first().evaluate((node) => getComputedStyle(node).textTransform),
-    "column headers keep the uppercase header look",
-  ).toBe("uppercase");
+    "column headers are sentence case by default (--admin-kit-table-heading-transform)",
+  ).toBe("none");
+  expect(
+    await wrap.locator("thead th").first().evaluate((node) => getComputedStyle(node).fontWeight),
+    "column headers use the strong weight",
+  ).toBe("600");
 });
 
 test("keeps a disabled primary button readable (text contrast at least 4.5:1)", async ({ page }) => {

@@ -286,6 +286,32 @@ describe("admin-kit-conformance", () => {
     expect(result.stdout).toContain("[admin-kit-conformance] PASS");
   });
 
+  it("accepts a source-level public type-token override", () => {
+    const root = createConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app.css"),
+      [
+        ":root {",
+        "  --admin-kit-font-family: system-ui;",
+        "  --admin-kit-text-page-title-size: 1.5rem;",
+        "  --admin-kit-text-page-title-leading: 2rem;",
+        "  --admin-kit-text-title-size: 1.125rem;",
+        "  --admin-kit-text-body-size: 0.875rem;",
+        "  --admin-kit-text-body-sm-size: 0.8125rem;",
+        "  --admin-kit-text-caption-leading: 1rem;",
+        "  --admin-kit-weight-title: 600;",
+        "  --admin-kit-weight-strong: 500;",
+        "  --admin-kit-table-heading-transform: uppercase;",
+        "}",
+      ].join("\n"),
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("[admin-kit-conformance] PASS");
+  });
+
   it("accepts a frameless AdminApp when host chrome supplies page identity", () => {
     const root = createConsumerFixture();
     writeFileSync(

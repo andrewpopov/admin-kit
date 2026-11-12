@@ -45,6 +45,20 @@ const PUBLIC_THEME_TOKENS = new Set([
   'dark-accent',
   'dark-accent-strong',
   'dark-accent-soft',
+  'font-family',
+  'text-page-title-size',
+  'text-page-title-leading',
+  'text-title-size',
+  'text-title-leading',
+  'text-body-size',
+  'text-body-leading',
+  'text-body-sm-size',
+  'text-body-sm-leading',
+  'text-caption-size',
+  'text-caption-leading',
+  'weight-title',
+  'weight-strong',
+  'table-heading-transform',
 ]);
 const sourceFiles = [];
 const packageManifests = [];
@@ -164,7 +178,7 @@ for (const { path, text } of files) {
     const name = match[1];
     if (!PUBLIC_THEME_TOKENS.has(name)) {
       errors.push(
-        `${rel}: --admin-kit-${name} is an internal Admin Kit token and cannot be overridden; only theme tokens (accent, accent-strong, accent-soft, on-accent, radius, radius-sm, dark-accent, dark-accent-strong, dark-accent-soft) may be set to rebrand.`,
+        `${rel}: --admin-kit-${name} is an internal Admin Kit token and cannot be overridden; only the public theme and type tokens may be set (accent, accent-strong, accent-soft, on-accent, radius, radius-sm, dark-accent, dark-accent-strong, dark-accent-soft, font-family, text-{page-title,title,body,body-sm,caption}-{size,leading}, weight-title, weight-strong, table-heading-transform).`,
       );
     }
   }
