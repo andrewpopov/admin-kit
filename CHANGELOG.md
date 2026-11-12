@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.45.0
+
+### Changed
+
+- The users, memberships, sessions, API keys, operational jobs and backups tables now use the resizable data table, with an optional storageKey to remember column widths
+  `UsersPanel`, `MembershipsPanel`, `SessionsPanel`, `ApiKeysPanel` (its table presentation), `OperationalJobsPanel` and `BackupsPanel` now render through `AdminDataTable`. Their columns can be resized by drag or keyboard, the header stays pinned inside the table's own scroll box, and below 48rem every one of them becomes labelled cards instead of scrolling sideways. Each panel takes an optional `storageKey` that remembers column widths per viewer. Action columns keep a fixed width. Cell content, buttons, sorting and confirmation flows are unchanged. `AdminDataTable` gains `rowBusy`, `renderExpansion` (a caller-controlled full-width row, used for the API key scope editor) and per-column `sort`, `headerContent` and `headerClassName`. Its cells now wrap long unbroken values rather than spilling into the next column. The per-table `min-width` rules and the users and backups phone card blocks are removed because the shared data-table rules cover them; `.admin-kit__key-timestamp` no longer forces one line.
+
 ## 0.44.0
 
 ### Added
