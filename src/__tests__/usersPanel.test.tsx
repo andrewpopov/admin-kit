@@ -119,7 +119,7 @@ describe("UsersPanel", () => {
     expect(screen.getByRole("columnheader", { name: "Created" }).className).toContain(
       "admin-kit__table-cell--tertiary",
     );
-    expect(screen.getByText("Jul 10, 2026").className).toContain("admin-kit__table-cell--nowrap");
+    expect(screen.getByText("Jul 10, 2026").closest("td")?.className).toContain("admin-kit__table-cell--nowrap");
   });
 
   it("sends custom-column sorting to the adapter and exposes the active direction", async () => {

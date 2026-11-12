@@ -134,6 +134,7 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
                 headerContent: column.label,
                 headerClassName: [column.headerClassName, ...layoutClassNames].filter(Boolean).join(" ") || undefined,
                 className: [column.className, ...layoutClassNames].filter(Boolean).join(" ") || undefined,
+                priority: column.priority,
                 defaultWidth: index === 0 ? undefined : CUSTOM_COLUMN_WIDTH,
                 minWidth: index === 0 ? 200 : 96,
                 sort: column.sortable

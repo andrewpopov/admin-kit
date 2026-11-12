@@ -3,6 +3,7 @@ import {
   Fragment,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -11,15 +12,22 @@ import {
   type ReactNode,
 } from "react";
 import { AdminMobileCellLabel } from "./AdminTablePrimitives";
+import {
+  clamp,
+  columnBounds,
+  DETAILS_COLUMN_WIDTH,
+  resolveTableFit,
+  type AdminDataTableColumnPriority,
+} from "./adminDataTableFit";
 
-const DEFAULT_MIN_WIDTH = 64;
-const DEFAULT_MAX_WIDTH = 960;
+export type { AdminDataTableColumnPriority } from "./adminDataTableFit";
+
 const KEYBOARD_STEP = 16;
 const KEYBOARD_LARGE_STEP = 64;
 const MENU_STEP = 32;
 const DRAG_THRESHOLD = 4;
 const STORAGE_PREFIX = "admin-kit:table-widths:";
-const DETAILS_COLUMN_WIDTH = 96;
+const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 const SORT_ARROWS = { ascending: "↑", descending: "↓", none: "↕" } as const;
 
 export interface AdminDataTableColumn<Row> {
@@ -32,7 +40,7 @@ export interface AdminDataTableColumn<Row> {
   /** Turns the heading into a sort button and sets `aria-sort`. */
   sort?: { direction: "ascending" | "descending" | "none"; onSort: () => void };
   cell: (row: Row) => ReactNode;
-  /** px. Omit on one column to make it fill the width the sized columns leave. */
+  /** px. A preferred width that shrinks to `minWidth` to fit the container. Omit on one column to make it fill the width the sized columns leave. */
   defaultWidth?: number;
   minWidth?: number;
   maxWidth?: number;
@@ -41,6 +49,10 @@ export interface AdminDataTableColumn<Row> {
   truncate?: boolean;
   title?: (row: Row) => string | undefined;
   className?: string;
+  /** Hides tertiary, then secondary, columns before anything scrolls. Default primary. */
+  priority?: AdminDataTableColumnPriority;
+  /** Where the cell sits in a stacked card; cells without a slot keep the label/value layout. */
+  cardSlot?: "title" | "badge" | "meta" | "detail" | "actions";
 }
 
 export interface AdminDataTableProps<Row> {
@@ -54,6 +66,9 @@ export interface AdminDataTableProps<Row> {
   /** Adds a disclosure column whose button expands a full-width row with this content. */
   renderDetails?: (row: Row) => ReactNode;
   detailsLabel?: string;
+  /** Controls which `renderDetails` rows are open; omit to let the table keep that state. */
+  expandedKeys?: readonly string[];
+  onExpandedChange?: (keys: readonly string[]) => void;
   /** Marks a row's `<tr>` aria-busy, for rows with a pending action. */
   rowBusy?: (row: Row) => boolean;
   /** Content for a full-width row under the row, shown while it returns a value; the caller controls when. */
@@ -64,17 +79,6 @@ export interface AdminDataTableProps<Row> {
 }
 
 type Widths = Record<string, number>;
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, Math.round(value)));
-}
-
-function bounds<Row>(column: AdminDataTableColumn<Row>) {
-  return {
-    min: column.minWidth ?? DEFAULT_MIN_WIDTH,
-    max: column.maxWidth ?? DEFAULT_MAX_WIDTH,
-  };
-}
 
 function readStoredWidths(storageKey: string | undefined): Widths {
   if (!storageKey || typeof window === "undefined") return {};
@@ -104,7 +108,7 @@ function writeStoredWidths(storageKey: string | undefined, widths: Widths) {
   }
 }
 
-/** Resizable, sticky-header data table; below 48rem rows become labelled cards. */
+/** Resizable, sticky-header data table that fits its container: columns shrink, low-priority ones hide, and rows become cards when the primary columns cannot fit. */
 export function AdminDataTable<Row>({
   columns,
   rows,
@@ -114,6 +118,8 @@ export function AdminDataTable<Row>({
   busy = false,
   renderDetails,
   detailsLabel = "Details",
+  expandedKeys,
+  onExpandedChange,
   rowBusy,
   renderExpansion,
   rowLabel,
@@ -131,7 +137,10 @@ export function AdminDataTable<Row>({
   const overrides = stored.key === storageKey ? stored.widths : {};
   const latest = useRef(overrides);
   latest.current = overrides;
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set());
+  const [expandedState, setExpandedState] = useState<readonly string[]>([]);
+  const expanded = expandedKeys ?? expandedState;
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>();
   const drag = useRef<{ id: string; startX: number; startWidth: number }>();
   const dragged = useRef(false);
   const handles = useRef(new Map<string, HTMLElement>());
@@ -148,11 +157,31 @@ export function AdminDataTable<Row>({
     return () => document.removeEventListener("pointerdown", closeOutside);
   }, [idPrefix, menuFor]);
 
-  const widthOf = (column: AdminDataTableColumn<Row>) => {
-    if (column.defaultWidth === undefined) return undefined;
-    const { min, max } = bounds(column);
-    return clamp(overrides[column.id] ?? column.defaultWidth, min, max);
-  };
+  useIsomorphicLayoutEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return undefined;
+    const measure = () => setContainerWidth(wrap.clientWidth || undefined);
+    measure();
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(measure);
+    observer.observe(wrap);
+    return () => observer.disconnect();
+  }, []);
+
+  const fit = resolveTableFit(
+    containerWidth,
+    columns.map((column) => ({
+      id: column.id,
+      priority: column.priority,
+      defaultWidth: column.defaultWidth,
+      minWidth: column.minWidth,
+      maxWidth: column.maxWidth,
+      override: column.defaultWidth === undefined ? undefined : overrides[column.id],
+    })),
+    renderDetails ? DETAILS_COLUMN_WIDTH : 0,
+  );
+  const visibleColumns = columns.filter((column) => fit.visibleIds.includes(column.id));
+  const widthOf = (column: AdminDataTableColumn<Row>): number | undefined => fit.widths[column.id];
 
   const persist = (widths: Widths) => {
     const known = new Set(columns.map((column) => column.id));
@@ -170,7 +199,7 @@ export function AdminDataTable<Row>({
     const next = { ...latest.current };
     if (width === undefined) delete next[column.id];
     else {
-      const { min, max } = bounds(column);
+      const { min, max } = columnBounds(column);
       next[column.id] = clamp(width, min, max);
     }
     latest.current = next;
@@ -182,7 +211,7 @@ export function AdminDataTable<Row>({
     const current = widthOf(column);
     if (current === undefined) return;
     const step = event.shiftKey ? KEYBOARD_LARGE_STEP : KEYBOARD_STEP;
-    const { min, max } = bounds(column);
+    const { min, max } = columnBounds(column);
     let next: number | undefined | null = null;
     if (event.key === "Escape" && menuFor === column.id) {
       setMenuFor(undefined);
@@ -236,45 +265,39 @@ export function AdminDataTable<Row>({
     closeMenu(column);
   };
 
-  const toggle = (key: string) =>
-    setExpanded((current) => {
-      const next = new Set(current);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
+  const toggle = (key: string) => {
+    const next = expanded.includes(key)
+      ? expanded.filter((open) => open !== key)
+      : [...expanded, key];
+    if (expandedKeys === undefined) setExpandedState(next);
+    onExpandedChange?.(next);
+  };
 
-  const fixedWidth =
-    columns.reduce(
-      (total, column) => total + (widthOf(column) ?? column.minWidth ?? DEFAULT_MIN_WIDTH * 3),
-      0,
-    ) + (renderDetails ? DETAILS_COLUMN_WIDTH : 0);
-  const columnCount = columns.length + (renderDetails ? 1 : 0);
-  const hasFillColumn = columns.some((column) => column.defaultWidth === undefined);
+  const columnCount = visibleColumns.length + (renderDetails ? 1 : 0);
+  const hasFillColumn = visibleColumns.some((column) => column.defaultWidth === undefined);
   const tableSize = {
-    "--admin-kit-data-table-min-width": `${fixedWidth}px`,
-    ...(hasFillColumn ? {} : { "--admin-kit-data-table-width": `${fixedWidth}px` }),
+    "--admin-kit-data-table-min-width": `${fit.minTableWidth}px`,
+    ...(hasFillColumn ? {} : { "--admin-kit-data-table-width": `${fit.minTableWidth}px` }),
   } as CSSProperties;
 
   return (
     <div
-      className={[
-        "admin-kit__table-wrap admin-kit__table-wrap--stack admin-kit__data-table-wrap",
-        wrapClassName,
-      ]
+      className={["admin-kit__table-wrap admin-kit__data-table-wrap", wrapClassName]
         .filter(Boolean)
         .join(" ")}
+      data-scrolls={fit.scrolls || undefined}
+      data-stacked={fit.stacked || undefined}
+      ref={wrapRef}
     >
       <table
         aria-busy={busy}
         aria-label={label}
-        className={["admin-kit__table admin-kit__table--stack admin-kit__data-table", className]
-          .filter(Boolean)
-          .join(" ")}
+        className={["admin-kit__table admin-kit__data-table", className].filter(Boolean).join(" ")}
+        data-stacked={fit.stacked || undefined}
         style={tableSize}
       >
         <colgroup>
-          {columns.map((column) => {
+          {visibleColumns.map((column) => {
             const width = widthOf(column);
             return (
               <col
@@ -289,10 +312,11 @@ export function AdminDataTable<Row>({
         </colgroup>
         <thead>
           <tr>
-            {columns.map((column) => {
+            {visibleColumns.map((column) => {
               const width = widthOf(column);
-              const resizable = width !== undefined && column.resizable !== false;
-              const { min, max } = bounds(column);
+              const resizable =
+                width !== undefined && column.resizable !== false && !fit.stacked;
+              const { min, max } = columnBounds(column);
               const menuOpen = resizable && menuFor === column.id;
               const menuId = `${idPrefix}-resize-${column.id}`;
               return (
@@ -405,7 +429,7 @@ export function AdminDataTable<Row>({
         <tbody>
           {rows.map((row) => {
             const key = rowKey(row);
-            const isOpen = expanded.has(key);
+            const isOpen = expanded.includes(key);
             const detailsId = `${idPrefix}-details-${key}`;
             const expansion = renderExpansion?.(row);
             const isExpanded = isOpen || (expansion !== null && expansion !== undefined);
@@ -415,7 +439,7 @@ export function AdminDataTable<Row>({
                   aria-busy={rowBusy?.(row) || undefined}
                   className={isExpanded ? "admin-kit__data-table-row--expanded" : undefined}
                 >
-                  {columns.map((column) => (
+                  {visibleColumns.map((column) => (
                     <td
                       className={
                         [
@@ -425,17 +449,18 @@ export function AdminDataTable<Row>({
                           .filter(Boolean)
                           .join(" ") || undefined
                       }
+                      data-card-slot={column.cardSlot}
                       key={column.id}
                       title={column.title?.(row)}
                     >
                       <AdminMobileCellLabel>
                         {column.headerContent ?? column.header}
                       </AdminMobileCellLabel>
-                      {column.cell(row)}
+                      <div className="admin-kit__cell-value">{column.cell(row)}</div>
                     </td>
                   ))}
                   {renderDetails ? (
-                    <td>
+                    <td data-card-slot="actions">
                       <AdminMobileCellLabel>{detailsLabel}</AdminMobileCellLabel>
                       <button
                         aria-controls={isOpen ? detailsId : undefined}
@@ -446,6 +471,7 @@ export function AdminDataTable<Row>({
                             : undefined
                         }
                         className="admin-kit__data-table-toggle"
+                        data-row-key={key}
                         onClick={() => toggle(key)}
                         type="button"
                       >

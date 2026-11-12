@@ -100,37 +100,16 @@ describe("Admin Kit styles", () => {
     expect(styles).toContain("overflow-x: auto");
   });
 
-  it("hides low-priority table columns by CONTAINER width, not viewport width (PKG-62)", () => {
-    // .admin-kit__table-wrap establishes the inline-size container so
-    // priority hiding tracks the table's available space (e.g. a narrowed
-    // sidebar layout), not the browser viewport.
+  it("leaves priority hiding to the data table's measured fit, not CSS breakpoints (PKG-328)", () => {
     expect(styles).toContain("container-name: admin-kit-table;");
-    expect(styles).toContain("container-type: inline-size;");
-    // Assert the MECHANISM, not the tuned thresholds: both priority rules must
-    // live inside an `admin-kit-table` container query. Pinning exact rem values
-    // here made this test fail purely for being re-tuned (0.33.1), which guards
-    // nothing — the contract is "container-based", the numbers are calibration.
-    for (const priority of ["tertiary", "secondary"]) {
-      const rule = `.admin-kit__users-table .admin-kit__table-cell--${priority} { display: none; }`;
-      expect(styles).toContain(rule);
-      const containerQuery = new RegExp(
-        `@container admin-kit-table \\(max-width: [\\d.]+rem\\) \\{\\s*${rule.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
-      );
-      expect(styles).toMatch(containerQuery);
-    }
-
-    // The old viewport-media-query versions of these two priority rules must
-    // be gone — only the @container versions above should hide these cells.
-    const viewport48rem = styles.match(/@media \(max-width: 48rem\)\s*{([\s\S]*?)\n}/);
-    expect(viewport48rem).not.toBeNull();
-    expect(viewport48rem![1]).not.toContain("admin-kit__table-cell--tertiary");
-    const viewport36rem = styles.match(/@media \(max-width: 36rem\)\s*{([\s\S]*?)\n}/);
-    expect(viewport36rem).toBeNull();
+    expect(styles).not.toMatch(/@container admin-kit-table/);
+    expect(styles).not.toMatch(/admin-kit__table-cell--(tertiary|secondary) \{ display: none/);
   });
 
-  it("stretches the backup restore button inside the shared stacked cards", () => {
+  it("stacks data tables from their measured fit and stretches the backup restore button in the cards", () => {
+    expect(styles).toContain(".admin-kit__data-table[data-stacked] { display: block;");
     expect(styles).toContain(
-      ".admin-kit__backups-table td > button { justify-self: stretch; width: 100%; }",
+      ".admin-kit__backups-table[data-stacked] .admin-kit__cell-value > button { width: 100%; }",
     );
   });
 

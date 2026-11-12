@@ -33,7 +33,6 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
     // load/mutation lifecycle below.
     const [createOpen, setCreateOpen] = (0, react_1.useState)(false);
     const [editingKeyId, setEditingKeyId] = (0, react_1.useState)();
-    const [isCompact, setIsCompact] = (0, react_1.useState)(false);
     const latestLoadId = (0, react_1.useRef)(0);
     // Bumped only when the `adapter` prop itself changes (unlike `latestLoadId`,
     // which also advances on every ordinary reload). Mutations capture this at
@@ -71,15 +70,6 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
             latestLoadId.current += 1;
         };
     }, [load]);
-    (0, react_1.useEffect)(() => {
-        if (typeof window.matchMedia !== "function")
-            return undefined;
-        const query = window.matchMedia("(max-width: 48rem)");
-        const sync = () => setIsCompact(query.matches);
-        sync();
-        query.addEventListener("change", sync);
-        return () => query.removeEventListener("change", sync);
-    }, []);
     (0, react_1.useEffect)(() => {
         setSecret(undefined);
         setCopyStatus(undefined);
@@ -191,7 +181,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
         : undefined;
     const activeCount = lifecycleKeys.filter((key) => key.state === "active").length;
     const hasDetails = lifecycleKeys.some((key) => key.details?.length);
-    const resolvedPresentation = presentation === "responsive" ? (isCompact ? "cards" : "table") : presentation;
+    const resolvedPresentation = presentation === "responsive" ? "table" : presentation;
     // The built-in inline scope editor is active only when the host opted in via
     // `scopeGroups`, did not override edit rendering, and the adapter can persist
     // an update (`adapter.update` is optional — without it Save would no-op).
@@ -213,12 +203,14 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
     const keyColumns = [
         {
             id: "key",
+            cardSlot: "title",
             header: vocabulary ? capitalizedSingular : "Key",
             minWidth: 160,
             cell: (key) => ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-identity", children: [(0, jsx_runtime_1.jsx)("strong", { children: key.name }), (0, jsx_runtime_1.jsx)("code", { children: key.maskedKey })] })),
         },
         {
             id: "scope",
+            cardSlot: "detail",
             header: "Scope",
             defaultWidth: 176,
             minWidth: 144,
@@ -228,6 +220,8 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
             ? [
                 {
                     id: "details",
+                    cardSlot: "detail",
+                    priority: "tertiary",
                     header: "Details",
                     defaultWidth: 176,
                     minWidth: 144,
@@ -237,6 +231,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
             : []),
         {
             id: "state",
+            cardSlot: "badge",
             header: "State",
             defaultWidth: 88,
             minWidth: 80,
@@ -244,6 +239,8 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
         },
         {
             id: "created",
+            cardSlot: "meta",
+            priority: "tertiary",
             header: "Created",
             defaultWidth: 120,
             minWidth: 104,
@@ -252,6 +249,8 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
         },
         {
             id: "lastUsed",
+            cardSlot: "meta",
+            priority: "secondary",
             header: "Last used",
             defaultWidth: 120,
             minWidth: 104,
@@ -260,6 +259,8 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
         },
         {
             id: "expires",
+            cardSlot: "meta",
+            priority: "secondary",
             header: "Expires",
             defaultWidth: 120,
             minWidth: 104,
@@ -268,6 +269,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
         },
         {
             id: "actions",
+            cardSlot: "actions",
             header: "Actions",
             defaultWidth: 168,
             resizable: false,

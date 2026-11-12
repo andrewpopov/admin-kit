@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { useState } from "react";
 import { AdminDataTable, type AdminDataTableColumn } from "../react";
 
 interface Row {
@@ -340,6 +341,131 @@ describe("AdminDataTable", () => {
       fireEvent.doubleClick(handle);
       expect(handle.getAttribute("aria-valuenow")).toBe("160");
       expect(screen.queryByRole("group")).toBeNull();
+    });
+  });
+
+  describe("fitting its container (PKG-328)", () => {
+    const wideColumns: AdminDataTableColumn<Row>[] = [
+      { id: "name", header: "Name", minWidth: 160, cell: (r) => r.name },
+      { id: "note", header: "Note", defaultWidth: 200, minWidth: 120, cell: (r) => r.note },
+      {
+        id: "extra",
+        header: "Extra",
+        defaultWidth: 140,
+        minWidth: 100,
+        priority: "tertiary",
+        cell: () => "extra",
+      },
+    ];
+    const setContainerWidth = (width: number) =>
+      Object.defineProperty(HTMLElement.prototype, "clientWidth", {
+        configurable: true,
+        get: () => width,
+      });
+    afterEach(() => {
+      Reflect.deleteProperty(HTMLElement.prototype, "clientWidth");
+    });
+
+    it("hides tertiary columns when the container cannot hold them", () => {
+      setContainerWidth(340);
+      render(<AdminDataTable columns={wideColumns} rowKey={(r) => r.id} rows={rows} />);
+      expect(screen.getAllByRole("columnheader").map((th) => th.textContent)).toEqual([
+        "Name",
+        "Note",
+      ]);
+    });
+
+    it("stacks into cards only when the primary columns do not fit", () => {
+      setContainerWidth(340);
+      const roomy = render(
+        <AdminDataTable columns={wideColumns} rowKey={(r) => r.id} rows={rows} />,
+      );
+      expect(roomy.container.querySelector("table")?.hasAttribute("data-stacked")).toBe(false);
+      cleanup();
+      setContainerWidth(270);
+      const narrow = render(
+        <AdminDataTable columns={wideColumns} rowKey={(r) => r.id} rows={rows} />,
+      );
+      expect(narrow.container.querySelector("table")?.hasAttribute("data-stacked")).toBe(true);
+    });
+
+    it("wraps a fragment cell in one value element so its nodes share a column", () => {
+      const fragmentColumns: AdminDataTableColumn<Row>[] = [
+        {
+          id: "name",
+          header: "Name",
+          cell: (r) => (
+            <>
+              <strong>{r.name}</strong>
+              <small>Best effort</small>
+            </>
+          ),
+        },
+      ];
+      const { container } = render(
+        <AdminDataTable columns={fragmentColumns} rowKey={(r) => r.id} rows={rows} />,
+      );
+      const cell = container.querySelector("tbody td")!;
+      const value = cell.querySelector(":scope > .admin-kit__cell-value")!;
+      expect(cell.children).toHaveLength(2);
+      expect(value.textContent).toBe("AdaBest effort");
+      expect(value.querySelectorAll("strong, small")).toHaveLength(2);
+    });
+
+    it("sets the card slot on the cell", () => {
+      const { container } = render(
+        <AdminDataTable
+          columns={[{ ...columns[0]!, cardSlot: "title" }]}
+          rowKey={(r) => r.id}
+          rows={rows}
+        />,
+      );
+      expect(container.querySelector("td")?.getAttribute("data-card-slot")).toBe("title");
+    });
+  });
+
+  describe("expansion", () => {
+    const detailsTable = (props: Partial<Parameters<typeof AdminDataTable<Row>>[0]> = {}) => (
+      <AdminDataTable
+        columns={columns}
+        renderDetails={(r) => <p>Full note: {r.note}</p>}
+        rowKey={(r) => r.id}
+        rowLabel={(r) => r.name}
+        rows={rows}
+        {...props}
+      />
+    );
+
+    it("marks the toggle with its row key so hosts can return focus", () => {
+      render(detailsTable());
+      expect(screen.getByRole("button", { name: /details for Ada/ }).getAttribute("data-row-key")).toBe(
+        "r1",
+      );
+    });
+
+    it("reports changes and follows expandedKeys when controlled", () => {
+      const changes: (readonly string[])[] = [];
+      function Host() {
+        const [keys, setKeys] = useState<readonly string[]>(["r1"]);
+        return detailsTable({
+          expandedKeys: keys,
+          onExpandedChange: (next) => {
+            changes.push(next);
+            setKeys([]);
+          },
+        });
+      }
+      render(<Host />);
+      expect(screen.getByText(/Full note:/)).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: /details for Ada/ }));
+      expect(changes).toEqual([[]]);
+      expect(screen.queryByText(/Full note:/)).toBeNull();
+    });
+
+    it("stays closed when a controlled host ignores the change", () => {
+      render(detailsTable({ expandedKeys: [], onExpandedChange: () => undefined }));
+      fireEvent.click(screen.getByRole("button", { name: /details for Ada/ }));
+      expect(screen.queryByText(/Full note:/)).toBeNull();
     });
   });
 });

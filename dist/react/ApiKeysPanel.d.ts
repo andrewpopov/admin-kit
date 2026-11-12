@@ -15,7 +15,7 @@ interface ApiKeysPanelSharedProps {
     headerPresentation?: AdminPanelHeaderPresentation;
     /** Host-owned primary actions displayed beside the panel title. */
     headerActions?: ReactNode;
-    /** Responsive uses table scan density on desktop and compact cards on narrow screens. */
+    /** Responsive renders the table, which fits its container and stacks into cards when the primary columns cannot fit. */
     presentation?: "cards" | "responsive" | "table";
     /**
      * Renders a host-vocabulary posture/health summary above the create/list
