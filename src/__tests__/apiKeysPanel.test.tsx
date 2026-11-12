@@ -821,4 +821,36 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
       expect(update).toHaveBeenCalledWith({ keyId: "key-1", update: { scopes: [] } }),
     );
   });
+
+  it("renders the table through AdminDataTable and shows the scope editor as an expansion row", async () => {
+    window.localStorage.clear();
+    render(
+      <ApiKeysPanel
+        adapter={{
+          list: vi.fn().mockResolvedValue([activeKey]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+          update: vi.fn(),
+        }}
+        presentation="table"
+        scopeGroups={[{ id: "core", label: "Core", scopes: [{ value: "read", label: "Read" }] }]}
+        storageKey="keys"
+      />,
+    );
+    await screen.findByText("Automation");
+    expect(screen.queryByRole("separator", { name: "Resize Actions column" })).toBeNull();
+    fireEvent.keyDown(screen.getByRole("separator", { name: "Resize Scope column" }), {
+      key: "ArrowRight",
+    });
+    expect(JSON.parse(window.localStorage.getItem("admin-kit:table-widths:keys")!)).toEqual({
+      scope: 304,
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit scopes for Automation" }));
+    const editorRow = document.getElementById("admin-kit-key-edit-key-1")!.closest("tr")!;
+    expect(editorRow.className).toContain("admin-kit__data-table-details-row");
+    expect(editorRow.previousElementSibling!.className).toContain(
+      "admin-kit__data-table-row--expanded",
+    );
+  });
 });

@@ -11,6 +11,7 @@ const KEYBOARD_STEP = 16;
 const KEYBOARD_LARGE_STEP = 64;
 const STORAGE_PREFIX = "admin-kit:table-widths:";
 const DETAILS_COLUMN_WIDTH = 96;
+const SORT_ARROWS = { ascending: "↑", descending: "↓", none: "↕" };
 function clamp(value, min, max) {
     return Math.min(max, Math.max(min, Math.round(value)));
 }
@@ -48,7 +49,7 @@ function writeStoredWidths(storageKey, widths) {
     }
 }
 /** Resizable, sticky-header data table; below 48rem rows become labelled cards. */
-function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false, renderDetails, detailsLabel = "Details", rowLabel, className, wrapClassName, }) {
+function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false, renderDetails, detailsLabel = "Details", rowBusy, renderExpansion, rowLabel, className, wrapClassName, }) {
     const idPrefix = (0, react_1.useId)();
     const [stored, setStored] = (0, react_1.useState)(() => ({
         key: storageKey,
@@ -153,23 +154,27 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
                 .filter(Boolean)
                 .join(" "), style: tableSize, children: [(0, jsx_runtime_1.jsxs)("colgroup", { children: [columns.map((column) => {
                             const width = widthOf(column);
-                            return ((0, jsx_runtime_1.jsx)("col", { "data-column": column.id, style: width === undefined ? undefined : { width: `${width}px` } }, column.id));
+                            return ((0, jsx_runtime_1.jsx)("col", { className: column.className, "data-column": column.id, style: width === undefined ? undefined : { width: `${width}px` } }, column.id));
                         }), renderDetails ? (0, jsx_runtime_1.jsx)("col", { style: { width: `${DETAILS_COLUMN_WIDTH}px` } }) : null] }), (0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { children: [columns.map((column) => {
                                 const width = widthOf(column);
                                 const resizable = width !== undefined && column.resizable !== false;
                                 const { min, max } = bounds(column);
-                                return ((0, jsx_runtime_1.jsxs)("th", { "aria-label": column.header, className: "admin-kit__data-table-heading", scope: "col", children: [(0, jsx_runtime_1.jsx)("span", { className: "admin-kit__data-table-heading-text", children: column.header }), resizable ? ((0, jsx_runtime_1.jsx)("span", { "aria-label": `Resize ${column.header} column`, "aria-orientation": "vertical", "aria-valuemax": max, "aria-valuemin": min, "aria-valuenow": width, "aria-valuetext": `${width} pixels`, className: "admin-kit__column-resizer", onDoubleClick: () => setWidth(column, undefined, { save: true }), onKeyDown: (event) => onHandleKeyDown(column, event), onLostPointerCapture: endDrag, onPointerCancel: endDrag, onPointerDown: (event) => onPointerDown(column, event), onPointerMove: (event) => onPointerMove(column, event), onPointerUp: endDrag, role: "separator", tabIndex: 0, title: "Drag, or use the arrow keys, to resize. Home or double-click resets." })) : null] }, column.id));
+                                return ((0, jsx_runtime_1.jsxs)("th", { "aria-label": column.header, "aria-sort": column.sort?.direction, className: ["admin-kit__data-table-heading", column.headerClassName]
+                                        .filter(Boolean)
+                                        .join(" "), scope: "col", children: [(0, jsx_runtime_1.jsx)("span", { className: "admin-kit__data-table-heading-text", children: column.sort ? ((0, jsx_runtime_1.jsxs)("button", { className: "admin-kit__sort-button", onClick: column.sort.onSort, type: "button", children: [column.headerContent ?? column.header, (0, jsx_runtime_1.jsx)("span", { "aria-hidden": "true", children: SORT_ARROWS[column.sort.direction] })] })) : ((column.headerContent ?? column.header)) }), resizable ? ((0, jsx_runtime_1.jsx)("span", { "aria-label": `Resize ${column.header} column`, "aria-orientation": "vertical", "aria-valuemax": max, "aria-valuemin": min, "aria-valuenow": width, "aria-valuetext": `${width} pixels`, className: "admin-kit__column-resizer", onDoubleClick: () => setWidth(column, undefined, { save: true }), onKeyDown: (event) => onHandleKeyDown(column, event), onLostPointerCapture: endDrag, onPointerCancel: endDrag, onPointerDown: (event) => onPointerDown(column, event), onPointerMove: (event) => onPointerMove(column, event), onPointerUp: endDrag, role: "separator", tabIndex: 0, title: "Drag, or use the arrow keys, to resize. Home or double-click resets." })) : null] }, column.id));
                             }), renderDetails ? ((0, jsx_runtime_1.jsx)("th", { className: "admin-kit__data-table-heading", scope: "col", children: detailsLabel })) : null] }) }), (0, jsx_runtime_1.jsx)("tbody", { children: rows.map((row) => {
                         const key = rowKey(row);
                         const isOpen = expanded.has(key);
                         const detailsId = `${idPrefix}-details-${key}`;
-                        return ((0, jsx_runtime_1.jsxs)(react_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("tr", { className: isOpen ? "admin-kit__data-table-row--expanded" : undefined, children: [columns.map((column) => ((0, jsx_runtime_1.jsxs)("td", { className: [
+                        const expansion = renderExpansion?.(row);
+                        const isExpanded = isOpen || (expansion !== null && expansion !== undefined);
+                        return ((0, jsx_runtime_1.jsxs)(react_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("tr", { "aria-busy": rowBusy?.(row) || undefined, className: isExpanded ? "admin-kit__data-table-row--expanded" : undefined, children: [columns.map((column) => ((0, jsx_runtime_1.jsxs)("td", { className: [
                                                 column.truncate ? "admin-kit__table-cell--truncate" : undefined,
                                                 column.className,
                                             ]
                                                 .filter(Boolean)
-                                                .join(" ") || undefined, title: column.title?.(row), children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: column.header }), column.cell(row)] }, column.id))), renderDetails ? ((0, jsx_runtime_1.jsxs)("td", { children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: detailsLabel }), (0, jsx_runtime_1.jsx)("button", { "aria-controls": isOpen ? detailsId : undefined, "aria-expanded": isOpen, "aria-label": rowLabel
+                                                .join(" ") || undefined, title: column.title?.(row), children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: column.headerContent ?? column.header }), column.cell(row)] }, column.id))), renderDetails ? ((0, jsx_runtime_1.jsxs)("td", { children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: detailsLabel }), (0, jsx_runtime_1.jsx)("button", { "aria-controls": isOpen ? detailsId : undefined, "aria-expanded": isOpen, "aria-label": rowLabel
                                                         ? `${isOpen ? "Hide" : "View"} ${detailsLabel.toLowerCase()} for ${rowLabel(row)}`
-                                                        : undefined, className: "admin-kit__data-table-toggle", onClick: () => toggle(key), type: "button", children: isOpen ? "Hide" : "View" })] })) : null] }), renderDetails && isOpen ? ((0, jsx_runtime_1.jsx)("tr", { className: "admin-kit__data-table-details-row", id: detailsId, children: (0, jsx_runtime_1.jsx)("td", { colSpan: columnCount, children: renderDetails(row) }) })) : null] }, key));
+                                                        : undefined, className: "admin-kit__data-table-toggle", onClick: () => toggle(key), type: "button", children: isOpen ? "Hide" : "View" })] })) : null] }), renderDetails && isOpen ? ((0, jsx_runtime_1.jsx)("tr", { className: "admin-kit__data-table-details-row", id: detailsId, children: (0, jsx_runtime_1.jsx)("td", { colSpan: columnCount, children: renderDetails(row) }) })) : null, expansion !== null && expansion !== undefined ? ((0, jsx_runtime_1.jsx)("tr", { className: "admin-kit__data-table-details-row", children: (0, jsx_runtime_1.jsx)("td", { colSpan: columnCount, children: expansion }) })) : null] }, key));
                     }) })] }) }));
 }

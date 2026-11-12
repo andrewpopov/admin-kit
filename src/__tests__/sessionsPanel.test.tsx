@@ -310,4 +310,16 @@ describe("SessionsPanel", () => {
     // the adapter object identity is the same one both times.
     expect(screen.getByRole("dialog")).toBeTruthy();
   });
+
+  it("renders through AdminDataTable and persists resized widths under storageKey", async () => {
+    window.localStorage.clear();
+    render(<SessionsPanel adapter={adapter()} storageKey="sessions" />);
+    await screen.findByText("Safari on macOS");
+    const handle = screen.getByRole("separator", { name: "Resize Created column" });
+    expect(screen.queryByRole("separator", { name: "Resize Actions column" })).toBeNull();
+    fireEvent.keyDown(handle, { key: "ArrowRight" });
+    expect(JSON.parse(window.localStorage.getItem("admin-kit:table-widths:sessions")!)).toEqual({
+      created: 192,
+    });
+  });
 });

@@ -11,6 +11,8 @@ export interface SessionsPanelProps<Session extends AdminSessionSummary = AdminS
     formatTimestamp?: (iso: string) => string;
     dialogClassName?: string;
     className?: string;
+    /** Persist this viewer's column widths under this key. */
+    storageKey?: string;
 }
 /** Active-session administration with host-owned token and authorization semantics. */
-export declare function SessionsPanel<Session extends AdminSessionSummary = AdminSessionSummary>({ adapter, title, renderSessionActions, getRevokeDescription, formatTimestamp, dialogClassName, className, }: SessionsPanelProps<Session>): import("react").JSX.Element;
+export declare function SessionsPanel<Session extends AdminSessionSummary = AdminSessionSummary>({ adapter, title, renderSessionActions, getRevokeDescription, formatTimestamp, dialogClassName, className, storageKey, }: SessionsPanelProps<Session>): import("react").JSX.Element;

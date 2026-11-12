@@ -354,4 +354,16 @@ describe("MembershipsPanel", () => {
     // the adapter object identity is the same one both times.
     expect(screen.getByRole("dialog")).toBeTruthy();
   });
+
+  it("renders through AdminDataTable and persists resized widths under storageKey", async () => {
+    window.localStorage.clear();
+    render(<MembershipsPanel adapter={adapter()} storageKey="members" />);
+    await screen.findByText("Ada");
+    const handle = screen.getByRole("separator", { name: "Resize Access column" });
+    expect(screen.queryByRole("separator", { name: "Resize Actions column" })).toBeNull();
+    fireEvent.keyDown(handle, { key: "ArrowRight" });
+    expect(JSON.parse(window.localStorage.getItem("admin-kit:table-widths:members")!)).toEqual({
+      access: 144,
+    });
+  });
 });

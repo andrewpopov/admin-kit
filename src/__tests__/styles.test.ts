@@ -96,7 +96,7 @@ describe("Admin Kit styles", () => {
     expect(styles).toContain(".admin-kit__table th");
     expect(styles).toContain(".admin-kit__memberships-table");
     expect(styles).toContain(".admin-kit__logs-output");
-    expect(styles).toContain(".admin-kit__sessions-table");
+    expect(styles).toContain(".admin-kit__table--stack");
     expect(styles).toContain("overflow-x: auto");
   });
 
@@ -128,10 +128,7 @@ describe("Admin Kit styles", () => {
     expect(viewport36rem).toBeNull();
   });
 
-  it("turns backup rows into labeled cards without horizontal panning on mobile", () => {
-    expect(styles).toContain(".admin-kit__backups-table-wrap { overflow-x: visible; }");
-    expect(styles).toContain(".admin-kit__backups-table { display: block; min-width: 0; }");
-    expect(styles).toContain(".admin-kit__backups-table .admin-kit__mobile-cell-label");
+  it("stretches the backup restore button inside the shared stacked cards", () => {
     expect(styles).toContain(
       ".admin-kit__backups-table td > button { justify-self: stretch; width: 100%; }",
     );

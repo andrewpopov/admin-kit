@@ -7,6 +7,7 @@ const react_1 = require("react");
 const core_1 = require("../core");
 const AdminApiKeyForm_1 = require("./AdminApiKeyForm");
 const AdminConfirmationDialog_1 = require("./AdminConfirmationDialog");
+const AdminDataTable_1 = require("./AdminDataTable");
 const AdminPanelHeader_1 = require("./AdminPanelHeader");
 const AdminPanelState_1 = require("./AdminPanelState");
 /**
@@ -15,7 +16,7 @@ const AdminPanelState_1 = require("./AdminPanelState");
  * boundary), so `adapter`, `create`, and `update` are concrete inside the body
  * and the built-in create/edit wiring needs no casts.
  */
-function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPresentation = "section", headerActions, presentation = "responsive", createInput, renderCreate, renderEdit, renderKeyActions, renderKeys, renderPosture, renderShortcuts, scopeGroups, minimumScopeCount, className, dialogClassName, formatTimestamp, }) {
+function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPresentation = "section", headerActions, presentation = "responsive", createInput, renderCreate, renderEdit, renderKeyActions, renderKeys, renderPosture, renderShortcuts, scopeGroups, minimumScopeCount, className, dialogClassName, formatTimestamp, storageKey, }) {
     const singular = vocabulary?.singular ?? "API key";
     const plural = vocabulary?.plural ?? "API keys";
     const countSingular = vocabulary?.singular ?? "credential";
@@ -209,6 +210,70 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
                     if (ok)
                         setEditingKeyId(undefined);
                 }, onCancel: () => setEditingKeyId(undefined) })] })) : null;
+    const keyColumns = [
+        {
+            id: "key",
+            header: vocabulary ? capitalizedSingular : "Key",
+            minWidth: 224,
+            cell: (key) => ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-identity", children: [(0, jsx_runtime_1.jsx)("strong", { children: key.name }), (0, jsx_runtime_1.jsx)("code", { children: key.maskedKey })] })),
+        },
+        {
+            id: "scope",
+            header: "Scope",
+            defaultWidth: 288,
+            minWidth: 160,
+            cell: (key) => key.scopes.length ? ((0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__scope-chips", children: key.scopes.map((scope) => ((0, jsx_runtime_1.jsx)("li", { className: "admin-kit__scope-chip", children: scope }, scope))) })) : ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-empty", children: "\u2014" })),
+        },
+        ...(hasDetails
+            ? [
+                {
+                    id: "details",
+                    header: "Details",
+                    defaultWidth: 240,
+                    minWidth: 160,
+                    cell: (key) => key.details?.length ? ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__key-details", children: key.details.map((detail) => ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: detail.label }), (0, jsx_runtime_1.jsx)("dd", { children: detail.value })] }, detail.label))) })) : ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-empty", children: "\u2014" })),
+                },
+            ]
+            : []),
+        {
+            id: "state",
+            header: "State",
+            defaultWidth: 112,
+            minWidth: 88,
+            cell: (key) => ((0, jsx_runtime_1.jsx)("span", { className: `admin-kit__state-pill admin-kit__state-pill--key-${key.state}`, children: key.state })),
+        },
+        {
+            id: "created",
+            header: "Created",
+            defaultWidth: 176,
+            minWidth: 128,
+            className: "admin-kit__key-timestamp",
+            cell: (key) => (0, core_1.formatAdminTimestamp)(key.createdAt, formatTimestamp),
+        },
+        {
+            id: "lastUsed",
+            header: "Last used",
+            defaultWidth: 176,
+            minWidth: 128,
+            className: "admin-kit__key-timestamp",
+            cell: (key) => key.lastUsedAt ? (0, core_1.formatAdminTimestamp)(key.lastUsedAt, formatTimestamp) : "never",
+        },
+        {
+            id: "expires",
+            header: "Expires",
+            defaultWidth: 176,
+            minWidth: 128,
+            className: "admin-kit__key-timestamp",
+            cell: (key) => key.expiresAt ? (0, core_1.formatAdminTimestamp)(key.expiresAt, formatTimestamp) : "never",
+        },
+        {
+            id: "actions",
+            header: "Actions",
+            defaultWidth: 288,
+            resizable: false,
+            cell: (key) => renderActions(key, builtInEditEnabled && editingKeyId === key.id, pending === key.id) ?? ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-empty", children: "\u2014" })),
+        },
+    ];
     return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__keys", className].filter(Boolean).join(" "), "aria-label": title, children: [panelHeader({ total: lifecycleKeys.length, active: activeCount }), loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? ((0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError })) : null, secret ? ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__secret", role: "alert", children: [(0, jsx_runtime_1.jsx)("strong", { children: "Copy this secret now. It will not be shown again." }), (0, jsx_runtime_1.jsx)("code", { children: secret }), (0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__secret-actions", children: [(0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button admin-kit__button--primary", type: "button", onClick: () => void copySecret(), children: "Copy secret" }), (0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button", type: "button", onClick: () => setSecret(undefined), children: "I copied it" }), copyStatus ? ((0, jsx_runtime_1.jsx)("span", { "aria-live": "polite", className: "admin-kit__secret-status", children: copyStatus })) : null] })] })) : null, renderPosture && postureControls ? renderPosture(postureControls) : null, renderShortcuts && postureControls ? renderShortcuts(postureControls) : null, renderCreate ? (renderCreate({
                 create,
                 pending: pending === "create",
@@ -218,15 +283,9 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
                 requestRotate,
                 update: adapter.update ? update : undefined,
                 pendingKeyId: pending === "create" ? undefined : pending,
-            })) : lifecycleKeys.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: `No ${plural} yet.` } })) : resolvedPresentation === "table" ? ((0, jsx_runtime_1.jsx)("div", { className: "admin-kit__table-wrap admin-kit__keys-table-wrap", children: (0, jsx_runtime_1.jsxs)("table", { className: "admin-kit__table admin-kit__keys-table", children: [(0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { children: [(0, jsx_runtime_1.jsx)("th", { scope: "col", children: vocabulary ? capitalizedSingular : "Key" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Scope" }), hasDetails ? (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Details" }) : null, (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "State" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Created" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Last used" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Expires" }), (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Actions" })] }) }), (0, jsx_runtime_1.jsx)("tbody", { children: lifecycleKeys.map((key) => {
-                                const isEditing = builtInEditEnabled && editingKeyId === key.id;
-                                const isPending = pending === key.id;
-                                return ((0, jsx_runtime_1.jsxs)(react_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("tr", { "aria-busy": isPending, children: [(0, jsx_runtime_1.jsx)("td", { children: (0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-identity", children: [(0, jsx_runtime_1.jsx)("strong", { children: key.name }), (0, jsx_runtime_1.jsx)("code", { children: key.maskedKey })] }) }), (0, jsx_runtime_1.jsx)("td", { children: key.scopes.length ? ((0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__scope-chips", children: key.scopes.map((scope) => ((0, jsx_runtime_1.jsx)("li", { className: "admin-kit__scope-chip", children: scope }, scope))) })) : ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-empty", children: "\u2014" })) }), hasDetails ? ((0, jsx_runtime_1.jsx)("td", { children: key.details?.length ? ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__key-details", children: key.details.map((detail) => ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: detail.label }), (0, jsx_runtime_1.jsx)("dd", { children: detail.value })] }, detail.label))) })) : ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-empty", children: "\u2014" })) })) : null, (0, jsx_runtime_1.jsx)("td", { children: (0, jsx_runtime_1.jsx)("span", { className: `admin-kit__state-pill admin-kit__state-pill--key-${key.state}`, children: key.state }) }), (0, jsx_runtime_1.jsx)("td", { className: "admin-kit__key-timestamp", children: (0, core_1.formatAdminTimestamp)(key.createdAt, formatTimestamp) }), (0, jsx_runtime_1.jsx)("td", { className: "admin-kit__key-timestamp", children: key.lastUsedAt
-                                                        ? (0, core_1.formatAdminTimestamp)(key.lastUsedAt, formatTimestamp)
-                                                        : "never" }), (0, jsx_runtime_1.jsx)("td", { className: "admin-kit__key-timestamp", children: key.expiresAt
-                                                        ? (0, core_1.formatAdminTimestamp)(key.expiresAt, formatTimestamp)
-                                                        : "never" }), (0, jsx_runtime_1.jsx)("td", { children: renderActions(key, isEditing, isPending) ?? ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-empty", children: "\u2014" })) })] }), isEditing ? ((0, jsx_runtime_1.jsx)("tr", { children: (0, jsx_runtime_1.jsx)("td", { colSpan: hasDetails ? 8 : 7, children: renderEditor(key, isEditing, isPending) }) })) : null] }, key.id));
-                            }) })] }) })) : ((0, jsx_runtime_1.jsx)("ol", { className: "admin-kit__key-cards", children: lifecycleKeys.map((key) => {
+            })) : lifecycleKeys.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: `No ${plural} yet.` } })) : resolvedPresentation === "table" ? ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { className: "admin-kit__keys-table", columns: keyColumns, renderExpansion: (key) => builtInEditEnabled && editingKeyId === key.id
+                    ? renderEditor(key, true, pending === key.id)
+                    : null, rowBusy: (key) => pending === key.id, rowKey: (key) => key.id, rows: lifecycleKeys, storageKey: storageKey, wrapClassName: "admin-kit__keys-table-wrap" })) : ((0, jsx_runtime_1.jsx)("ol", { className: "admin-kit__key-cards", children: lifecycleKeys.map((key) => {
                     const isEditing = builtInEditEnabled && editingKeyId === key.id;
                     const isPending = pending === key.id;
                     return ((0, jsx_runtime_1.jsxs)("li", { "aria-busy": isPending, className: "admin-kit__key-card", children: [(0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-card-header", children: [(0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-identity", children: [(0, jsx_runtime_1.jsx)("strong", { children: key.name }), (0, jsx_runtime_1.jsx)("code", { children: key.maskedKey })] }), (0, jsx_runtime_1.jsx)("span", { className: `admin-kit__state-pill admin-kit__state-pill--key-${key.state}`, children: key.state })] }), (0, jsx_runtime_1.jsxs)("dl", { className: "admin-kit__key-summary", children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: "Created" }), (0, jsx_runtime_1.jsx)("dd", { children: (0, core_1.formatAdminTimestamp)(key.createdAt, formatTimestamp) })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: "Last used" }), (0, jsx_runtime_1.jsx)("dd", { children: key.lastUsedAt

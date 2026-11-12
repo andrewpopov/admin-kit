@@ -402,6 +402,22 @@ test("stacks the OperationalJobsPanel table into labelled cards on phones", asyn
   await expect(wrap.locator(".admin-kit__mobile-cell-label").first()).toBeHidden();
 });
 
+test("renders the OperationalJobsPanel as a resizable data table on desktop and cards on phones", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(fixture);
+  const table = page.locator(".admin-kit__operations-table.admin-kit__data-table");
+  const started = table.getByRole("columnheader", { name: "Started" });
+  await expect(table.getByRole("separator", { name: "Resize Started column" })).toBeVisible();
+  await expect(started).toHaveCSS("position", "sticky");
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(table.getByRole("separator").first()).toBeHidden();
+  await expect(table.locator("tbody tr").first()).toHaveCSS("display", "grid");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+});
+
 for (const [name, url] of [
   ["AdminDialog", dialogFixture],
   ["AdminConfirmationDialog", confirmationFixture],

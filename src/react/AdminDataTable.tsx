@@ -17,10 +17,17 @@ const KEYBOARD_STEP = 16;
 const KEYBOARD_LARGE_STEP = 64;
 const STORAGE_PREFIX = "admin-kit:table-widths:";
 const DETAILS_COLUMN_WIDTH = 96;
+const SORT_ARROWS = { ascending: "↑", descending: "↓", none: "↕" } as const;
 
 export interface AdminDataTableColumn<Row> {
   id: string;
+  /** Accessible column name; also the resize handle name. */
   header: string;
+  /** Visible heading and phone-card label when it needs more than the plain `header` text. */
+  headerContent?: ReactNode;
+  headerClassName?: string;
+  /** Turns the heading into a sort button and sets `aria-sort`. */
+  sort?: { direction: "ascending" | "descending" | "none"; onSort: () => void };
   cell: (row: Row) => ReactNode;
   /** px. Omit on one column to make it fill the width the sized columns leave. */
   defaultWidth?: number;
@@ -44,6 +51,10 @@ export interface AdminDataTableProps<Row> {
   /** Adds a disclosure column whose button expands a full-width row with this content. */
   renderDetails?: (row: Row) => ReactNode;
   detailsLabel?: string;
+  /** Marks a row's `<tr>` aria-busy, for rows with a pending action. */
+  rowBusy?: (row: Row) => boolean;
+  /** Content for a full-width row under the row, shown while it returns a value; the caller controls when. */
+  renderExpansion?: (row: Row) => ReactNode;
   rowLabel?: (row: Row) => string;
   className?: string;
   wrapClassName?: string;
@@ -100,6 +111,8 @@ export function AdminDataTable<Row>({
   busy = false,
   renderDetails,
   detailsLabel = "Details",
+  rowBusy,
+  renderExpansion,
   rowLabel,
   className,
   wrapClassName,
@@ -225,6 +238,7 @@ export function AdminDataTable<Row>({
             const width = widthOf(column);
             return (
               <col
+                className={column.className}
                 data-column={column.id}
                 key={column.id}
                 style={width === undefined ? undefined : { width: `${width}px` }}
@@ -242,11 +256,27 @@ export function AdminDataTable<Row>({
               return (
                 <th
                   aria-label={column.header}
-                  className="admin-kit__data-table-heading"
+                  aria-sort={column.sort?.direction}
+                  className={["admin-kit__data-table-heading", column.headerClassName]
+                    .filter(Boolean)
+                    .join(" ")}
                   key={column.id}
                   scope="col"
                 >
-                  <span className="admin-kit__data-table-heading-text">{column.header}</span>
+                  <span className="admin-kit__data-table-heading-text">
+                    {column.sort ? (
+                      <button
+                        className="admin-kit__sort-button"
+                        onClick={column.sort.onSort}
+                        type="button"
+                      >
+                        {column.headerContent ?? column.header}
+                        <span aria-hidden="true">{SORT_ARROWS[column.sort.direction]}</span>
+                      </button>
+                    ) : (
+                      (column.headerContent ?? column.header)
+                    )}
+                  </span>
                   {resizable ? (
                     <span
                       aria-label={`Resize ${column.header} column`}
@@ -283,9 +313,14 @@ export function AdminDataTable<Row>({
             const key = rowKey(row);
             const isOpen = expanded.has(key);
             const detailsId = `${idPrefix}-details-${key}`;
+            const expansion = renderExpansion?.(row);
+            const isExpanded = isOpen || (expansion !== null && expansion !== undefined);
             return (
               <Fragment key={key}>
-                <tr className={isOpen ? "admin-kit__data-table-row--expanded" : undefined}>
+                <tr
+                  aria-busy={rowBusy?.(row) || undefined}
+                  className={isExpanded ? "admin-kit__data-table-row--expanded" : undefined}
+                >
                   {columns.map((column) => (
                     <td
                       className={
@@ -299,7 +334,9 @@ export function AdminDataTable<Row>({
                       key={column.id}
                       title={column.title?.(row)}
                     >
-                      <AdminMobileCellLabel>{column.header}</AdminMobileCellLabel>
+                      <AdminMobileCellLabel>
+                        {column.headerContent ?? column.header}
+                      </AdminMobileCellLabel>
                       {column.cell(row)}
                     </td>
                   ))}
@@ -326,6 +363,11 @@ export function AdminDataTable<Row>({
                 {renderDetails && isOpen ? (
                   <tr className="admin-kit__data-table-details-row" id={detailsId}>
                     <td colSpan={columnCount}>{renderDetails(row)}</td>
+                  </tr>
+                ) : null}
+                {expansion !== null && expansion !== undefined ? (
+                  <tr className="admin-kit__data-table-details-row">
+                    <td colSpan={columnCount}>{expansion}</td>
                   </tr>
                 ) : null}
               </Fragment>

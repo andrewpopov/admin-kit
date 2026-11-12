@@ -719,6 +719,12 @@ keyboard and touch. The header is sticky inside the table's own scroll area
 />
 ```
 
+`renderExpansion` shows a caller-controlled full-width row under a row, and
+`rowBusy` marks a row `aria-busy`. `UsersPanel`, `MembershipsPanel`,
+`SessionsPanel`, `ApiKeysPanel` (table presentation), `OperationalJobsPanel` and
+`BackupsPanel` render through it and each take an optional `storageKey` to
+persist column widths; their existing table and wrapper class names are kept.
+
 With `headerPresentation="page"`, the title becomes the route `h1`; search and
 refresh share that header band, while severity/outcome/category filters remain
 in the toolbar before the table.
