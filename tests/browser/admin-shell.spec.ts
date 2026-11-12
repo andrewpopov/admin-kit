@@ -85,6 +85,33 @@ test("renders EventsPanel rows as labelled cards on phones", async ({ page }) =>
   ).toBeVisible();
 });
 
+test("lays out the EventsPanel data table with sized columns and a sticky header on desktop", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(fixture);
+  const table = page
+    .getByRole("region", { name: "Events" })
+    .first()
+    .locator(".admin-kit__data-table");
+  const occurred = table.getByRole("columnheader", { name: "Occurred" });
+  expect((await occurred.boundingBox())?.width).toBe(184);
+  await expect(occurred).toHaveCSS("position", "sticky");
+  await expect(table).toHaveCSS("table-layout", "fixed");
+  await expect(table.getByRole("separator", { name: "Resize Occurred column" })).toBeVisible();
+  await expect(table.locator("td.admin-kit__table-cell--truncate small")).toHaveCSS(
+    "text-overflow",
+    "ellipsis",
+  );
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(table.getByRole("separator").first()).toBeHidden();
+  await expect(table.locator("td.admin-kit__table-cell--truncate small")).toHaveCSS(
+    "white-space",
+    "normal",
+  );
+});
+
 test("stacks a consumer-built table with the stack modifier on phones", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto(fixture);

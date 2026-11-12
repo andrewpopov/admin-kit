@@ -8,7 +8,7 @@ import {
   validateAdminEventsPage,
 } from "../core";
 import { useAdminLabels } from "./AdminLabels";
-import { AdminMobileCellLabel } from "./AdminTablePrimitives";
+import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
 import { AdminPanelHeader, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
 
@@ -45,6 +45,8 @@ export interface EventsPanelProps {
   columns?: readonly EventsPanelColumn[];
   /** Replaces the default "No administrative events found." content. */
   emptyState?: ReactNode;
+  /** Table presentation: persist this viewer's column widths under this key. */
+  storageKey?: string;
 }
 
 export function EventsPanel({
@@ -59,6 +61,7 @@ export function EventsPanel({
   formatTimestamp,
   columns = ALL_COLUMNS,
   emptyState,
+  storageKey,
 }: EventsPanelProps) {
   const show = (column: EventsPanelColumn) => columns.includes(column);
   const labels = useAdminLabels();
@@ -186,6 +189,7 @@ export function EventsPanel({
       </section>
     );
   const pages = Math.max(1, Math.ceil(result.total / result.pageSize));
+  const tableColumns = eventTableColumns(columns, formatTimestamp);
 
   return (
     <section
@@ -262,85 +266,20 @@ export function EventsPanel({
           />
         ))
       ) : presentation === "table" ? (
-        <div className="admin-kit__table-wrap admin-kit__table-wrap--stack admin-kit__events-table-wrap">
-          <table
-            className="admin-kit__table admin-kit__table--stack admin-kit__events-table"
-            aria-busy={loading}
-          >
-            <thead>
-              <tr>
-                {show("occurred") ? <th scope="col">Occurred</th> : null}
-                {show("event") ? <th scope="col">Event</th> : null}
-                {show("actor") ? <th scope="col">Actor</th> : null}
-                {show("resource") ? <th scope="col">Resource</th> : null}
-                {show("outcome") ? <th scope="col">Outcome</th> : null}
-                <th scope="col">Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.items.map((event) => (
-                <tr key={event.id}>
-                  {show("occurred") ? (
-                    <td>
-                      <AdminMobileCellLabel>Occurred</AdminMobileCellLabel>
-                      {formatAdminTimestamp(event.occurredAt, formatTimestamp)}
-                    </td>
-                  ) : null}
-                  {show("event") ? (
-                    <td>
-                      <AdminMobileCellLabel>Event</AdminMobileCellLabel>
-                      <strong>{event.action}</strong>
-                      <small>{event.message}</small>
-                    </td>
-                  ) : null}
-                  {show("actor") ? (
-                    <td>
-                      <AdminMobileCellLabel>Actor</AdminMobileCellLabel>
-                      {event.actor?.label ?? "—"}
-                    </td>
-                  ) : null}
-                  {show("resource") ? (
-                    <td>
-                      <AdminMobileCellLabel>Resource</AdminMobileCellLabel>
-                      {event.resource?.label ?? "—"}
-                    </td>
-                  ) : null}
-                  {show("outcome") ? (
-                    <td>
-                      <AdminMobileCellLabel>Outcome</AdminMobileCellLabel>
-                      <span
-                        className={`admin-kit__event-outcome admin-kit__event-outcome--${event.outcome}`}
-                      >
-                        {event.outcome}
-                      </span>
-                      <small>
-                        {event.severity} · {event.category}
-                      </small>
-                    </td>
-                  ) : null}
-                  <td>
-                    <AdminMobileCellLabel>Details</AdminMobileCellLabel>
-                    {event.metadata ? (
-                      <details>
-                        <summary>View</summary>
-                        <dl>
-                          {Object.entries(event.metadata).map(([label, value]) => (
-                            <div key={label}>
-                              <dt>{label}</dt>
-                              <dd>{value}</dd>
-                            </div>
-                          ))}
-                        </dl>
-                      </details>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AdminDataTable
+          busy={loading}
+          className="admin-kit__events-table"
+          columns={tableColumns}
+          label={title}
+          renderDetails={renderEventDetails}
+          rowKey={(event) => event.id}
+          rowLabel={(event) =>
+            `${event.action} ${formatAdminTimestamp(event.occurredAt, formatTimestamp)}`
+          }
+          rows={result.items}
+          storageKey={storageKey}
+          wrapClassName="admin-kit__events-table-wrap"
+        />
       ) : (
         <ol className="admin-kit__events-list" aria-busy={loading}>
           {result.items.map((event) => (
@@ -402,5 +341,126 @@ export function EventsPanel({
         </button>
       </footer>
     </section>
+  );
+}
+
+type AdminEvent = AdminEventsPage["items"][number];
+
+const relativeTime = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+const RELATIVE_UNITS: readonly [Intl.RelativeTimeFormatUnit, number][] = [
+  ["year", 31_536_000],
+  ["month", 2_592_000],
+  ["week", 604_800],
+  ["day", 86_400],
+  ["hour", 3_600],
+  ["minute", 60],
+];
+
+function formatRelative(iso: string, now = Date.now()): string | undefined {
+  const time = Date.parse(iso);
+  if (Number.isNaN(time)) return undefined;
+  const seconds = Math.round((time - now) / 1000);
+  for (const [unit, size] of RELATIVE_UNITS) {
+    if (Math.abs(seconds) >= size) return relativeTime.format(Math.round(seconds / size), unit);
+  }
+  return relativeTime.format(0, "minute");
+}
+
+function OccurredCell({
+  iso,
+  formatTimestamp,
+}: {
+  iso: string;
+  formatTimestamp?: (iso: string) => string;
+}) {
+  const relative = formatTimestamp ? undefined : formatRelative(iso);
+  return (
+    <time className="admin-kit__event-time" dateTime={iso} title={iso}>
+      <span>{formatAdminTimestamp(iso, formatTimestamp)}</span>
+      {relative ? <small>{relative}</small> : null}
+    </time>
+  );
+}
+
+function eventTableColumns(
+  visible: readonly EventsPanelColumn[],
+  formatTimestamp?: (iso: string) => string,
+): AdminDataTableColumn<AdminEvent>[] {
+  const all: Record<EventsPanelColumn, AdminDataTableColumn<AdminEvent>> = {
+    occurred: {
+      id: "occurred",
+      header: "Occurred",
+      defaultWidth: 184,
+      minWidth: 128,
+      cell: (event) => <OccurredCell formatTimestamp={formatTimestamp} iso={event.occurredAt} />,
+    },
+    event: {
+      id: "event",
+      header: "Event",
+      minWidth: 200,
+      truncate: true,
+      title: (event) => `${event.action}\n${event.message}`,
+      cell: (event) => (
+        <>
+          <strong>{event.action}</strong>
+          <small>{event.message}</small>
+        </>
+      ),
+    },
+    actor: {
+      id: "actor",
+      header: "Actor",
+      defaultWidth: 168,
+      truncate: true,
+      title: (event) => event.actor?.label,
+      cell: (event) => event.actor?.label ?? "—",
+    },
+    resource: {
+      id: "resource",
+      header: "Resource",
+      defaultWidth: 240,
+      truncate: true,
+      title: (event) => event.resource?.label,
+      cell: (event) => event.resource?.label ?? "—",
+    },
+    outcome: {
+      id: "outcome",
+      header: "Outcome",
+      defaultWidth: 136,
+      minWidth: 96,
+      cell: (event) => (
+        <>
+          <span className={`admin-kit__event-outcome admin-kit__event-outcome--${event.outcome}`}>
+            {event.outcome}
+          </span>
+          <small>
+            {event.severity} · {event.category}
+          </small>
+        </>
+      ),
+    },
+  };
+  return ALL_COLUMNS.filter((column) => visible.includes(column)).map((column) => all[column]);
+}
+
+function renderEventDetails(event: AdminEvent) {
+  const fields: [string, ReactNode][] = [
+    ["Action", event.action],
+    ["Message", event.message],
+    ["Occurred", event.occurredAt],
+    ["Actor", event.actor?.label ?? "—"],
+    ["Resource", event.resource?.label ?? "—"],
+    ["Outcome", `${event.outcome} · ${event.severity} · ${event.category}`],
+    ...Object.entries(event.metadata ?? {}),
+  ];
+  return (
+    <dl className="admin-kit__event-details">
+      {fields.map(([label, value], index) => (
+        <div key={index}>
+          <dt>{label}</dt>
+          <dd>{value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

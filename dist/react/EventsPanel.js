@@ -6,7 +6,7 @@ const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const core_1 = require("../core");
 const AdminLabels_1 = require("./AdminLabels");
-const AdminTablePrimitives_1 = require("./AdminTablePrimitives");
+const AdminDataTable_1 = require("./AdminDataTable");
 const AdminPanelHeader_1 = require("./AdminPanelHeader");
 const AdminPanelState_1 = require("./AdminPanelState");
 const SEARCH_DEBOUNCE_MS = 250;
@@ -17,7 +17,7 @@ const ALL_COLUMNS = [
     "resource",
     "outcome",
 ];
-function EventsPanel({ adapter, title = "Administrative events", headerPresentation = "section", refreshLabel = "Refresh", search, pageSize = 25, presentation = "feed", className, formatTimestamp, columns = ALL_COLUMNS, emptyState, }) {
+function EventsPanel({ adapter, title = "Administrative events", headerPresentation = "section", refreshLabel = "Refresh", search, pageSize = 25, presentation = "feed", className, formatTimestamp, columns = ALL_COLUMNS, emptyState, storageKey, }) {
     const show = (column) => columns.includes(column);
     const labels = (0, AdminLabels_1.useAdminLabels)();
     const [query, setQuery] = (0, react_1.useState)({ page: 1, pageSize });
@@ -79,11 +79,12 @@ function EventsPanel({ adapter, title = "Administrative events", headerPresentat
     if (!result)
         return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__events", className].filter(Boolean).join(" "), "aria-label": title, children: [panelHeader(), (0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "loading", label: "Loading administrative events…" } })] }));
     const pages = Math.max(1, Math.ceil(result.total / result.pageSize));
+    const tableColumns = eventTableColumns(columns, formatTimestamp);
     return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__events", className].filter(Boolean).join(" "), "aria-label": title, children: [panelHeader(result.source), (0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__events-filters", children: [headerPresentation === "section" ? searchControl : null, adapter.categories ? ((0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("span", { children: "Category" }), (0, jsx_runtime_1.jsxs)("select", { value: query.category ?? "", onChange: (event) => updateQuery({ category: event.target.value || undefined }), children: [(0, jsx_runtime_1.jsx)("option", { value: "", children: "All" }), adapter.categories.map((option) => ((0, jsx_runtime_1.jsx)("option", { value: option.value, children: option.label }, option.value)))] })] })) : null, adapter.severities ? ((0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("span", { children: "Severity" }), (0, jsx_runtime_1.jsxs)("select", { value: query.severity ?? "", onChange: (event) => updateQuery({
                                     severity: event.target.value || undefined,
                                 }), children: [(0, jsx_runtime_1.jsx)("option", { value: "", children: "All" }), adapter.severities.map((option) => ((0, jsx_runtime_1.jsx)("option", { value: option.value, children: option.label }, option.value)))] })] })) : null, adapter.outcomes ? ((0, jsx_runtime_1.jsxs)("label", { children: [(0, jsx_runtime_1.jsx)("span", { children: "Outcome" }), (0, jsx_runtime_1.jsxs)("select", { value: query.outcome ?? "", onChange: (event) => updateQuery({
                                     outcome: event.target.value || undefined,
-                                }), children: [(0, jsx_runtime_1.jsx)("option", { value: "", children: "All" }), adapter.outcomes.map((option) => ((0, jsx_runtime_1.jsx)("option", { value: option.value, children: option.label }, option.value)))] })] })) : null] }), error ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: error, onRetry: () => void load() } })) : null, result.items.length === 0 ? ((emptyState ?? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: "No administrative events found." } })))) : presentation === "table" ? ((0, jsx_runtime_1.jsx)("div", { className: "admin-kit__table-wrap admin-kit__table-wrap--stack admin-kit__events-table-wrap", children: (0, jsx_runtime_1.jsxs)("table", { className: "admin-kit__table admin-kit__table--stack admin-kit__events-table", "aria-busy": loading, children: [(0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { children: [show("occurred") ? (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Occurred" }) : null, show("event") ? (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Event" }) : null, show("actor") ? (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Actor" }) : null, show("resource") ? (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Resource" }) : null, show("outcome") ? (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Outcome" }) : null, (0, jsx_runtime_1.jsx)("th", { scope: "col", children: "Details" })] }) }), (0, jsx_runtime_1.jsx)("tbody", { children: result.items.map((event) => ((0, jsx_runtime_1.jsxs)("tr", { children: [show("occurred") ? ((0, jsx_runtime_1.jsxs)("td", { children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: "Occurred" }), (0, core_1.formatAdminTimestamp)(event.occurredAt, formatTimestamp)] })) : null, show("event") ? ((0, jsx_runtime_1.jsxs)("td", { children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: "Event" }), (0, jsx_runtime_1.jsx)("strong", { children: event.action }), (0, jsx_runtime_1.jsx)("small", { children: event.message })] })) : null, show("actor") ? ((0, jsx_runtime_1.jsxs)("td", { children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: "Actor" }), event.actor?.label ?? "—"] })) : null, show("resource") ? ((0, jsx_runtime_1.jsxs)("td", { children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: "Resource" }), event.resource?.label ?? "—"] })) : null, show("outcome") ? ((0, jsx_runtime_1.jsxs)("td", { children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: "Outcome" }), (0, jsx_runtime_1.jsx)("span", { className: `admin-kit__event-outcome admin-kit__event-outcome--${event.outcome}`, children: event.outcome }), (0, jsx_runtime_1.jsxs)("small", { children: [event.severity, " \u00B7 ", event.category] })] })) : null, (0, jsx_runtime_1.jsxs)("td", { children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: "Details" }), event.metadata ? ((0, jsx_runtime_1.jsxs)("details", { children: [(0, jsx_runtime_1.jsx)("summary", { children: "View" }), (0, jsx_runtime_1.jsx)("dl", { children: Object.entries(event.metadata).map(([label, value]) => ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: label }), (0, jsx_runtime_1.jsx)("dd", { children: value })] }, label))) })] })) : ("—")] })] }, event.id))) })] }) })) : ((0, jsx_runtime_1.jsx)("ol", { className: "admin-kit__events-list", "aria-busy": loading, children: result.items.map((event) => ((0, jsx_runtime_1.jsxs)("li", { children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("strong", { children: event.action }), (0, jsx_runtime_1.jsx)("p", { children: event.message }), (0, jsx_runtime_1.jsx)("span", { children: [
+                                }), children: [(0, jsx_runtime_1.jsx)("option", { value: "", children: "All" }), adapter.outcomes.map((option) => ((0, jsx_runtime_1.jsx)("option", { value: option.value, children: option.label }, option.value)))] })] })) : null] }), error ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: error, onRetry: () => void load() } })) : null, result.items.length === 0 ? ((emptyState ?? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: "No administrative events found." } })))) : presentation === "table" ? ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { busy: loading, className: "admin-kit__events-table", columns: tableColumns, label: title, renderDetails: renderEventDetails, rowKey: (event) => event.id, rowLabel: (event) => `${event.action} ${(0, core_1.formatAdminTimestamp)(event.occurredAt, formatTimestamp)}`, rows: result.items, storageKey: storageKey, wrapClassName: "admin-kit__events-table-wrap" })) : ((0, jsx_runtime_1.jsx)("ol", { className: "admin-kit__events-list", "aria-busy": loading, children: result.items.map((event) => ((0, jsx_runtime_1.jsxs)("li", { children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("strong", { children: event.action }), (0, jsx_runtime_1.jsx)("p", { children: event.message }), (0, jsx_runtime_1.jsx)("span", { children: [
                                         show("occurred")
                                             ? (0, core_1.formatAdminTimestamp)(event.occurredAt, formatTimestamp)
                                             : null,
@@ -93,4 +94,83 @@ function EventsPanel({ adapter, title = "Administrative events", headerPresentat
                                     ]
                                         .filter((part) => part !== null)
                                         .join(" · ") }), show("actor") && event.actor ? (0, jsx_runtime_1.jsxs)("span", { children: [" \u00B7 actor: ", event.actor.label] }) : null, show("resource") && event.resource ? ((0, jsx_runtime_1.jsxs)("span", { children: [" \u00B7 resource: ", event.resource.label] })) : null] }), event.metadata ? ((0, jsx_runtime_1.jsxs)("details", { children: [(0, jsx_runtime_1.jsx)("summary", { children: "Details" }), (0, jsx_runtime_1.jsx)("dl", { children: Object.entries(event.metadata).map(([label, value]) => ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: label }), (0, jsx_runtime_1.jsx)("dd", { children: value })] }, label))) })] })) : null] }, event.id))) })), (0, jsx_runtime_1.jsxs)("footer", { className: "admin-kit__events-pagination", children: [(0, jsx_runtime_1.jsxs)("span", { children: [labels.pageStatus(result.page, pages), " \u00B7 ", result.total, " events"] }), (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: loading || result.page <= 1, onClick: () => setQuery((current) => ({ ...current, page: (current.page ?? 1) - 1 })), children: labels.previousPage }), (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: loading || result.page >= pages, onClick: () => setQuery((current) => ({ ...current, page: (current.page ?? 1) + 1 })), children: labels.nextPage })] })] }));
+}
+const relativeTime = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+const RELATIVE_UNITS = [
+    ["year", 31536000],
+    ["month", 2592000],
+    ["week", 604800],
+    ["day", 86400],
+    ["hour", 3600],
+    ["minute", 60],
+];
+function formatRelative(iso, now = Date.now()) {
+    const time = Date.parse(iso);
+    if (Number.isNaN(time))
+        return undefined;
+    const seconds = Math.round((time - now) / 1000);
+    for (const [unit, size] of RELATIVE_UNITS) {
+        if (Math.abs(seconds) >= size)
+            return relativeTime.format(Math.round(seconds / size), unit);
+    }
+    return relativeTime.format(0, "minute");
+}
+function OccurredCell({ iso, formatTimestamp, }) {
+    const relative = formatTimestamp ? undefined : formatRelative(iso);
+    return ((0, jsx_runtime_1.jsxs)("time", { className: "admin-kit__event-time", dateTime: iso, title: iso, children: [(0, jsx_runtime_1.jsx)("span", { children: (0, core_1.formatAdminTimestamp)(iso, formatTimestamp) }), relative ? (0, jsx_runtime_1.jsx)("small", { children: relative }) : null] }));
+}
+function eventTableColumns(visible, formatTimestamp) {
+    const all = {
+        occurred: {
+            id: "occurred",
+            header: "Occurred",
+            defaultWidth: 184,
+            minWidth: 128,
+            cell: (event) => (0, jsx_runtime_1.jsx)(OccurredCell, { formatTimestamp: formatTimestamp, iso: event.occurredAt }),
+        },
+        event: {
+            id: "event",
+            header: "Event",
+            minWidth: 200,
+            truncate: true,
+            title: (event) => `${event.action}\n${event.message}`,
+            cell: (event) => ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)("strong", { children: event.action }), (0, jsx_runtime_1.jsx)("small", { children: event.message })] })),
+        },
+        actor: {
+            id: "actor",
+            header: "Actor",
+            defaultWidth: 168,
+            truncate: true,
+            title: (event) => event.actor?.label,
+            cell: (event) => event.actor?.label ?? "—",
+        },
+        resource: {
+            id: "resource",
+            header: "Resource",
+            defaultWidth: 240,
+            truncate: true,
+            title: (event) => event.resource?.label,
+            cell: (event) => event.resource?.label ?? "—",
+        },
+        outcome: {
+            id: "outcome",
+            header: "Outcome",
+            defaultWidth: 136,
+            minWidth: 96,
+            cell: (event) => ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)("span", { className: `admin-kit__event-outcome admin-kit__event-outcome--${event.outcome}`, children: event.outcome }), (0, jsx_runtime_1.jsxs)("small", { children: [event.severity, " \u00B7 ", event.category] })] })),
+        },
+    };
+    return ALL_COLUMNS.filter((column) => visible.includes(column)).map((column) => all[column]);
+}
+function renderEventDetails(event) {
+    const fields = [
+        ["Action", event.action],
+        ["Message", event.message],
+        ["Occurred", event.occurredAt],
+        ["Actor", event.actor?.label ?? "—"],
+        ["Resource", event.resource?.label ?? "—"],
+        ["Outcome", `${event.outcome} · ${event.severity} · ${event.category}`],
+        ...Object.entries(event.metadata ?? {}),
+    ];
+    return ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__event-details", children: fields.map(([label, value], index) => ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: label }), (0, jsx_runtime_1.jsx)("dd", { children: value })] }, index))) }));
 }
