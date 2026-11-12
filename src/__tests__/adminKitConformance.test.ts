@@ -61,6 +61,30 @@ afterEach(() => {
 });
 
 describe("admin-kit-conformance", () => {
+  function withSpec(spec: string): string {
+    const root = createConsumerFixture();
+    writeFileSync(join(root, "package.json"), JSON.stringify({ dependencies: { "@andrewpopov/admin-kit": spec } }));
+    return root;
+  }
+
+  it("accepts an exact registry version pin (fleet npm registry, BRAIN-1006)", () => {
+    const result = runConformance(withSpec(packageVersion));
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("[admin-kit-conformance] PASS");
+  });
+
+  it("still accepts a github: pin at #v<version>", () => {
+    expect(runConformance(withSpec(`github:andrewpopov/admin-kit#v${packageVersion}`)).status).toBe(0);
+  });
+
+  it("rejects a registry pin at another version, and a version that only shares a prefix", () => {
+    for (const spec of ["0.0.1", `${packageVersion}0`, `^${packageVersion}`, `github:andrewpopov/admin-kit#v${packageVersion}0`]) {
+      const result = runConformance(withSpec(spec));
+      expect(result.status, spec).not.toBe(0);
+      expect(result.stdout + result.stderr, spec).toContain("pin @andrewpopov/admin-kit to the exact version");
+    }
+  });
+
   it("ignores Next.js generated CSS after a consumer build", () => {
     const root = createConsumerFixture();
     const generated = join(root, ".next", "static", "css");

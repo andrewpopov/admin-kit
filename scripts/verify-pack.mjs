@@ -121,7 +121,9 @@ try {
   expectConformanceFailure(consumerDir, 'application main or layout entry point');
   writeFileSync(join(consumerDir, 'src', 'main.tsx'), `import '${pkg.name}/styles.css';\nexport const App = () => <div />;`);
   writeFileSync(join(consumerDir, 'package.json'), JSON.stringify({ name: 'admin-kit-consumer', private: true, dependencies: { [pkg.name]: 'github:andrewpopov/admin-kit#v0.20.0' } }, null, 2));
-  expectConformanceFailure(consumerDir, `pin ${pkg.name} to v${pkg.version}`);
+  expectConformanceFailure(consumerDir, `pin ${pkg.name} to the exact version ${pkg.version}`);
+  writeFileSync(join(consumerDir, 'package.json'), JSON.stringify({ name: 'admin-kit-consumer', private: true, dependencies: { [pkg.name]: '0.20.0' } }, null, 2));
+  expectConformanceFailure(consumerDir, `pin ${pkg.name} to the exact version ${pkg.version}`);
 
   console.log('[verify:pack] PASS: tarball installs and exports its public surface.');
 } finally {
