@@ -822,6 +822,29 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
     );
   });
 
+  it("keeps the keys table's minimum width within a 72rem content column", async () => {
+    window.localStorage.clear();
+    render(
+      <ApiKeysPanel
+        adapter={{
+          list: vi
+            .fn()
+            .mockResolvedValue([{ ...activeKey, details: [{ label: "Role", value: "MEMBER" }] }]),
+          create: vi.fn(),
+          revoke: vi.fn(),
+          update: vi.fn(),
+        }}
+        presentation="table"
+        scopeGroups={[{ id: "core", label: "Core", scopes: [{ value: "read", label: "Read" }] }]}
+      />,
+    );
+    await screen.findByText("Automation");
+    expect(screen.getByRole("columnheader", { name: "Details" })).toBeTruthy();
+    const table = screen.getByRole("table");
+    const minWidth = parseFloat(table.style.getPropertyValue("--admin-kit-data-table-min-width"));
+    expect(minWidth).toBeLessThanOrEqual(72 * 16);
+  });
+
   it("renders the table through AdminDataTable and shows the scope editor as an expansion row", async () => {
     window.localStorage.clear();
     render(
@@ -843,7 +866,7 @@ describe("ApiKeysPanel built-in scope flows (scopeGroups)", () => {
       key: "ArrowRight",
     });
     expect(JSON.parse(window.localStorage.getItem("admin-kit:table-widths:keys")!)).toEqual({
-      scope: 208,
+      scope: 192,
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Edit scopes for Automation" }));
