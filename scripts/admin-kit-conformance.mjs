@@ -137,9 +137,16 @@ const adminKitSpecs = packageManifests.flatMap((path) => {
 if (!adminKitSpecs.length) {
   errors.push('No package manifest declares @andrewpopov/admin-kit.');
 }
+// An exact registry version (the fleet npm registry, BRAIN-1006) or a github: pin whose ref is this version.
+function pinsThisVersion(specifier) {
+  const spec = String(specifier).trim();
+  if (spec === packageVersion) return true;
+  const ref = spec.includes('#') ? spec.slice(spec.indexOf('#') + 1).replace(/^semver:/, '') : '';
+  return ref === `v${packageVersion}` || ref === packageVersion;
+}
 for (const { path, specifier } of adminKitSpecs) {
-  if (!String(specifier).includes(`v${packageVersion}`)) {
-    errors.push(`${relativePosix(path)}: pin @andrewpopov/admin-kit to v${packageVersion}.`);
+  if (!pinsThisVersion(specifier)) {
+    errors.push(`${relativePosix(path)}: pin @andrewpopov/admin-kit to the exact version ${packageVersion} (or a github: pin at #v${packageVersion}).`);
   }
 }
 // Match on the basename rather than the full path. The previous regex
