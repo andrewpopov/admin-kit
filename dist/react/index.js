@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SettingsPanel = exports.OperationalJobsPanel = exports.BackupsPanel = exports.AdminStatusSummary = exports.ReleaseNotesPanel = exports.SessionsPanel = exports.LogsPanel = exports.MembershipsPanel = exports.EventsPanel = exports.AdminApiKeyForm = exports.AdminScopePicker = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminSwitch = exports.AdminStack = exports.AdminField = exports.AdminCard = exports.AdminTheme = exports.AdminWorkspace = exports.AdminPanelHeader = exports.AdminPanelStateView = exports.AdminMobileCellLabel = exports.AdminPortal = exports.AdminConsole = exports.AdminAppShell = exports.AdminApp = exports.AdminDialog = exports.defaultAdminLabels = exports.useAdminLabels = exports.AdminLabelsProvider = exports.AdminConfirmationDialog = exports.AdminActionButton = void 0;
+exports.SettingsPanel = exports.OperationalJobsPanel = exports.BackupsPanel = exports.AdminStatusSummary = exports.ReleaseNotesPanel = exports.SessionsPanel = exports.LogsPanel = exports.MembershipsPanel = exports.EventsPanel = exports.AdminApiKeyForm = exports.AdminScopePicker = exports.ApiKeysPanel = exports.FeatureFlagsPanel = exports.UsersPanel = exports.AdminSwitch = exports.AdminStack = exports.AdminField = exports.AdminCard = exports.AdminTheme = exports.AdminWorkspace = exports.AdminPanelHeader = exports.AdminPanelStateView = exports.AdminDataTable = exports.AdminMobileCellLabel = exports.AdminPortal = exports.AdminConsole = exports.AdminAppShell = exports.AdminApp = exports.AdminDialog = exports.defaultAdminLabels = exports.useAdminLabels = exports.AdminLabelsProvider = exports.AdminConfirmationDialog = exports.AdminActionButton = void 0;
 var AdminActionButton_1 = require("./AdminActionButton");
 Object.defineProperty(exports, "AdminActionButton", { enumerable: true, get: function () { return AdminActionButton_1.AdminActionButton; } });
 var AdminConfirmationDialog_1 = require("./AdminConfirmationDialog");
@@ -21,6 +21,8 @@ var AdminPortal_1 = require("./AdminPortal");
 Object.defineProperty(exports, "AdminPortal", { enumerable: true, get: function () { return AdminPortal_1.AdminPortal; } });
 var AdminTablePrimitives_1 = require("./AdminTablePrimitives");
 Object.defineProperty(exports, "AdminMobileCellLabel", { enumerable: true, get: function () { return AdminTablePrimitives_1.AdminMobileCellLabel; } });
+var AdminDataTable_1 = require("./AdminDataTable");
+Object.defineProperty(exports, "AdminDataTable", { enumerable: true, get: function () { return AdminDataTable_1.AdminDataTable; } });
 var AdminPanelState_1 = require("./AdminPanelState");
 Object.defineProperty(exports, "AdminPanelStateView", { enumerable: true, get: function () { return AdminPanelState_1.AdminPanelStateView; } });
 var AdminPanelHeader_1 = require("./AdminPanelHeader");

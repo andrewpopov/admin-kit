@@ -25,5 +25,7 @@ export interface EventsPanelProps {
     columns?: readonly EventsPanelColumn[];
     /** Replaces the default "No administrative events found." content. */
     emptyState?: ReactNode;
+    /** Table presentation: persist this viewer's column widths under this key. */
+    storageKey?: string;
 }
-export declare function EventsPanel({ adapter, title, headerPresentation, refreshLabel, search, pageSize, presentation, className, formatTimestamp, columns, emptyState, }: EventsPanelProps): import("react").JSX.Element;
+export declare function EventsPanel({ adapter, title, headerPresentation, refreshLabel, search, pageSize, presentation, className, formatTimestamp, columns, emptyState, storageKey, }: EventsPanelProps): import("react").JSX.Element;

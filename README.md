@@ -685,6 +685,38 @@ The default `feed` presentation favors narrative inspection. Use `table` for
 high-volume audit trails where operators compare timestamps, actors, resources,
 outcomes, and details across rows.
 
+The `table` presentation is an `AdminDataTable`: the Event column fills the
+remaining width, the others can be resized by drag or keyboard, long values
+truncate with the full value in a tooltip and in the row's expandable details,
+and timestamps show the absolute time with a relative one beneath. Pass
+`storageKey` to keep each viewer's column widths across visits.
+
+### Data tables
+
+`AdminDataTable` is the kit's general data table. Each column has an `id`,
+`header` and `cell`; `defaultWidth` (px) makes it resizable, and the one column
+without a width fills the rest. Handles are `role="separator"` controls: drag,
+arrow keys (Shift for larger steps), PageUp/PageDown, End for the maximum, and
+Home or double-click to reset. `truncate` clips a cell to one line; pair it with
+`title` and `renderDetails` so the clipped value stays reachable by hover,
+keyboard and touch. The header is sticky inside the table's own scroll area
+(`--admin-kit-data-table-max-height`, default `min(70vh, 48rem)`), and below
+48rem rows become labelled cards with resizing and truncation off.
+
+```tsx
+<AdminDataTable
+  columns={[
+    { id: "name", header: "Name", defaultWidth: 200, truncate: true, title: (r) => r.name, cell: (r) => r.name },
+    { id: "note", header: "Note", cell: (r) => r.note },
+  ]}
+  label="Restaurants"
+  renderDetails={(r) => <RestaurantDetails restaurant={r} />}
+  rowKey={(r) => r.id}
+  rows={restaurants}
+  storageKey="restaurants"
+/>
+```
+
 With `headerPresentation="page"`, the title becomes the route `h1`; search and
 refresh share that header band, while severity/outcome/category filters remain
 in the toolbar before the table.

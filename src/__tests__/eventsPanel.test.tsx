@@ -127,6 +127,38 @@ describe("EventsPanel", () => {
     expect(screen.queryByRole("list")).toBeNull();
   });
 
+  it("shows the full event record in an expandable row and resizable columns", async () => {
+    window.localStorage.clear();
+    render(
+      <EventsPanel
+        adapter={{ list: vi.fn().mockResolvedValue(page) }}
+        presentation="table"
+        storageKey="audit"
+      />,
+    );
+    await screen.findByRole("table");
+    expect(screen.getByRole("separator", { name: "Resize Occurred column" })).toBeTruthy();
+    expect(screen.queryByRole("separator", { name: "Resize Event column" })).toBeNull();
+    expect(screen.getByText("Sign-in succeeded").closest("td")?.getAttribute("title")).toBe(
+      "SIGN_IN\nSign-in succeeded",
+    );
+    const time = document.querySelector("time.admin-kit__event-time");
+    expect(time?.getAttribute("dateTime")).toBe("2026-07-13T00:00:00.000Z");
+    expect(time?.querySelector("small")?.textContent).toMatch(/ago|yesterday|last|next|in /);
+
+    fireEvent.click(screen.getByRole("button", { name: /View details for SIGN_IN/ }));
+    const details = document.querySelector(".admin-kit__event-details");
+    expect(details?.textContent).toContain("Sign-in succeeded");
+    expect(details?.textContent).toContain("127.0.0.1");
+
+    fireEvent.keyDown(screen.getByRole("separator", { name: "Resize Actor column" }), {
+      key: "ArrowRight",
+    });
+    expect(JSON.parse(window.localStorage.getItem("admin-kit:table-widths:audit")!)).toEqual({
+      actor: 184,
+    });
+  });
+
   it("renders retryable errors without stale event content", async () => {
     const list = vi.fn().mockRejectedValue(new Error("Audit source unavailable"));
     render(<EventsPanel adapter={{ list }} headerPresentation="page" />);
