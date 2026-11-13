@@ -474,7 +474,7 @@ export function AdminDataTable<Row>({
             })}
             {hasDetailsColumn ? (
               <th className="admin-kit__data-table-heading" scope="col">
-                {detailsLabel}
+                <span className="admin-kit__data-table-heading-text">{detailsLabel}</span>
               </th>
             ) : null}
           </tr>

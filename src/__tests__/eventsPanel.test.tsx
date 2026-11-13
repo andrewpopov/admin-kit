@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { formatAdminTimestamp } from "../core";
 import { EventsPanel } from "../react";
 
@@ -295,5 +295,156 @@ describe("EventsPanel", () => {
     const empty = { ...page, items: [], total: 0 };
     render(<EventsPanel adapter={{ list: vi.fn().mockResolvedValue(empty) }} />);
     await screen.findByText("No administrative events found.");
+  });
+
+  describe("table text (K4)", () => {
+    const requestEvent = {
+      ...page.items[0],
+      id: "event-request",
+      action: "POST",
+      message: "POST /api/projects/CAIRN/tickets/cmp9x3q0e0001abcdefghijkl returned 502",
+      resource: { label: "/api/projects/CAIRN/tickets/cmp9x3q0e0001abcdefghijkl" },
+      metadata: { status: "502" },
+    };
+    const requestPage = { ...page, items: [requestEvent], total: 1 };
+
+    it("prints the request path once, in full, in the Resource cell", async () => {
+      render(
+        <EventsPanel
+          adapter={{ list: vi.fn().mockResolvedValue(requestPage) }}
+          presentation="table"
+        />,
+      );
+      await screen.findByRole("table");
+      const body = document.querySelector("tbody")!;
+      const eventCell = body.querySelectorAll("tr:first-child .admin-kit__cell-value")[1];
+      expect(eventCell.textContent).toBe("POSTreturned 502");
+      expect(eventCell.textContent).not.toContain("/api/projects");
+      const resource = body.querySelector(".admin-kit__events-resource")!;
+      expect(resource.textContent).toBe(requestEvent.resource.label);
+      expect(resource.closest("td")?.getAttribute("title")).toBe(requestEvent.resource.label);
+      expect(body.textContent?.split("/api/projects/CAIRN").length).toBe(2);
+    });
+
+    it("keeps showing the message when the event carries no status", async () => {
+      render(
+        <EventsPanel adapter={{ list: vi.fn().mockResolvedValue(page) }} presentation="table" />,
+      );
+      await screen.findByRole("table");
+      expect(screen.getByText("Sign-in succeeded")).toBeTruthy();
+    });
+  });
+
+  describe("collapsible header", () => {
+    const filtered = {
+      severities: [
+        { value: "info", label: "Info" },
+        { value: "error", label: "Error (5xx)" },
+      ],
+      outcomes: [{ value: "failure", label: "Failure" }],
+    };
+    const toggle = () => screen.getByRole("button", { name: /controls/ });
+
+    beforeEach(() => window.localStorage.clear());
+
+    it("moves search and filters into the collapsible region and Refresh into the title row", async () => {
+      const { container } = render(
+        <EventsPanel
+          adapter={{ list: vi.fn().mockResolvedValue(page), ...filtered }}
+          headerCollapsible={{ storageKey: "events" }}
+          headerPresentation="page"
+          search={{ placeholder: "Search events" }}
+        />,
+      );
+      await screen.findByText("Sign-in succeeded");
+      const region = container.querySelector<HTMLElement>(".admin-kit__panel-header-region")!;
+      expect(region.querySelector("input[type='search']")).toBeTruthy();
+      expect(region.querySelector("select")).toBeTruthy();
+      expect(region.querySelector("button")).toBeNull();
+      expect(container.querySelector(".admin-kit__panel-header-actions")?.textContent).toBe(
+        "Refresh",
+      );
+      fireEvent.click(toggle());
+      expect(region.hidden).toBe(true);
+      expect(screen.getByText("2 events")).toBeTruthy();
+    });
+
+    it("keeps applied filters as removable chips while collapsed", async () => {
+      const list = vi.fn().mockResolvedValue(page);
+      render(
+        <EventsPanel
+          adapter={{ list, ...filtered }}
+          headerCollapsible={{ storageKey: "events-chips" }}
+        />,
+      );
+      await screen.findByText("Sign-in succeeded");
+      fireEvent.change(screen.getByLabelText("Severity"), { target: { value: "error" } });
+      fireEvent.change(screen.getByLabelText("Outcome"), { target: { value: "failure" } });
+      await waitFor(() =>
+        expect(list).toHaveBeenLastCalledWith(
+          expect.objectContaining({ severity: "error", outcome: "failure" }),
+        ),
+      );
+      fireEvent.click(toggle());
+      expect(screen.getByRole("button", { name: "Show controls, 2 filters applied" })).toBeTruthy();
+      expect(screen.getByText("Severity: Error (5xx)")).toBeTruthy();
+      expect(screen.getByText("Outcome: Failure")).toBeTruthy();
+
+      fireEvent.click(screen.getByRole("button", { name: "Remove filter: Severity: Error (5xx)" }));
+      await waitFor(() =>
+        expect(list).toHaveBeenLastCalledWith(
+          expect.objectContaining({ severity: undefined, outcome: "failure" }),
+        ),
+      );
+      expect(screen.queryByText("Severity: Error (5xx)")).toBeNull();
+      expect(screen.getByText("Outcome: Failure")).toBeTruthy();
+      expect(document.activeElement).toBe(toggle());
+      expect(toggle().getAttribute("aria-expanded")).toBe("false");
+    });
+
+    it("shows a search as a chip and clears the field when the chip is removed", async () => {
+      const list = vi.fn().mockResolvedValue(page);
+      render(
+        <EventsPanel
+          adapter={{ list }}
+          headerCollapsible={{ storageKey: "events-search" }}
+          search={{ placeholder: "Search events" }}
+        />,
+      );
+      await screen.findByText("Sign-in succeeded");
+      fireEvent.change(screen.getByPlaceholderText("Search events"), { target: { value: "Ada" } });
+      await waitFor(() =>
+        expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ search: "Ada" })),
+      );
+      fireEvent.click(toggle());
+      fireEvent.click(screen.getByRole("button", { name: "Remove filter: Search: Ada" }));
+      await waitFor(() =>
+        expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ search: undefined })),
+      );
+      fireEvent.click(toggle());
+      expect((screen.getByPlaceholderText("Search events") as HTMLInputElement).value).toBe("");
+    });
+
+    it("lets the host replace the collapsed summary and add its own applied filters", async () => {
+      render(
+        <EventsPanel
+          adapter={{ list: vi.fn().mockResolvedValue(page) }}
+          headerCollapsible={{
+            storageKey: "events-host",
+            activeCount: 1,
+            defaultCollapsed: true,
+            renderCollapsedSummary: ({ total, chips }) => (
+              <>
+                <span>{total} requests</span>
+                {chips}
+              </>
+            ),
+          }}
+        />,
+      );
+      await screen.findByText("Sign-in succeeded");
+      expect(screen.getByText("2 requests")).toBeTruthy();
+      expect(toggle().textContent).toContain("(1)");
+    });
   });
 });

@@ -483,6 +483,37 @@
 .admin-kit__panel-header-actions, .admin-kit__panel-toolbar { align-items: end; display: flex; flex-wrap: wrap; gap: 0.75rem; }
 .admin-kit__panel-toolbar { justify-content: flex-end; }
 .admin-kit__panel-header-actions .admin-kit__users-search, .admin-kit__panel-toolbar .admin-kit__users-search { margin-top: 0; }
+/* Collapsible page band (PKG-343) */
+.admin-kit__panel-header h1, .admin-kit__panel-header h2 { overflow-wrap: anywhere; }
+.admin-kit__panel-header.admin-kit__panel-header--collapsible, .admin-kit__panel-header.admin-kit__events-header, .admin-kit__operations .admin-kit__panel-header { display: grid; }
+.admin-kit__panel-header--collapsible .admin-kit__panel-header-main { align-items: center; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; }
+.admin-kit__panel-header--collapsible .admin-kit__panel-header-main > :first-child { flex: 1 1 12rem; }
+.admin-kit__panel-header--collapsible .admin-kit__panel-header-actions { align-items: center; flex-direction: row; }
+.admin-kit__panel-header-region { display: grid; gap: 1rem; min-inline-size: 0; }
+.admin-kit__panel-header-region[hidden] { display: none; }
+.admin-kit__panel-header-region .admin-kit__panel-toolbar { justify-content: flex-start; }
+.admin-kit__panel-header-region .admin-kit__events-filters { margin: 0; }
+.admin-kit__panel-header-toggle { align-items: center; appearance: none; background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border-strong); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); cursor: pointer; display: inline-flex; flex: none; font: inherit; gap: 0.375rem; min-block-size: 2.75rem; padding: 0.5rem 0.75rem; }
+.admin-kit__panel-header-toggle:hover { background: var(--admin-kit-surface-subtle); }
+.admin-kit__panel-header-toggle svg { transition: transform 150ms ease; }
+.admin-kit__panel-header-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.admin-kit__panel-header-summary-line { align-items: center; color: var(--admin-kit-muted); display: flex; gap: 0.5rem; min-inline-size: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+.admin-kit__panel-header-summary-line > * { flex: none; }
+.admin-kit__panel-header--collapsed .admin-kit__panel-header-summary-line { flex: 1 0 100%; order: 3; }
+@media (min-width: 64rem) {
+  .admin-kit__panel-header--collapsed .admin-kit__panel-header-main > :first-child { flex: 0 1 auto; }
+  .admin-kit__panel-header--collapsed .admin-kit__panel-header-summary-line { flex: 1 1 0; order: 0; }
+}
+.admin-kit__filter-chip { align-items: center; background: var(--admin-kit-accent-soft); border-radius: 999px; color: var(--admin-kit-text); display: inline-flex; font-size: var(--admin-kit-text-body-sm-size); line-height: var(--admin-kit-text-body-sm-leading); padding-inline-start: 0.625rem; }
+.admin-kit__filter-chip button { appearance: none; background: none; border: 0; border-radius: 999px; color: inherit; cursor: pointer; font: inherit; min-block-size: 1.75rem; min-inline-size: 1.75rem; padding: 0; }
+.admin-kit__filter-chip button:hover { background: var(--admin-kit-border); }
+@media (pointer: coarse) { .admin-kit__panel-header-toggle, .admin-kit__filter-chip button { min-block-size: 2.75rem; min-inline-size: 2.75rem; } }
+.admin-kit__events-search, .admin-kit__users-search { min-inline-size: min(20rem, 100%); }
+.admin-kit__users-header > .admin-kit__panel-toolbar { flex: 1 1 auto; min-inline-size: 0; }
+.admin-kit__event-time > span { white-space: nowrap; }
+.admin-kit__events-resource { -webkit-box-orient: vertical; -webkit-line-clamp: 2; display: -webkit-box; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
+.admin-kit__button { align-items: center; display: inline-flex; gap: 0.375rem; justify-content: center; }
+/* End collapsible page band */
 .admin-kit__status-summary { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); margin: 0; }
 .admin-kit__status { border-left: 3px solid var(--admin-kit-border-strong); padding: 0.5rem 0.75rem; }.admin-kit__status--healthy { border-color: var(--admin-kit-success); }.admin-kit__status--warning { border-color: var(--admin-kit-warning); }.admin-kit__status--critical { border-color: var(--admin-kit-danger); }
 .admin-kit__status dt, .admin-kit__status small, .admin-kit__operations header p, .admin-kit__settings header p, .admin-kit__operations td small, .admin-kit__settings label small { color: var(--admin-kit-muted); }.admin-kit__status dd { font-weight: var(--admin-kit-weight-strong); margin: 0.125rem 0; }

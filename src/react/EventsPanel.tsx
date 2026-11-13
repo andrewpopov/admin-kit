@@ -9,7 +9,13 @@ import {
 } from "../core";
 import { useAdminLabels } from "./AdminLabels";
 import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
-import { AdminPanelHeader, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
+import { AdminFilterChip } from "./AdminFilterChip";
+import {
+  AdminPanelHeader,
+  panelHeaderCollapsible,
+  type AdminPanelBandOptions,
+  type AdminPanelHeaderPresentation,
+} from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
 
 const SEARCH_DEBOUNCE_MS = 250;
@@ -49,6 +55,17 @@ export interface EventsPanelProps {
   storageKey?: string;
   /** Table presentation: the table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
   tableFill?: boolean;
+  /** Adds the Hide/Show controls toggle: the source line, search and filters collapse, and the summary line keeps applied filters as removable chips. */
+  headerCollapsible?: AdminPanelBandOptions<EventsPanelSummaryContext>;
+  /** Status content between the source line and the filters; collapses with them. */
+  headerSummary?: ReactNode;
+}
+
+export interface EventsPanelSummaryContext {
+  query: AdminEventsQuery;
+  total: number;
+  /** The applied filters as removable chips. */
+  chips: ReactNode;
 }
 
 export function EventsPanel({
@@ -65,6 +82,8 @@ export function EventsPanel({
   emptyState,
   storageKey,
   tableFill,
+  headerCollapsible,
+  headerSummary,
 }: EventsPanelProps) {
   const show = (column: EventsPanelColumn) => columns.includes(column);
   const labels = useAdminLabels();
@@ -122,6 +141,11 @@ export function EventsPanel({
       updateQuery({ search: value || undefined });
     }, SEARCH_DEBOUNCE_MS);
   };
+  const clearSearch = () => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    setSearchInput("");
+    updateQuery({ search: undefined });
+  };
   const searchControl = search ? (
     <label className="admin-kit__events-search">
       <span>Search</span>
@@ -135,7 +159,7 @@ export function EventsPanel({
   ) : null;
   const refresh = (
     <button
-      className="admin-kit__button admin-kit__button--primary"
+      className="admin-kit__button"
       type="button"
       disabled={loading}
       onClick={() => void load()}
@@ -143,65 +167,40 @@ export function EventsPanel({
       {refreshLabel}
     </button>
   );
-  const panelHeader = (source?: AdminEventsPage["source"]) => (
-    <AdminPanelHeader
-      actions={
-        headerPresentation === "page" ? (
-          <>
-            {searchControl}
-            {refresh}
-          </>
-        ) : (
-          refresh
-        )
-      }
-      className="admin-kit__events-header"
-      detail={
-        source ? (
-          <p>
-            Source: {source.label}
-            {source.updatedAt
-              ? ` · updated ${formatAdminTimestamp(source.updatedAt, formatTimestamp)}`
-              : ""}
-          </p>
-        ) : null
-      }
-      presentation={headerPresentation}
-      title={title}
-    />
-  );
-
-  if (error && !result)
-    return (
-      <section
-        className={["admin-kit__events", className].filter(Boolean).join(" ")}
-        aria-label={title}
-      >
-        {panelHeader()}
-        <AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} />
-      </section>
-    );
-  if (!result)
-    return (
-      <section
-        className={["admin-kit__events", className].filter(Boolean).join(" ")}
-        aria-label={title}
-      >
-        {panelHeader()}
-        <AdminPanelStateView state={{ kind: "loading", label: "Loading administrative events…" }} />
-      </section>
-    );
-  const pages = Math.max(1, Math.ceil(result.total / result.pageSize));
-  const tableColumns = eventTableColumns(columns, formatTimestamp);
-
-  return (
-    <section
-      className={["admin-kit__events", className].filter(Boolean).join(" ")}
-      aria-label={title}
-    >
-      {panelHeader(result.source)}
+  const optionLabel = (options: AdminEventsAdapter["categories"], value: string) =>
+    options?.find((option) => option.value === value)?.label ?? value;
+  const appliedFilters: { key: string; label: string; remove: () => void }[] = [
+    query.search
+      ? { key: "search", label: `Search: ${query.search}`, remove: clearSearch }
+      : undefined,
+    query.category
+      ? {
+          key: "category",
+          label: `Category: ${optionLabel(adapter.categories, query.category)}`,
+          remove: () => updateQuery({ category: undefined }),
+        }
+      : undefined,
+    query.severity
+      ? {
+          key: "severity",
+          label: `Severity: ${optionLabel(adapter.severities, query.severity)}`,
+          remove: () => updateQuery({ severity: undefined }),
+        }
+      : undefined,
+    query.outcome
+      ? {
+          key: "outcome",
+          label: `Outcome: ${optionLabel(adapter.outcomes, query.outcome)}`,
+          remove: () => updateQuery({ outcome: undefined }),
+        }
+      : undefined,
+  ].filter((filter) => filter !== undefined);
+  const chips = appliedFilters.map((filter) => (
+    <AdminFilterChip key={filter.key} label={filter.label} onRemove={filter.remove} />
+  ));
+  const filterControls =
+    adapter.categories || adapter.severities || adapter.outcomes ? (
       <div className="admin-kit__events-filters">
-        {headerPresentation === "section" ? searchControl : null}
         {adapter.categories ? (
           <label>
             <span>Category</span>
@@ -259,6 +258,77 @@ export function EventsPanel({
           </label>
         ) : null}
       </div>
+    ) : null;
+  const panelHeader = (result?: AdminEventsPage) => (
+    <AdminPanelHeader
+      actions={refresh}
+      className="admin-kit__events-header"
+      collapsible={panelHeaderCollapsible(
+        headerCollapsible,
+        result ? { query, total: result.total, chips } : undefined,
+        {
+          summary: (
+            <>
+              {result ? <span>{result.total} events</span> : null}
+              {chips}
+            </>
+          ),
+          activeCount: appliedFilters.length,
+        },
+      )}
+      detail={
+        result?.source ? (
+          <p>
+            Source: {result.source.label}
+            {result.source.updatedAt
+              ? ` · updated ${formatAdminTimestamp(result.source.updatedAt, formatTimestamp)}`
+              : ""}
+          </p>
+        ) : null
+      }
+      presentation={headerPresentation}
+      summary={headerSummary}
+      title={title}
+      toolbar={
+        searchControl || filterControls ? (
+          <>
+            {searchControl}
+            {filterControls}
+          </>
+        ) : null
+      }
+    />
+  );
+
+  if (error && !result)
+    return (
+      <section
+        className={["admin-kit__events", className].filter(Boolean).join(" ")}
+        aria-label={title}
+      >
+        {panelHeader()}
+        <AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} />
+      </section>
+    );
+  if (!result)
+    return (
+      <section
+        className={["admin-kit__events", className].filter(Boolean).join(" ")}
+        aria-label={title}
+      >
+        {panelHeader()}
+        <AdminPanelStateView state={{ kind: "loading", label: "Loading administrative events…" }} />
+      </section>
+    );
+  const pages = Math.max(1, Math.ceil(result.total / result.pageSize));
+  const tableColumns = eventTableColumns(columns, formatTimestamp);
+
+  return (
+    <section
+      className={["admin-kit__events", className].filter(Boolean).join(" ")}
+      aria-label={title}
+    >
+      {panelHeader(result)}
       {error ? (
         <AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} />
       ) : null}
@@ -386,6 +456,11 @@ function OccurredCell({
   );
 }
 
+function eventSubline(event: AdminEvent): string {
+  const status = event.metadata?.status;
+  return status ? `returned ${status}` : event.message;
+}
+
 function eventTableColumns(
   visible: readonly EventsPanelColumn[],
   formatTimestamp?: (iso: string) => string,
@@ -407,7 +482,7 @@ function eventTableColumns(
       cell: (event) => (
         <>
           <strong>{event.action}</strong>
-          <small>{event.message}</small>
+          <small>{eventSubline(event)}</small>
         </>
       ),
     },
@@ -423,9 +498,13 @@ function eventTableColumns(
       id: "resource",
       header: "Resource",
       defaultWidth: 240,
-      truncate: true,
       title: (event) => event.resource?.label,
-      cell: (event) => event.resource?.label ?? "—",
+      cell: (event) =>
+        event.resource ? (
+          <span className="admin-kit__events-resource">{event.resource.label}</span>
+        ) : (
+          "—"
+        ),
     },
     outcome: {
       id: "outcome",

@@ -9,7 +9,8 @@ export { AdminPortal, type AdminPortalNavigationItemProps, type AdminPortalProps
 export { AdminMobileCellLabel } from "./AdminTablePrimitives";
 export { AdminDataTable, type AdminDataTableColumn, type AdminDataTableProps, } from "./AdminDataTable";
 export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";
-export { AdminPanelHeader, type AdminPanelHeaderPresentation, type AdminPanelHeaderProps, } from "./AdminPanelHeader";
+export { AdminPanelHeader, type AdminPanelBandOptions, type AdminPanelHeaderCollapsible, type AdminPanelHeaderPresentation, type AdminPanelHeaderProps, } from "./AdminPanelHeader";
+export { AdminFilterChip, type AdminFilterChipProps } from "./AdminFilterChip";
 export { AdminWorkspace, type AdminWorkspaceProps } from "./AdminWorkspace";
 export { AdminTheme, type AdminPaletteName, type AdminThemeName, type AdminThemeProps, } from "./AdminTheme";
 export { AdminCard, type AdminCardProps, AdminField, type AdminFieldProps, AdminStack, type AdminStackProps, AdminSwitch, type AdminSwitchProps, } from "./AdminPrimitives";

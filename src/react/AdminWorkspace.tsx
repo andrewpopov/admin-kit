@@ -1,4 +1,5 @@
 import type { ElementType, ReactNode } from "react";
+import { AdminPanelHeader, type AdminPanelHeaderCollapsible } from "./AdminPanelHeader";
 
 export interface AdminWorkspaceProps {
   /**
@@ -18,6 +19,8 @@ export interface AdminWorkspaceProps {
   actions?: ReactNode;
   summary?: ReactNode;
   toolbar?: ReactNode;
+  /** Renders the framed header as a collapsible panel header: `description`, `summary` and `toolbar` collapse; the title and `actions` do not. Ignored when the header is hidden or panel-led. */
+  collapsible?: AdminPanelHeaderCollapsible;
   children: ReactNode;
   className?: string;
 }
@@ -32,11 +35,13 @@ export function AdminWorkspace({
   actions,
   summary,
   toolbar,
+  collapsible,
   children,
   className,
 }: AdminWorkspaceProps) {
   const Workspace = as as ElementType;
   const panelLed = presentation === "panel-led";
+  const collapsibleHeader = showHeader && !panelLed && collapsible;
 
   return (
     <Workspace
@@ -51,7 +56,18 @@ export function AdminWorkspace({
         .join(" ")}
       data-admin-kit-theme="core"
     >
-      {showHeader && !panelLed ? (
+      {collapsibleHeader ? (
+        <AdminPanelHeader
+          actions={actions}
+          collapsible={collapsible}
+          detail={description ? <p>{description}</p> : null}
+          presentation="page"
+          summary={summary}
+          title={title}
+          toolbar={toolbar}
+        />
+      ) : null}
+      {showHeader && !panelLed && !collapsible ? (
         <header className="admin-kit__workspace-header">
           <div>
             <h1>{title}</h1>
@@ -60,12 +76,14 @@ export function AdminWorkspace({
           {actions ? <div className="admin-kit__workspace-actions">{actions}</div> : null}
         </header>
       ) : null}
-      {summary ? (
+      {summary && !collapsibleHeader ? (
         <section className="admin-kit__workspace-summary" aria-label={`${title} summary`}>
           {summary}
         </section>
       ) : null}
-      {toolbar ? <div className="admin-kit__workspace-toolbar">{toolbar}</div> : null}
+      {toolbar && !collapsibleHeader ? (
+        <div className="admin-kit__workspace-toolbar">{toolbar}</div>
+      ) : null}
       <section
         className={[
           "admin-kit__workspace-content",

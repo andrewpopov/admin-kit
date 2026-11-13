@@ -16,7 +16,7 @@ const AdminPanelState_1 = require("./AdminPanelState");
  * boundary), so `adapter`, `create`, and `update` are concrete inside the body
  * and the built-in create/edit wiring needs no casts.
  */
-function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPresentation = "section", headerActions, presentation = "responsive", createInput, renderCreate, renderEdit, renderKeyActions, renderKeys, renderPosture, renderShortcuts, scopeGroups, minimumScopeCount, className, dialogClassName, formatTimestamp, storageKey, tableFill, }) {
+function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPresentation = "section", headerActions, headerCollapsible, headerSummary, presentation = "responsive", createInput, renderCreate, renderEdit, renderKeyActions, renderKeys, renderPosture, renderShortcuts, scopeGroups, minimumScopeCount, className, dialogClassName, formatTimestamp, storageKey, }) {
     const singular = vocabulary?.singular ?? "API key";
     const plural = vocabulary?.plural ?? "API keys";
     const countSingular = vocabulary?.singular ?? "credential";
@@ -74,7 +74,9 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
         setSecret(undefined);
         setCopyStatus(undefined);
     }, [adapter]);
-    const panelHeader = (counts) => ((0, jsx_runtime_1.jsx)(AdminPanelHeader_1.AdminPanelHeader, { actions: headerActions, className: "admin-kit__keys-header", detail: counts ? ((0, jsx_runtime_1.jsxs)("p", { children: [counts.total, " ", counts.total === 1 ? countSingular : countPlural, counts.total > 0 ? ` · ${counts.active} active` : ""] })) : null, presentation: headerPresentation, title: title }));
+    const panelHeader = (counts) => ((0, jsx_runtime_1.jsx)(AdminPanelHeader_1.AdminPanelHeader, { actions: headerActions, className: "admin-kit__keys-header", collapsible: (0, AdminPanelHeader_1.panelHeaderCollapsible)(headerCollapsible, counts, {
+            summary: counts ? ((0, jsx_runtime_1.jsxs)("span", { children: [counts.total, " ", counts.total === 1 ? countSingular : countPlural, counts.total > 0 ? ` · ${counts.active} active` : ""] })) : null,
+        }), detail: counts ? ((0, jsx_runtime_1.jsxs)("p", { children: [counts.total, " ", counts.total === 1 ? countSingular : countPlural, counts.total > 0 ? ` · ${counts.active} active` : ""] })) : null, presentation: headerPresentation, summary: headerSummary, title: title }));
     if (loadError && !keys)
         return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__keys", className].filter(Boolean).join(" "), "aria-label": title, children: [panelHeader(), (0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })] }));
     if (!keys)
@@ -287,7 +289,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
                 pendingKeyId: pending === "create" ? undefined : pending,
             })) : lifecycleKeys.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: `No ${plural} yet.` } })) : resolvedPresentation === "table" ? ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { className: "admin-kit__keys-table", columns: keyColumns, renderExpansion: (key) => builtInEditEnabled && editingKeyId === key.id
                     ? renderEditor(key, true, pending === key.id)
-                    : null, rowBusy: (key) => pending === key.id, rowKey: (key) => key.id, rows: lifecycleKeys, storageKey: storageKey, fill: tableFill, wrapClassName: "admin-kit__keys-table-wrap" })) : ((0, jsx_runtime_1.jsx)("ol", { className: "admin-kit__key-cards", children: lifecycleKeys.map((key) => {
+                    : null, rowBusy: (key) => pending === key.id, rowKey: (key) => key.id, rows: lifecycleKeys, storageKey: storageKey, wrapClassName: "admin-kit__keys-table-wrap" })) : ((0, jsx_runtime_1.jsx)("ol", { className: "admin-kit__key-cards", children: lifecycleKeys.map((key) => {
                     const isEditing = builtInEditEnabled && editingKeyId === key.id;
                     const isPending = pending === key.id;
                     return ((0, jsx_runtime_1.jsxs)("li", { "aria-busy": isPending, className: "admin-kit__key-card", children: [(0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-card-header", children: [(0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-identity", children: [(0, jsx_runtime_1.jsx)("strong", { children: key.name }), (0, jsx_runtime_1.jsx)("code", { children: key.maskedKey })] }), (0, jsx_runtime_1.jsx)("span", { className: `admin-kit__state-pill admin-kit__state-pill--key-${key.state}`, children: key.state })] }), (0, jsx_runtime_1.jsxs)("dl", { className: "admin-kit__key-summary", children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: "Created" }), (0, jsx_runtime_1.jsx)("dd", { children: (0, core_1.formatAdminTimestamp)(key.createdAt, formatTimestamp) })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: "Last used" }), (0, jsx_runtime_1.jsx)("dd", { children: key.lastUsedAt

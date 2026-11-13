@@ -271,7 +271,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
                                                                 setWidth(column, undefined, { save: true });
                                                                 closeMenu(column);
                                                             }, type: "button", children: "Reset width" })] })) : null] })) : null] }, column.id));
-                            }), hasDetailsColumn ? ((0, jsx_runtime_1.jsx)("th", { className: "admin-kit__data-table-heading", scope: "col", children: detailsLabel })) : null] }) }), (0, jsx_runtime_1.jsx)("tbody", { children: rows.map((row) => {
+                            }), hasDetailsColumn ? ((0, jsx_runtime_1.jsx)("th", { className: "admin-kit__data-table-heading", scope: "col", children: (0, jsx_runtime_1.jsx)("span", { className: "admin-kit__data-table-heading-text", children: detailsLabel }) })) : null] }) }), (0, jsx_runtime_1.jsx)("tbody", { children: rows.map((row) => {
                         const key = rowKey(row);
                         const isOpen = expanded.includes(key);
                         const detailsId = `${idPrefix}-details-${key}`;

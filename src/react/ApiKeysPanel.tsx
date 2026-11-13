@@ -20,8 +20,18 @@ import {
 import { AdminApiKeyForm } from "./AdminApiKeyForm";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
 import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
-import { AdminPanelHeader, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
+import {
+  AdminPanelHeader,
+  panelHeaderCollapsible,
+  type AdminPanelBandOptions,
+  type AdminPanelHeaderPresentation,
+} from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
+
+export interface ApiKeysPanelSummaryContext {
+  total: number;
+  active: number;
+}
 
 /** Props whose types never depend on the adapter's create/update shapes. */
 export interface ApiKeysPanelVocabulary {
@@ -38,6 +48,10 @@ interface ApiKeysPanelSharedProps {
   headerPresentation?: AdminPanelHeaderPresentation;
   /** Host-owned primary actions displayed beside the panel title. */
   headerActions?: ReactNode;
+  /** Adds the Hide/Show controls toggle: the count and `headerSummary` collapse. `headerActions` never do. */
+  headerCollapsible?: AdminPanelBandOptions<ApiKeysPanelSummaryContext>;
+  /** Status content under the count; collapses with it. */
+  headerSummary?: ReactNode;
   /** Responsive renders the table, which fits its container and stacks into cards when the primary columns cannot fit. */
   presentation?: "cards" | "responsive" | "table";
   /**
@@ -147,6 +161,8 @@ function ApiKeysPanelImpl({
   vocabulary,
   headerPresentation = "section",
   headerActions,
+  headerCollapsible,
+  headerSummary,
   presentation = "responsive",
   createInput,
   renderCreate,
@@ -226,6 +242,14 @@ function ApiKeysPanelImpl({
     <AdminPanelHeader
       actions={headerActions}
       className="admin-kit__keys-header"
+      collapsible={panelHeaderCollapsible(headerCollapsible, counts, {
+        summary: counts ? (
+          <span>
+            {counts.total} {counts.total === 1 ? countSingular : countPlural}
+            {counts.total > 0 ? ` · ${counts.active} active` : ""}
+          </span>
+        ) : null,
+      })}
       detail={
         counts ? (
           <p>
@@ -235,6 +259,7 @@ function ApiKeysPanelImpl({
         ) : null
       }
       presentation={headerPresentation}
+      summary={headerSummary}
       title={title}
     />
   );
