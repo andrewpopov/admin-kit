@@ -981,7 +981,10 @@ Everything above a table can fold away so the table takes the screen.
   expanded otherwise; pass a boolean to fix it. The viewer's choice is stored in
   `localStorage` as `admin-kit:header:<storageKey>:<regular|compact>`, one key
   per width class, never in the URL or on a server. Storage that throws is
-  ignored (the choice then lasts for the visit), and the server renders expanded.
+  ignored (the choice then lasts for the visit). A client-rendered host reads
+  the stored state before first paint; a server-rendered host renders expanded
+  and collapses on hydration, which can shift the layout once. When the summary
+  overflows (many chips) it scrolls sideways with an edge fade.
 - Give each page its own `storageKey`. With no description, summary or toolbar
   there is nothing to collapse and no toggle renders.
 
@@ -990,7 +993,8 @@ header through `AdminPanelHeader` (it has no effect with `showHeader={false}` or
 `presentation="panel-led"`). `EventsPanel`, `UsersPanel`, `ApiKeysPanel` and
 `OperationalJobsPanel` take `headerCollapsible` (`storageKey`, `defaultCollapsed`,
 `activeCount` for host-owned filters, and `renderCollapsedSummary` to replace
-the summary line) and `headerSummary`, so kit panels and host pages share one
+the summary line) and `headerSummary`; `UsersPanel`'s `renderHeaderActions` fold
+away with the band, so put a primary action in `renderHeaderPrimaryActions`, so kit panels and host pages share one
 band. `EventsPanel` and `UsersPanel` show their applied search and filters as
 chips in the collapsed summary.
 

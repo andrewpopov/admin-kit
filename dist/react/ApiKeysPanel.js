@@ -75,7 +75,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
         setCopyStatus(undefined);
     }, [adapter]);
     const panelHeader = (counts) => ((0, jsx_runtime_1.jsx)(AdminPanelHeader_1.AdminPanelHeader, { actions: headerActions, className: "admin-kit__keys-header", collapsible: (0, AdminPanelHeader_1.panelHeaderCollapsible)(headerCollapsible, counts, {
-            summary: counts ? ((0, jsx_runtime_1.jsxs)("span", { children: [counts.total, " ", counts.total === 1 ? countSingular : countPlural, counts.total > 0 ? ` · ${counts.active} active` : ""] })) : null,
+            summary: counts ? ((0, jsx_runtime_1.jsxs)("span", { children: [counts.total.toLocaleString(), " ", counts.total === 1 ? countSingular : countPlural, counts.total > 0 ? ` · ${counts.active} active` : ""] })) : null,
         }), detail: counts ? ((0, jsx_runtime_1.jsxs)("p", { children: [counts.total, " ", counts.total === 1 ? countSingular : countPlural, counts.total > 0 ? ` · ${counts.active} active` : ""] })) : null, presentation: headerPresentation, summary: headerSummary, title: title }));
     if (loadError && !keys)
         return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__keys", className].filter(Boolean).join(" "), "aria-label": title, children: [panelHeader(), (0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })] }));

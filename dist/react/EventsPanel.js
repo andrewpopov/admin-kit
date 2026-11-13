@@ -112,7 +112,7 @@ function EventsPanel({ adapter, title = "Administrative events", headerPresentat
                             outcome: event.target.value || undefined,
                         }), children: [(0, jsx_runtime_1.jsx)("option", { value: "", children: "All" }), adapter.outcomes.map((option) => ((0, jsx_runtime_1.jsx)("option", { value: option.value, children: option.label }, option.value)))] })] })) : null] })) : null;
     const panelHeader = (result) => ((0, jsx_runtime_1.jsx)(AdminPanelHeader_1.AdminPanelHeader, { actions: refresh, className: "admin-kit__events-header", collapsible: (0, AdminPanelHeader_1.panelHeaderCollapsible)(headerCollapsible, result ? { query, total: result.total, chips } : undefined, {
-            summary: ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [result ? (0, jsx_runtime_1.jsxs)("span", { children: [result.total, " events"] }) : null, chips] })),
+            summary: ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [result ? (0, jsx_runtime_1.jsxs)("span", { children: [result.total.toLocaleString(), " events"] }) : null, chips] })),
             activeCount: appliedFilters.length,
         }), detail: result?.source ? ((0, jsx_runtime_1.jsxs)("p", { children: ["Source: ", result.source.label, result.source.updatedAt
                     ? ` · updated ${(0, core_1.formatAdminTimestamp)(result.source.updatedAt, formatTimestamp)}`
@@ -159,8 +159,10 @@ function OccurredCell({ iso, formatTimestamp, }) {
     return ((0, jsx_runtime_1.jsxs)("time", { className: "admin-kit__event-time", dateTime: iso, title: iso, children: [(0, jsx_runtime_1.jsx)("span", { children: (0, core_1.formatAdminTimestamp)(iso, formatTimestamp) }), relative ? (0, jsx_runtime_1.jsx)("small", { children: relative }) : null] }));
 }
 function eventSubline(event) {
-    const status = event.metadata?.status;
-    return status ? `returned ${status}` : event.message;
+    const status = Number(event.metadata?.status);
+    return Number.isInteger(status) && status >= 100 && status <= 599
+        ? `returned ${status}`
+        : event.message;
 }
 function eventTableColumns(visible, formatTimestamp) {
     const all = {

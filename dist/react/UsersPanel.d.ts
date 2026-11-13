@@ -23,6 +23,11 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
         reload: () => Promise<void>;
         isLoading: boolean;
     }) => ReactNode;
+    /** Host actions that stay in the title row when the band collapses, such as the page's primary action. */
+    renderHeaderPrimaryActions?: (context: {
+        reload: () => Promise<void>;
+        isLoading: boolean;
+    }) => ReactNode;
     renderUserActions?: (user: User, context: {
         reload: () => Promise<void>;
         isPending: boolean;
@@ -72,4 +77,4 @@ export interface AdminUserTableCellContext {
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
  */
-export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, headerPresentation, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderUserActions, className, storageKey, headerCollapsible, headerSummary, }: UsersPanelProps<User>): import("react").JSX.Element;
+export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, headerPresentation, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderHeaderPrimaryActions, renderUserActions, className, storageKey, headerCollapsible, headerSummary, }: UsersPanelProps<User>): import("react").JSX.Element;

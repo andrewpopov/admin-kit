@@ -211,7 +211,7 @@ export function OperationalJobsPanel({
         collapsible={panelHeaderCollapsible(
           headerCollapsible,
           { total: result.total },
-          { summary: <span>{result.total} recent runs</span> },
+          { summary: <span>{result.total.toLocaleString()} recent runs</span> },
         )}
         detail={<p>{result.total} recent runs</p>}
         presentation={headerPresentation}

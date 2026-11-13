@@ -245,7 +245,7 @@ function ApiKeysPanelImpl({
       collapsible={panelHeaderCollapsible(headerCollapsible, counts, {
         summary: counts ? (
           <span>
-            {counts.total} {counts.total === 1 ? countSingular : countPlural}
+            {counts.total.toLocaleString()} {counts.total === 1 ? countSingular : countPlural}
             {counts.total > 0 ? ` · ${counts.active} active` : ""}
           </span>
         ) : null,

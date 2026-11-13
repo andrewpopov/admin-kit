@@ -55,6 +55,34 @@ const composedBand = mount(
    const columns = [{ id: "name", header: "Name", cell: (row) => row.name }];`,
 );
 
+const chipsBand = mount(
+  `React.createElement(Kit.AdminPanelHeader, {
+    title: "Audit events",
+    presentation: "page",
+    actions: React.createElement("button", { type: "button" }, "Refresh"),
+    toolbar: React.createElement("input", { "aria-label": "Search", type: "search" }),
+    collapsible: {
+      storageKey: "chips",
+      defaultCollapsed: true,
+      collapsedSummary: React.createElement(React.Fragment, null,
+        React.createElement("span", null, "48,213 events"),
+        ["Severity: Error (5xx)", "Outcome: Failure", "Search: /api/agent/sessions", "Category: Request"].map((label) =>
+          React.createElement(Kit.AdminFilterChip, { key: label, label, onRemove() {} }))),
+    },
+  })`,
+);
+
+const eventsPlain = mount(
+  `React.createElement(Kit.EventsPanel, {
+    adapter: eventsAdapter,
+    presentation: "table",
+    headerPresentation: "page",
+    title: "Audit events",
+    search: { placeholder: ${JSON.stringify(SEARCH_PLACEHOLDER)} },
+  })`,
+  eventsAdapter,
+);
+
 const toggle = (page: Page) => page.getByRole("button", { name: /controls/ });
 const region = (page: Page) => page.locator(".admin-kit__panel-header-region");
 const tableTop = (page: Page) =>
@@ -222,7 +250,7 @@ test.describe("EventsPanel in the band", () => {
     await expect(chips).toHaveCount(2);
     await expect(chips.first()).toContainText("Severity: Error (5xx)");
     await expect(page.locator(".admin-kit__panel-header-summary-line")).toContainText(
-      "48213 events",
+      `${(48213).toLocaleString()} events`,
     );
 
     await page.getByRole("button", { name: "Remove filter: Severity: Error (5xx)" }).click();
@@ -353,4 +381,56 @@ test("AdminActionButton keeps a gap between its icon and label", async ({ page }
     return range.getBoundingClientRect().left;
   });
   expect(textLeft - iconRight).toBeGreaterThanOrEqual(5.5);
+});
+
+test.describe("review fixes", () => {
+  test("a non-collapsible EventsPanel aligns its search and selects on one bottom edge", async ({
+    page,
+  }) => {
+    await serveDataTable(page, { script: eventsPlain });
+    await expect(page.locator("tbody tr").first()).toBeVisible();
+    const bottoms = await page
+      .locator(".admin-kit__panel-toolbar :is(input, select)")
+      .evaluateAll((fields) =>
+        fields.map((field) => Math.round(field.getBoundingClientRect().bottom)),
+      );
+    expect(bottoms.length).toBe(3);
+    expect(new Set(bottoms).size).toBe(1);
+  });
+
+  for (const width of [390, 320]) {
+    test(`the collapsed summary scrolls sideways with an edge fade at ${width}px, and the toggle shares the title row`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 844 });
+      await serveDataTable(page, { script: chipsBand });
+      const line = page.locator(".admin-kit__panel-header-summary-line");
+      await expect(line).toBeVisible();
+      await expect(line).toHaveClass(/--overflowing/);
+      const { scroll, client, mask } = await line.evaluate((node) => ({
+        scroll: node.scrollWidth,
+        client: node.clientWidth,
+        mask: getComputedStyle(node).maskImage || getComputedStyle(node).webkitMaskImage,
+      }));
+      expect(scroll).toBeGreaterThan(client);
+      expect(mask).toContain("linear-gradient");
+      await line.evaluate((node) => (node.scrollLeft = node.scrollWidth));
+      await expect(
+        page.getByRole("button", { name: "Remove filter: Category: Request" }),
+      ).toBeInViewport();
+      const [title, button] = await Promise.all([
+        page.getByRole("heading", { name: "Audit events" }).boundingBox(),
+        toggle(page).boundingBox(),
+      ]);
+      expect(button!.y).toBeLessThan(title!.y + title!.height);
+    });
+  }
+
+  test("the summary line has no fade when everything fits", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await serveDataTable(page, { script: chipsBand });
+    await expect(page.locator(".admin-kit__panel-header-summary-line")).not.toHaveClass(
+      /--overflowing/,
+    );
+  });
 });

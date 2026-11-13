@@ -269,7 +269,7 @@ export function EventsPanel({
         {
           summary: (
             <>
-              {result ? <span>{result.total} events</span> : null}
+              {result ? <span>{result.total.toLocaleString()} events</span> : null}
               {chips}
             </>
           ),
@@ -457,8 +457,10 @@ function OccurredCell({
 }
 
 function eventSubline(event: AdminEvent): string {
-  const status = event.metadata?.status;
-  return status ? `returned ${status}` : event.message;
+  const status = Number(event.metadata?.status);
+  return Number.isInteger(status) && status >= 100 && status <= 599
+    ? `returned ${status}`
+    : event.message;
 }
 
 function eventTableColumns(

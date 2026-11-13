@@ -34,6 +34,11 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
   /** Initial server-backed sort for a sortable custom column. */
   defaultSort?: AdminUserTableSort;
   renderHeaderActions?: (context: { reload: () => Promise<void>; isLoading: boolean }) => ReactNode;
+  /** Host actions that stay in the title row when the band collapses, such as the page's primary action. */
+  renderHeaderPrimaryActions?: (context: {
+    reload: () => Promise<void>;
+    isLoading: boolean;
+  }) => ReactNode;
   renderUserActions?: (
     user: User,
     context: { reload: () => Promise<void>; isPending: boolean },
@@ -105,6 +110,7 @@ export function UsersPanel<User extends AdminUserSummary>({
   columns,
   defaultSort,
   renderHeaderActions,
+  renderHeaderPrimaryActions,
   renderUserActions,
   className,
   storageKey,
@@ -379,12 +385,22 @@ export function UsersPanel<User extends AdminUserSummary>({
       </label>
     ) : null;
   const hostHeaderActions = renderHeaderActions?.({ reload: load, isLoading });
+  const primaryHeaderActions = renderHeaderPrimaryActions?.({ reload: load, isLoading });
   const collapsible = headerCollapsible && headerPresentation !== "none";
   const toolbar =
     (headerPresentation === "page" || collapsible) && (searchControl || hostHeaderActions) ? (
       <>
         {searchControl}
         {hostHeaderActions}
+      </>
+    ) : null;
+  const inlineHostActions =
+    headerPresentation === "section" && !collapsible ? hostHeaderActions : null;
+  const headerActions =
+    primaryHeaderActions || inlineHostActions ? (
+      <>
+        {primaryHeaderActions}
+        {inlineHostActions}
       </>
     ) : null;
   const searchChips = search ? (
@@ -397,7 +413,7 @@ export function UsersPanel<User extends AdminUserSummary>({
       aria-label={title}
     >
       <AdminPanelHeader
-        actions={headerPresentation === "section" && !collapsible ? hostHeaderActions : null}
+        actions={headerActions}
         className="admin-kit__users-header"
         collapsible={panelHeaderCollapsible(
           headerCollapsible,
@@ -407,7 +423,7 @@ export function UsersPanel<User extends AdminUserSummary>({
               <>
                 {result ? (
                   <span>
-                    {result.total} {result.total === 1 ? "user" : "users"}
+                    {result.total.toLocaleString()} {result.total === 1 ? "user" : "users"}
                   </span>
                 ) : null}
                 {searchChips}

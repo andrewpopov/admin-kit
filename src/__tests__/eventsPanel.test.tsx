@@ -326,6 +326,19 @@ describe("EventsPanel", () => {
       expect(body.textContent?.split("/api/projects/CAIRN").length).toBe(2);
     });
 
+    it.each(["approved", "", "42", "600", "5.5"])(
+      "shows the message, not 'returned', for a non-HTTP status %j",
+      async (status) => {
+        const list = vi
+          .fn()
+          .mockResolvedValue({ ...page, items: [{ ...page.items[0], metadata: { status } }] });
+        render(<EventsPanel adapter={{ list }} presentation="table" />);
+        await screen.findByRole("table");
+        expect(screen.getByText("Sign-in succeeded")).toBeTruthy();
+        expect(screen.queryByText(/^returned/)).toBeNull();
+      },
+    );
+
     it("keeps showing the message when the event carries no status", async () => {
       render(
         <EventsPanel adapter={{ list: vi.fn().mockResolvedValue(page) }} presentation="table" />,
@@ -423,6 +436,18 @@ describe("EventsPanel", () => {
       );
       fireEvent.click(toggle());
       expect((screen.getByPlaceholderText("Search events") as HTMLInputElement).value).toBe("");
+    });
+
+    it("groups thousands in the default collapsed summary", async () => {
+      const list = vi.fn().mockResolvedValue({ ...page, total: 48213 });
+      render(
+        <EventsPanel
+          adapter={{ list }}
+          headerCollapsible={{ storageKey: "events-total", defaultCollapsed: true }}
+        />,
+      );
+      await screen.findByText("Sign-in succeeded");
+      expect(screen.getByText(`${(48213).toLocaleString()} events`)).toBeTruthy();
     });
 
     it("lets the host replace the collapsed summary and add its own applied filters", async () => {
