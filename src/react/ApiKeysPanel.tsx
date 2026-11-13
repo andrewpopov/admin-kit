@@ -66,6 +66,8 @@ interface ApiKeysPanelSharedProps {
   formatTimestamp?: (iso: string) => string;
   /** Table presentation: persist this viewer's column widths under this key. */
   storageKey?: string;
+  /** Table presentation: the table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
+  tableFill?: boolean;
 }
 
 /** The adapter-shaped props and render-prop escape hatches, keyed to CreateInput/UpdateInput. */
@@ -159,6 +161,7 @@ function ApiKeysPanelImpl({
   dialogClassName,
   formatTimestamp,
   storageKey,
+  tableFill,
 }: ApiKeysPanelProps<AdminApiKeyCreateRequest, AdminApiKeyScopeUpdate>) {
   const singular = vocabulary?.singular ?? "API key";
   const plural = vocabulary?.plural ?? "API keys";
@@ -648,6 +651,7 @@ function ApiKeysPanelImpl({
           rowKey={(key) => key.id}
           rows={lifecycleKeys}
           storageKey={storageKey}
+          fill={tableFill}
           wrapClassName="admin-kit__keys-table-wrap"
         />
       ) : (

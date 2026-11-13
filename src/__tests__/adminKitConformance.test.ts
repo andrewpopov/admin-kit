@@ -288,6 +288,19 @@ describe("admin-kit-conformance", () => {
     expect(result.stdout).toContain("[admin-kit-conformance] PASS");
   });
 
+  it("accepts a source-level public layout-token override", () => {
+    const root = createConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app.css"),
+      ":root { --admin-kit-app-min-block-size: calc(100dvh - 45px); --admin-kit-table-footer-reserve: 5rem; }",
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("[admin-kit-conformance] PASS");
+  });
+
   it("fails when no host stylesheet declares the admin-kit layer order", () => {
     const root = createConsumerFixture();
     rmSync(join(root, "src", "layers.css"));

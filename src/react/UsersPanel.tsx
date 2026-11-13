@@ -36,6 +36,8 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
   className?: string;
   /** Persist this viewer's column widths under this key. */
   storageKey?: string;
+  /** The table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
+  tableFill?: boolean;
 }
 
 export interface AdminUserTableColumn<User extends AdminUserSummary> {
@@ -87,6 +89,7 @@ export function UsersPanel<User extends AdminUserSummary>({
   renderUserActions,
   className,
   storageKey,
+  tableFill,
 }: UsersPanelProps<User>) {
   const labels = useAdminLabels();
   const [page, setPage] = useState(1);
@@ -415,6 +418,7 @@ export function UsersPanel<User extends AdminUserSummary>({
               rowKey={(user) => user.id}
               rows={result.items}
               storageKey={storageKey}
+              fill={tableFill}
               wrapClassName="admin-kit__users-table-wrap"
             />
           ) : null}

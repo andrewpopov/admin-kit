@@ -245,6 +245,13 @@ Public type tokens (safe to override, on `:root` or any `.admin-kit` wrapper):
 | `--admin-kit-weight-strong` | `600` (column headers, pills, badges, labels) |
 | `--admin-kit-table-heading-transform` | `none` (set `uppercase` to restore uppercase column headers) |
 
+Public layout tokens (safe to override, on `:root` or any `.admin-kit` wrapper):
+
+| Token | Default |
+| --- | --- |
+| `--admin-kit-app-min-block-size` | `100dvh` (the minimum height of `AdminApp` and `AdminAppShell`; subtract a host header, for example `calc(100dvh - var(--header-height))`, so a page that fits does not scroll) |
+| `--admin-kit-table-footer-reserve` | `3.5rem` (the room a `fill` table leaves below itself for pagination and the frame's bottom padding) |
+
 `.admin-kit` sets its `font-size` from the body token, and every `font-size`
 in the stylesheet reads one of the size tokens, so a host maps its own scale
 onto the kit by overriding these.
@@ -760,6 +767,15 @@ Home or double-click to reset. `truncate` clips a cell to one line; pair it with
 keyboard and touch. The header is sticky inside the table's own scroll area
 (`--admin-kit-data-table-max-height`, default `min(70vh, 48rem)`), and below
 48rem rows become labelled cards with resizing and truncation off.
+
+Set `fill` on a page's one table and it takes the viewport instead: its height
+is the space from its top to the bottom of the screen, less
+`--admin-kit-table-footer-reserve`, with a 20rem floor. The table scrolls inside
+its own box under the pinned header and the page does not scroll; stacked cards
+keep the page flow. Each table panel passes it through as `tableFill`.
+
+The one column without a `defaultWidth` prefers `fillWidth` px (default 280):
+sized columns shrink toward their `minWidth` before it is squeezed below that.
 
 ```tsx
 <AdminDataTable

@@ -71,4 +71,42 @@ describe("resolveTableFit", () => {
     expect(fit.widths.name).toBeUndefined();
     expect(resolveTableFit(150, [{ id: "fill" }]).stacked).toBe(true);
   });
+
+  describe("fill column preferred width", () => {
+    const deliveries: FitColumn[] = [
+      { id: "delivery" },
+      { id: "status", defaultWidth: 120, minWidth: 100 },
+      { id: "detail", defaultWidth: 280, minWidth: 160 },
+      { id: "attempts", defaultWidth: 90, minWidth: 80 },
+      { id: "when", defaultWidth: 150, minWidth: 120 },
+    ];
+    const details = 96;
+    const fillSpace = (container: number, fit: ReturnType<typeof resolveTableFit>) =>
+      container - details - Object.values(fit.widths).reduce((total, width) => total + width, 0);
+
+    it("fill column reaches fillWidth before sized columns keep preferred", () => {
+      const fit = resolveTableFit(888, deliveries, details);
+      expect(fit.visibleIds).toHaveLength(5);
+      expect(fillSpace(888, fit)).toBeGreaterThanOrEqual(280);
+      expect(fit.widths.detail).toBeGreaterThanOrEqual(160);
+      expect(fit.widths.detail).toBeLessThan(280);
+    });
+
+    it("honours a custom fillWidth", () => {
+      const wide = deliveries.map((column) => (column.id === "delivery" ? { ...column, fillWidth: 320 } : column));
+      expect(fillSpace(888, resolveTableFit(888, wide, details))).toBeGreaterThanOrEqual(320);
+    });
+
+    it("lets the fill column fall toward its minimum once sized columns are at theirs", () => {
+      const fit = resolveTableFit(760, deliveries, details);
+      expect(fit.stacked).toBe(false);
+      expect(fit.widths).toEqual({ status: 100, detail: 160, attempts: 80, when: 120 });
+      expect(fillSpace(760, fit)).toBeGreaterThanOrEqual(192);
+    });
+
+    it("leaves sized columns at their preferred widths when the container is roomy", () => {
+      const fit = resolveTableFit(1400, deliveries, details);
+      expect(fit.widths).toEqual({ status: 120, detail: 280, attempts: 90, when: 150 });
+    });
+  });
 });

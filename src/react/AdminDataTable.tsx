@@ -47,6 +47,8 @@ export interface AdminDataTableColumn<Row> {
   defaultWidth?: number;
   minWidth?: number;
   maxWidth?: number;
+  /** px. On the fill column (no `defaultWidth`): the width sized columns shrink to protect. Default 280 unless the column sets `minWidth`, which then is its preferred width. */
+  fillWidth?: number;
   resizable?: boolean;
   /** One line with an ellipsis; pair with `title` and `renderDetails` so the full value stays reachable. */
   truncate?: boolean;
@@ -79,6 +81,8 @@ export interface AdminDataTableProps<Row> {
   rowLabel?: (row: Row) => string;
   className?: string;
   wrapClassName?: string;
+  /** Sizes the table to the viewport (top to bottom, less `--admin-kit-table-footer-reserve`) so it scrolls itself under a pinned header and the page does not. Stacked cards keep the page flow. */
+  fill?: boolean;
 }
 
 type Widths = Record<string, number>;
@@ -138,6 +142,7 @@ export function AdminDataTable<Row>({
   rowLabel,
   className,
   wrapClassName,
+  fill = false,
 }: AdminDataTableProps<Row>) {
   const idPrefix = useId();
   const [stored, setStored] = useState(() => ({
@@ -154,6 +159,7 @@ export function AdminDataTable<Row>({
   const expanded = expandedKeys ?? expandedState;
   const wrapRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState<number>();
+  const [fillTop, setFillTop] = useState<number>();
   const drag = useRef<{ id: string; startX: number; startWidth: number }>();
   const dragged = useRef(false);
   const handles = useRef(new Map<string, HTMLElement>());
@@ -181,6 +187,27 @@ export function AdminDataTable<Row>({
     return () => observer.disconnect();
   }, []);
 
+  useIsomorphicLayoutEffect(() => {
+    const wrap = wrapRef.current;
+    if (!fill || !wrap) {
+      setFillTop(undefined);
+      return undefined;
+    }
+    const measure = () => setFillTop(Math.round(wrap.getBoundingClientRect().top + window.scrollY));
+    measure();
+    window.addEventListener("resize", measure);
+    if (typeof ResizeObserver === "undefined") {
+      return () => window.removeEventListener("resize", measure);
+    }
+    const observer = new ResizeObserver(measure);
+    observer.observe(document.documentElement);
+    if (wrap.parentElement) observer.observe(wrap.parentElement);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [fill]);
+
   const fitColumns = columns.map((column) => ({
     id: column.id,
     priority: column.priority,
@@ -191,6 +218,7 @@ export function AdminDataTable<Row>({
         ? column.defaultWidth
         : undefined),
     maxWidth: column.maxWidth,
+    fillWidth: column.fillWidth,
     override: column.defaultWidth === undefined ? undefined : overrides[column.id],
   }));
   let fit = resolveTableFit(containerWidth, fitColumns, renderDetails ? DETAILS_COLUMN_WIDTH : 0);
@@ -310,9 +338,15 @@ export function AdminDataTable<Row>({
         (fit.stacked && containerWidth !== undefined && containerWidth < NARROW_CARD_WIDTH) ||
         undefined
       }
+      data-fill={(fill && fillTop !== undefined) || undefined}
       data-scrolls={fit.scrolls || undefined}
       data-stacked={fit.stacked || undefined}
       ref={wrapRef}
+      style={
+        fill && fillTop !== undefined
+          ? ({ "--admin-kit-fill-top": `${fillTop}px` } as CSSProperties)
+          : undefined
+      }
     >
       <table
         aria-busy={busy}

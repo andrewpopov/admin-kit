@@ -23,6 +23,8 @@ export interface SessionsPanelProps<Session extends AdminSessionSummary = AdminS
   className?: string;
   /** Persist this viewer's column widths under this key. */
   storageKey?: string;
+  /** The table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
+  tableFill?: boolean;
 }
 
 /** Active-session administration with host-owned token and authorization semantics. */
@@ -35,6 +37,7 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
   dialogClassName,
   className,
   storageKey,
+  tableFill,
 }: SessionsPanelProps<Session>) {
   const [sessions, setSessions] = useState<readonly Session[]>();
   const [loadError, setLoadError] = useState<string>();
@@ -314,6 +317,7 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
           rowKey={(session) => session.id}
           rows={sessions}
           storageKey={storageKey}
+          fill={tableFill}
           wrapClassName="admin-kit__sessions-table-wrap"
         />
       )}

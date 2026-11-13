@@ -31,6 +31,8 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
     className?: string;
     /** Persist this viewer's column widths under this key. */
     storageKey?: string;
+    /** The table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
+    tableFill?: boolean;
 }
 export interface AdminUserTableColumn<User extends AdminUserSummary> {
     id: string;
@@ -62,4 +64,4 @@ export interface AdminUserTableCellContext {
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
  */
-export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, headerPresentation, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderUserActions, className, storageKey, }: UsersPanelProps<User>): import("react").JSX.Element;
+export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, headerPresentation, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderUserActions, className, storageKey, tableFill, }: UsersPanelProps<User>): import("react").JSX.Element;

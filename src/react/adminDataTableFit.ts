@@ -6,6 +6,8 @@ export const DETAILS_COLUMN_WIDTH = 96;
 /** Below this container width a stacked card puts each label above its value. */
 export const NARROW_CARD_WIDTH = 340;
 const FILL_MIN_WIDTH = DEFAULT_MIN_WIDTH * 3;
+/** The width a fill column with no `minWidth` or `fillWidth` asks for before sized columns keep their own preferred widths. */
+export const DEFAULT_FILL_WIDTH = 280;
 
 export interface FitColumn {
   id: string;
@@ -13,6 +15,8 @@ export interface FitColumn {
   defaultWidth?: number;
   minWidth?: number;
   maxWidth?: number;
+  /** A fill column's preferred width; sized columns shrink before it drops below this. */
+  fillWidth?: number;
   /** A viewer-resized width; unlike `defaultWidth` it never shrinks to fit. */
   override?: number;
 }
@@ -59,13 +63,19 @@ function preferredOf(column: FitColumn) {
   return clamp(column.override ?? column.defaultWidth, min, max);
 }
 
+function fillPreferredOf(column: FitColumn) {
+  const requested = column.fillWidth ?? (column.minWidth === undefined ? DEFAULT_FILL_WIDTH : 0);
+  return Math.max(minimumOf(column), requested);
+}
+
 function sum(values: readonly number[]) {
   return values.reduce((total, value) => total + value, 0);
 }
 
 /**
  * Resolves which columns show and how wide they are inside a container.
- * `defaultWidth` is a preferred width that shrinks to `minWidth`; tertiary then
+ * `defaultWidth` is a preferred width that shrinks to `minWidth`; a fill column
+ * prefers `fillWidth`, and sized columns shrink before it is starved; tertiary then
  * secondary columns hide before anything scrolls, and only when the primary
  * columns still do not fit does the table stack. An unmeasured container shows
  * everything at its preferred width.
@@ -88,7 +98,7 @@ export function resolveTableFit(
   const flexibleMinimum = sum(flexible.map(minimumOf));
   const scrolls = !stacked && fixedWidth + flexibleMinimum > available;
 
-  const preferred = flexible.map((column) => preferredOf(column) ?? minimumOf(column));
+  const preferred = flexible.map((column) => preferredOf(column) ?? fillPreferredOf(column));
   const room = available - fixedWidth;
   const deficit = Math.max(0, sum(preferred) - room);
   const slack = flexible.map((column, index) =>
