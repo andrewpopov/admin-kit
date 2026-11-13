@@ -36,6 +36,8 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
     className?: string;
     /** Persist this viewer's column widths under this key. */
     storageKey?: string;
+    /** The table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
+    tableFill?: boolean;
     /** Adds the Hide/Show controls toggle: the count, search and host header actions collapse, and the summary line keeps the search as a removable chip. */
     headerCollapsible?: AdminPanelBandOptions<UsersPanelSummaryContext>;
     /** Status content between the count and the search; collapses with them. */
@@ -60,6 +62,8 @@ export interface AdminUserTableColumn<User extends AdminUserSummary> {
     width?: number;
     /** px. The narrowest the column renders before it is hidden or the table stacks. Set it to what the cell's controls need. */
     minWidth?: number;
+    /** px. The first column's (the one that fills) preferred width, default 280: other columns shrink toward their `minWidth` before it drops below this. */
+    fillWidth?: number;
     /** Responsive priority; lower-priority columns are hidden before the table scrolls. */
     priority?: "primary" | "secondary" | "tertiary";
 }
@@ -77,4 +81,4 @@ export interface AdminUserTableCellContext {
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
  */
-export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, headerPresentation, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderHeaderPrimaryActions, renderUserActions, className, storageKey, headerCollapsible, headerSummary, }: UsersPanelProps<User>): import("react").JSX.Element;
+export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, headerPresentation, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderHeaderPrimaryActions, renderUserActions, className, storageKey, tableFill, headerCollapsible, headerSummary, }: UsersPanelProps<User>): import("react").JSX.Element;
