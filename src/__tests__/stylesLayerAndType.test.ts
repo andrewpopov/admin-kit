@@ -44,10 +44,23 @@ describe("styles.css cascade layer", () => {
     expect(statements).toHaveLength(1);
   });
 
-  it("scopes the generic control rules to kit-owned controls", () => {
+  it("scopes every generic control rule (base, hover, disabled, font) to kit-owned controls", () => {
     const body = layerBody(statements[0]);
-    expect(body).not.toMatch(/\.admin-kit\s+:where\(\s*button\s*[,)]/);
-    expect(body).not.toMatch(/\.admin-kit\s+:where\(\s*button\s*,\s*input\s*,\s*select\s*\)/);
+    const unscoped = [
+      /\.admin-kit\s+:where\(\s*button\s*[,:)]/,
+      /\.admin-kit\s+:where\(\s*button:(?:hover|disabled)/,
+      /\.admin-kit\s+:where\(\s*(?:button|input|select)\s*,\s*(?:button|input|select)/,
+      /\.admin-kit\s+:where\(\s*(?:input|select|textarea)\s*[,)]/,
+    ];
+    for (const pattern of unscoped) expect(body, String(pattern)).not.toMatch(pattern);
+    for (const scoped of [
+      '.admin-kit :where(button[class*="admin-kit__"]),',
+      '.admin-kit :where(button[class*="admin-kit__"]:hover:not(:disabled)),',
+      '.admin-kit :where(button[class*="admin-kit__"]:disabled),',
+      '.admin-kit :where(button[class*="admin-kit__"], input[class*="admin-kit__"], select[class*="admin-kit__"]),',
+    ]) {
+      expect(body, scoped).toContain(scoped);
+    }
   });
 });
 
@@ -76,7 +89,14 @@ describe("styles.css type tokens", () => {
     expect(literal).toEqual([]);
   });
 
-  it("sets the root font-size from the body token", () => {
-    expect(stylesheet).toMatch(/font-size:\s*var\(--admin-kit-text-body-size\);/);
+  it("sets the .admin-kit font-size from the body token in its own rule", () => {
+    const rule = stylesheet.match(/^\.admin-kit,\n[^{]*\{([^}]*)\}/m)?.[1] ?? "";
+    expect(rule).toMatch(/font-size:\s*var\(--admin-kit-text-body-size\);/);
+  });
+
+  it("applies font: inherit to the key form's and field's bare controls", () => {
+    expect(stylesheet).toMatch(
+      /\.admin-kit__key-form :where\(input, select, textarea\),\n\.admin-kit__field :where\(input, select, textarea\) \{\n\s*font: inherit;/,
+    );
   });
 });

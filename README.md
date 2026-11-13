@@ -74,10 +74,26 @@ import "./index.css"; // the order statement above must be seen first
 import "@andrewpopov/admin-kit/styles.css";
 ```
 
-This puts the kit above Tailwind's preflight (`base`) and below `utilities`. The
-generic button, input and select rules apply only to controls the kit renders
-(its own panels, dialogs and `admin-kit__*` classes), never to a host control
-that happens to sit inside `.admin-kit`.
+This puts the kit above Tailwind's preflight (`base`) and below `utilities`.
+`admin-kit-conformance` fails when no host stylesheet declares an `@layer` order
+statement naming `admin-kit`. Any unlayered reset (including the Tailwind 3
+preflight) beats the kit, so move it into a layer declared before `admin-kit`.
+
+The generic button, input and select rules (`font: inherit`, the outlined
+44px button box, hover and disabled states) apply only to:
+
+- controls carrying an `admin-kit__*` class (for example `admin-kit__button`);
+- bare controls inside the kit's own roots: the keys, users, events, flags,
+  memberships, sessions, logs, operations and settings panels, plus `.admin-kit__dialog`
+  (including host children passed to `AdminDialog`), `.admin-kit__state`,
+  `.admin-kit__column-menu`, and, for input/select/textarea font only,
+  `.admin-kit__key-form` and `.admin-kit__field`.
+
+A host control elsewhere under `.admin-kit` (panel header actions, workspace
+toolbars, card actions) is not restyled and needs `admin-kit__button` to get the
+kit look. A host control rendered inside a panel root or a dialog (a panel
+render prop, dialog children) is restyled; give it a utility class, which
+beats the `admin-kit` layer, to opt out.
 
 ## Release notes for signed-in users
 

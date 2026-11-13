@@ -99,6 +99,7 @@ try {
   }
   writeFileSync(join(consumerDir, 'package.json'), JSON.stringify({ name: 'admin-kit-consumer', private: true, dependencies: { [pkg.name]: `github:andrewpopov/admin-kit#v${pkg.version}` } }, null, 2));
   mkdirSync(join(consumerDir, 'src'));
+  writeFileSync(join(consumerDir, 'src', 'layers.css'), '@layer theme, base, admin-kit, components, utilities;\n');
   writeFileSync(join(consumerDir, 'src', 'main.tsx'), `import '${pkg.name}/styles.css';\nexport const App = () => <div />;`);
   if (!run('node', ['node_modules/.bin/admin-kit-conformance'], { cwd: consumerDir }).includes('PASS')) {
     fail('Conformance binary did not accept a valid consumer.');

@@ -3,7 +3,10 @@
    portaled outside an optional `.admin-kit` host wrapper. Hosts can override
    the public theme tokens (accent, accent-strong, accent-soft, on-accent,
    radius, radius-sm, dark-accent, dark-accent-strong, dark-accent-soft) on a
-   local wrapper to rebrand; the rest are internal and stay fixed. */
+   local wrapper to rebrand, and the type tokens (font-family,
+   text-{page-title,title,body,body-sm,caption}-{size,leading}, weight-title,
+   weight-strong, table-heading-transform) to match the host's type scale; the
+   rest are internal and stay fixed. */
 :root {
   --admin-kit-surface: #ffffff;
   --admin-kit-surface-subtle: #f6f8fc;
@@ -280,7 +283,9 @@
 .admin-kit__settings :where(button, input, select),
 .admin-kit__dialog :where(button, input, select),
 .admin-kit__state :where(button, input, select),
-.admin-kit__column-menu :where(button, input, select) {
+.admin-kit__column-menu :where(button, input, select),
+.admin-kit__key-form :where(input, select, textarea),
+.admin-kit__field :where(input, select, textarea) {
   font: inherit;
 }
 
