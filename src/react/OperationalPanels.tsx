@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   formatAdminTimestamp,
   type AdminBackupSummary,
@@ -13,6 +13,12 @@ import {
 import { useAdminLabels } from "./AdminLabels";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
 import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
+import {
+  AdminPanelHeader,
+  panelHeaderCollapsible,
+  type AdminPanelBandOptions,
+  type AdminPanelHeaderPresentation,
+} from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
 import { AdminSwitch } from "./AdminPrimitives";
 
@@ -52,6 +58,12 @@ export interface OperationalJobsPanelProps {
   storageKey?: string;
   /** The table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
   tableFill?: boolean;
+  /** Promote the panel heading and run action into the route-level header band. */
+  headerPresentation?: AdminPanelHeaderPresentation;
+  /** Adds the Hide/Show controls toggle: the run count and `headerSummary` collapse. The run action never does. */
+  headerCollapsible?: AdminPanelBandOptions<{ total: number }>;
+  /** Status content under the run count; collapses with it. */
+  headerSummary?: ReactNode;
 }
 
 /** Displays host-owned scheduled, import, and retention runs without mislabeling them as backups. */
@@ -65,6 +77,9 @@ export function OperationalJobsPanel({
   emptyState = { title: "No operational runs yet." },
   storageKey,
   tableFill,
+  headerPresentation = "section",
+  headerCollapsible,
+  headerSummary,
 }: OperationalJobsPanelProps) {
   const labels = useAdminLabels();
   const [result, setResult] = useState<{ items: readonly AdminOperationalJob[]; total: number }>();
@@ -165,35 +180,44 @@ export function OperationalJobsPanel({
       className={["admin-kit__operations", className].filter(Boolean).join(" ")}
       aria-label={title}
     >
-      <header>
-        <div>
-          <h2>{title}</h2>
-          <p>{result.total} recent runs</p>
-        </div>
-        {adapter.run ? (
-          <button
-            disabled={busy}
-            type="button"
-            onClick={() =>
-              void (async () => {
-                setBusy(true);
-                try {
-                  await adapter.run!.execute();
-                  await load();
-                } catch (reason) {
-                  setError(
-                    reason instanceof Error ? reason.message : "Unable to run the operational job.",
-                  );
-                } finally {
-                  setBusy(false);
-                }
-              })()
-            }
-          >
-            {runLabel}
-          </button>
-        ) : null}
-      </header>
+      <AdminPanelHeader
+        actions={
+          adapter.run ? (
+            <button
+              disabled={busy}
+              type="button"
+              onClick={() =>
+                void (async () => {
+                  setBusy(true);
+                  try {
+                    await adapter.run!.execute();
+                    await load();
+                  } catch (reason) {
+                    setError(
+                      reason instanceof Error
+                        ? reason.message
+                        : "Unable to run the operational job.",
+                    );
+                  } finally {
+                    setBusy(false);
+                  }
+                })()
+              }
+            >
+              {runLabel}
+            </button>
+          ) : null
+        }
+        collapsible={panelHeaderCollapsible(
+          headerCollapsible,
+          { total: result.total },
+          { summary: <span>{result.total.toLocaleString()} recent runs</span> },
+        )}
+        detail={<p>{result.total} recent runs</p>}
+        presentation={headerPresentation}
+        summary={headerSummary}
+        title={title}
+      />
       {error ? (
         <AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} />
       ) : null}

@@ -8,7 +8,13 @@ import {
   type AdminUsersAdapter,
 } from "../core";
 import { useAdminLabels } from "./AdminLabels";
-import { AdminPanelHeader, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
+import { AdminFilterChip } from "./AdminFilterChip";
+import {
+  AdminPanelHeader,
+  panelHeaderCollapsible,
+  type AdminPanelBandOptions,
+  type AdminPanelHeaderPresentation,
+} from "./AdminPanelHeader";
 import { AdminPanelStateView } from "./AdminPanelState";
 import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
 
@@ -28,6 +34,11 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
   /** Initial server-backed sort for a sortable custom column. */
   defaultSort?: AdminUserTableSort;
   renderHeaderActions?: (context: { reload: () => Promise<void>; isLoading: boolean }) => ReactNode;
+  /** Host actions that stay in the title row when the band collapses, such as the page's primary action. */
+  renderHeaderPrimaryActions?: (context: {
+    reload: () => Promise<void>;
+    isLoading: boolean;
+  }) => ReactNode;
   renderUserActions?: (
     user: User,
     context: { reload: () => Promise<void>; isPending: boolean },
@@ -38,6 +49,17 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
   storageKey?: string;
   /** The table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
   tableFill?: boolean;
+  /** Adds the Hide/Show controls toggle: the count, search and host header actions collapse, and the summary line keeps the search as a removable chip. */
+  headerCollapsible?: AdminPanelBandOptions<UsersPanelSummaryContext>;
+  /** Status content between the count and the search; collapses with them. */
+  headerSummary?: ReactNode;
+}
+
+export interface UsersPanelSummaryContext {
+  search: string;
+  total: number;
+  /** The panel's own applied filters (the search) as removable chips. */
+  chips: ReactNode;
 }
 
 export interface AdminUserTableColumn<User extends AdminUserSummary> {
@@ -88,10 +110,13 @@ export function UsersPanel<User extends AdminUserSummary>({
   columns,
   defaultSort,
   renderHeaderActions,
+  renderHeaderPrimaryActions,
   renderUserActions,
   className,
   storageKey,
   tableFill,
+  headerCollapsible,
+  headerSummary,
 }: UsersPanelProps<User>) {
   const labels = useAdminLabels();
   const [page, setPage] = useState(1);
@@ -360,13 +385,27 @@ export function UsersPanel<User extends AdminUserSummary>({
       </label>
     ) : null;
   const hostHeaderActions = renderHeaderActions?.({ reload: load, isLoading });
+  const primaryHeaderActions = renderHeaderPrimaryActions?.({ reload: load, isLoading });
+  const collapsible = headerCollapsible && headerPresentation !== "none";
   const toolbar =
-    headerPresentation === "page" && (searchControl || hostHeaderActions) ? (
+    (headerPresentation === "page" || collapsible) && (searchControl || hostHeaderActions) ? (
       <>
         {searchControl}
         {hostHeaderActions}
       </>
     ) : null;
+  const inlineHostActions =
+    headerPresentation === "section" && !collapsible ? hostHeaderActions : null;
+  const headerActions =
+    primaryHeaderActions || inlineHostActions ? (
+      <>
+        {primaryHeaderActions}
+        {inlineHostActions}
+      </>
+    ) : null;
+  const searchChips = search ? (
+    <AdminFilterChip label={`Search: ${search}`} onRemove={() => setSearchAndResetPage("")} />
+  ) : null;
 
   return (
     <section
@@ -374,8 +413,25 @@ export function UsersPanel<User extends AdminUserSummary>({
       aria-label={title}
     >
       <AdminPanelHeader
-        actions={headerPresentation === "section" ? hostHeaderActions : null}
+        actions={headerActions}
         className="admin-kit__users-header"
+        collapsible={panelHeaderCollapsible(
+          headerCollapsible,
+          result ? { search, total: result.total, chips: searchChips } : undefined,
+          {
+            summary: (
+              <>
+                {result ? (
+                  <span>
+                    {result.total.toLocaleString()} {result.total === 1 ? "user" : "users"}
+                  </span>
+                ) : null}
+                {searchChips}
+              </>
+            ),
+            activeCount: search ? 1 : 0,
+          },
+        )}
         detail={
           result ? (
             <p>
@@ -384,10 +440,11 @@ export function UsersPanel<User extends AdminUserSummary>({
           ) : null
         }
         presentation={headerPresentation}
+        summary={headerSummary}
         title={title}
         toolbar={toolbar}
       />
-      {headerPresentation === "section" ? searchControl : null}
+      {headerPresentation === "section" && !collapsible ? searchControl : null}
       {loadError && !result ? (
         <AdminPanelStateView
           state={{ kind: "error", detail: loadError, onRetry: () => void load() }}

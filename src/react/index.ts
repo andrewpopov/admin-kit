@@ -43,9 +43,12 @@ export {
 export { AdminPanelStateView, type AdminPanelState } from "./AdminPanelState";
 export {
   AdminPanelHeader,
+  type AdminPanelBandOptions,
+  type AdminPanelHeaderCollapsible,
   type AdminPanelHeaderPresentation,
   type AdminPanelHeaderProps,
 } from "./AdminPanelHeader";
+export { AdminFilterChip, type AdminFilterChipProps } from "./AdminFilterChip";
 export { AdminWorkspace, type AdminWorkspaceProps } from "./AdminWorkspace";
 export {
   AdminTheme,

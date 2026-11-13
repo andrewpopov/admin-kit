@@ -1,6 +1,10 @@
 import { type ReactElement, type ReactNode } from "react";
 import { type AdminApiKey, type AdminApiKeyCreateRequest, type AdminApiKeyQueueItem, type AdminApiKeysAdapter, type AdminApiKeyScopeUpdate, type AdminApiKeysPosture, type AdminApiKeysSummary, type AdminScopeGroup } from "../core";
-import { type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
+import { type AdminPanelBandOptions, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
+export interface ApiKeysPanelSummaryContext {
+    total: number;
+    active: number;
+}
 /** Props whose types never depend on the adapter's create/update shapes. */
 export interface ApiKeysPanelVocabulary {
     singular: string;
@@ -15,6 +19,10 @@ interface ApiKeysPanelSharedProps {
     headerPresentation?: AdminPanelHeaderPresentation;
     /** Host-owned primary actions displayed beside the panel title. */
     headerActions?: ReactNode;
+    /** Adds the Hide/Show controls toggle: the count and `headerSummary` collapse. `headerActions` never do. */
+    headerCollapsible?: AdminPanelBandOptions<ApiKeysPanelSummaryContext>;
+    /** Status content under the count; collapses with it. */
+    headerSummary?: ReactNode;
     /** Responsive renders the table, which fits its container and stacks into cards when the primary columns cannot fit. */
     presentation?: "cards" | "responsive" | "table";
     /**

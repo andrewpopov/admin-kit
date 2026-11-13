@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
-import { type AdminEventsAdapter } from "../core";
-import { type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
+import { type AdminEventsAdapter, type AdminEventsQuery } from "../core";
+import { type AdminPanelBandOptions, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
 export type EventsPanelColumn = "occurred" | "event" | "actor" | "resource" | "outcome";
 export interface EventsPanelProps {
     adapter: AdminEventsAdapter;
@@ -29,5 +29,15 @@ export interface EventsPanelProps {
     storageKey?: string;
     /** Table presentation: the table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
     tableFill?: boolean;
+    /** Adds the Hide/Show controls toggle: the source line, search and filters collapse, and the summary line keeps applied filters as removable chips. */
+    headerCollapsible?: AdminPanelBandOptions<EventsPanelSummaryContext>;
+    /** Status content between the source line and the filters; collapses with them. */
+    headerSummary?: ReactNode;
 }
-export declare function EventsPanel({ adapter, title, headerPresentation, refreshLabel, search, pageSize, presentation, className, formatTimestamp, columns, emptyState, storageKey, tableFill, }: EventsPanelProps): import("react").JSX.Element;
+export interface EventsPanelSummaryContext {
+    query: AdminEventsQuery;
+    total: number;
+    /** The applied filters as removable chips. */
+    chips: ReactNode;
+}
+export declare function EventsPanel({ adapter, title, headerPresentation, refreshLabel, search, pageSize, presentation, className, formatTimestamp, columns, emptyState, storageKey, tableFill, headerCollapsible, headerSummary, }: EventsPanelProps): import("react").JSX.Element;

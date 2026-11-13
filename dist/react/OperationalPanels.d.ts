@@ -1,4 +1,6 @@
+import { type ReactNode } from "react";
 import { type AdminBackupsAdapter, type AdminOperationalJobsAdapter, type AdminOperationalStatus, type AdminSettingsAdapter } from "../core";
+import { type AdminPanelBandOptions, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
 export interface AdminStatusSummaryProps {
     items: readonly AdminOperationalStatus[];
 }
@@ -21,9 +23,17 @@ export interface OperationalJobsPanelProps {
     storageKey?: string;
     /** The table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
     tableFill?: boolean;
+    /** Promote the panel heading and run action into the route-level header band. */
+    headerPresentation?: AdminPanelHeaderPresentation;
+    /** Adds the Hide/Show controls toggle: the run count and `headerSummary` collapse. The run action never does. */
+    headerCollapsible?: AdminPanelBandOptions<{
+        total: number;
+    }>;
+    /** Status content under the run count; collapses with it. */
+    headerSummary?: ReactNode;
 }
 /** Displays host-owned scheduled, import, and retention runs without mislabeling them as backups. */
-export declare function OperationalJobsPanel({ adapter, title, runLabel, pageSize, className, formatTimestamp, emptyState, storageKey, tableFill, }: OperationalJobsPanelProps): import("react").JSX.Element;
+export declare function OperationalJobsPanel({ adapter, title, runLabel, pageSize, className, formatTimestamp, emptyState, storageKey, tableFill, headerPresentation, headerCollapsible, headerSummary, }: OperationalJobsPanelProps): import("react").JSX.Element;
 export interface BackupsPanelProps {
     adapter: AdminBackupsAdapter;
     title?: string;

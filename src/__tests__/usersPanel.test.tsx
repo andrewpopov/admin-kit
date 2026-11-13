@@ -119,7 +119,9 @@ describe("UsersPanel", () => {
     expect(screen.getByRole("columnheader", { name: "Created" }).className).toContain(
       "admin-kit__table-cell--tertiary",
     );
-    expect(screen.getByText("Jul 10, 2026").closest("td")?.className).toContain("admin-kit__table-cell--nowrap");
+    expect(screen.getByText("Jul 10, 2026").closest("td")?.className).toContain(
+      "admin-kit__table-cell--nowrap",
+    );
   });
 
   it("sends custom-column sorting to the adapter and exposes the active direction", async () => {
@@ -423,5 +425,26 @@ describe("UsersPanel", () => {
     );
     await screen.findByText("ada@example.test");
     expect(screen.getByRole("separator", { name: "Resize Account column" })).toBeTruthy();
+  });
+
+  it("keeps primary header actions in the title row when the band collapses, and folds the rest", async () => {
+    window.localStorage.clear();
+    render(
+      <UsersPanel
+        adapter={{
+          list: vi.fn().mockResolvedValue({ items: users, page: 1, pageSize: 25, total: 18700 }),
+        }}
+        headerCollapsible={{ storageKey: "users-primary" }}
+        headerPresentation="page"
+        renderHeaderActions={() => <button type="button">Show deactivated</button>}
+        renderHeaderPrimaryActions={() => <button type="button">Invite user</button>}
+        search={{ placeholder: "Find an account" }}
+      />,
+    );
+    await screen.findByText("Ada Lovelace");
+    fireEvent.click(screen.getByRole("button", { name: "Hide controls" }));
+    expect(screen.getByRole("button", { name: "Invite user" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Show deactivated" })).toBeNull();
+    expect(screen.getByText(`${(18700).toLocaleString()} users`)).toBeTruthy();
   });
 });

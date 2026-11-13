@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { type AdminPageQuery, type AdminSortDirection, type AdminUserSummary, type AdminUsersAdapter } from "../core";
-import { type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
+import { type AdminPanelBandOptions, type AdminPanelHeaderPresentation } from "./AdminPanelHeader";
 export interface UsersPanelProps<User extends AdminUserSummary> {
     adapter: AdminUsersAdapter<User>;
     title?: string;
@@ -23,6 +23,11 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
         reload: () => Promise<void>;
         isLoading: boolean;
     }) => ReactNode;
+    /** Host actions that stay in the title row when the band collapses, such as the page's primary action. */
+    renderHeaderPrimaryActions?: (context: {
+        reload: () => Promise<void>;
+        isLoading: boolean;
+    }) => ReactNode;
     renderUserActions?: (user: User, context: {
         reload: () => Promise<void>;
         isPending: boolean;
@@ -33,6 +38,16 @@ export interface UsersPanelProps<User extends AdminUserSummary> {
     storageKey?: string;
     /** The table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
     tableFill?: boolean;
+    /** Adds the Hide/Show controls toggle: the count, search and host header actions collapse, and the summary line keeps the search as a removable chip. */
+    headerCollapsible?: AdminPanelBandOptions<UsersPanelSummaryContext>;
+    /** Status content between the count and the search; collapses with them. */
+    headerSummary?: ReactNode;
+}
+export interface UsersPanelSummaryContext {
+    search: string;
+    total: number;
+    /** The panel's own applied filters (the search) as removable chips. */
+    chips: ReactNode;
 }
 export interface AdminUserTableColumn<User extends AdminUserSummary> {
     id: string;
@@ -66,4 +81,4 @@ export interface AdminUserTableCellContext {
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
  */
-export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, headerPresentation, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderUserActions, className, storageKey, tableFill, }: UsersPanelProps<User>): import("react").JSX.Element;
+export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, headerPresentation, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderHeaderPrimaryActions, renderUserActions, className, storageKey, tableFill, headerCollapsible, headerSummary, }: UsersPanelProps<User>): import("react").JSX.Element;

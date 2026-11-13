@@ -799,9 +799,13 @@ sized columns shrink toward their `minWidth` before it drops below that. A
 `BackupsPanel` render through it and each take an optional `storageKey` to
 persist column widths; their existing table and wrapper class names are kept.
 
-With `headerPresentation="page"`, the title becomes the route `h1`; search and
-refresh share that header band, while severity/outcome/category filters remain
-in the toolbar before the table.
+With `headerPresentation="page"`, the title becomes the route `h1`. Search and
+the severity/outcome/category filters sit in the header toolbar and Refresh sits
+in the title row, so `headerCollapsible` can fold the toolbar away (see
+[Collapsible page band](#collapsible-page-band)). The table's Event cell shows
+the action and `returned <metadata.status>` (the message when the event has no
+`status`); the request path appears once, in the Resource cell, which wraps to
+two lines with the full value in a `title`.
 
 ### Loading skeletons
 
@@ -941,6 +945,58 @@ one coherent control while the panel preserves its explicit save flow.
 Use `AdminSwitch` for consequential binary settings whose label, current state,
 and impact should form one large target. It owns presentation and accessible
 switch semantics while the host owns persistence and authorization.
+
+### Collapsible page band
+
+Everything above a table can fold away so the table takes the screen.
+`AdminPanelHeader` takes `summary` (a status line or tiles, between `detail` and
+`toolbar`) and `collapsible`:
+
+```tsx
+<AdminPanelHeader
+  title="Deliveries"
+  presentation="page"
+  detail={<p>Outbox deliveries</p>}
+  summary={<StatusLine />}
+  toolbar={<StatusFilter />}
+  actions={<AdminActionButton tone="primary">Send test alert</AdminActionButton>}
+  collapsible={{
+    storageKey: "deliveries",
+    collapsedSummary: <span>1,957 deliveries</span>,
+    activeCount: 1,
+  }}
+/>
+```
+
+- `detail`, `summary` and `toolbar` collapse. The title, `actions` and anything
+  you render after the header (warning or danger notices, pagination) never do.
+- The toggle is a `button` with `aria-expanded` and `aria-controls`, labelled
+  "Hide controls" or "Show controls" with a chevron; collapsed, it adds
+  "(N)" for `activeCount` applied filters. The hidden region leaves the tab
+  order, and focus stays on the toggle.
+- Collapsed, `collapsedSummary` shows in the title row (inline from 64rem, on its
+  own line below it). Put applied filters there as `AdminFilterChip`s; removing
+  a chip returns focus to the toggle.
+- `defaultCollapsed` is `"auto"`: collapsed below 64rem wide or 45rem tall,
+  expanded otherwise; pass a boolean to fix it. The viewer's choice is stored in
+  `localStorage` as `admin-kit:header:<storageKey>:<regular|compact>`, one key
+  per width class, never in the URL or on a server. Storage that throws is
+  ignored (the choice then lasts for the visit). A client-rendered host reads
+  the stored state before first paint; a server-rendered host renders expanded
+  and collapses on hydration, which can shift the layout once. When the summary
+  overflows (many chips) it scrolls sideways with an edge fade.
+- Give each page its own `storageKey`. With no description, summary or toolbar
+  there is nothing to collapse and no toggle renders.
+
+`AdminWorkspace` takes the same `collapsible` prop and then renders its framed
+header through `AdminPanelHeader` (it has no effect with `showHeader={false}` or
+`presentation="panel-led"`). `EventsPanel`, `UsersPanel`, `ApiKeysPanel` and
+`OperationalJobsPanel` take `headerCollapsible` (`storageKey`, `defaultCollapsed`,
+`activeCount` for host-owned filters, and `renderCollapsedSummary` to replace
+the summary line) and `headerSummary`; `UsersPanel`'s `renderHeaderActions` fold
+away with the band, so put a primary action in `renderHeaderPrimaryActions`, so kit panels and host pages share one
+band. `EventsPanel` and `UsersPanel` show their applied search and filters as
+chips in the collapsed summary.
 
 ### Delivery operations composition
 
