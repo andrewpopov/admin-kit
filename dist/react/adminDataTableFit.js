@@ -1,12 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DETAILS_COLUMN_WIDTH = exports.DEFAULT_MAX_WIDTH = exports.DEFAULT_MIN_WIDTH = void 0;
+exports.NARROW_CARD_WIDTH = exports.DETAILS_COLUMN_WIDTH = exports.DEFAULT_MAX_WIDTH = exports.DEFAULT_MIN_WIDTH = void 0;
 exports.columnBounds = columnBounds;
 exports.clamp = clamp;
 exports.resolveTableFit = resolveTableFit;
 exports.DEFAULT_MIN_WIDTH = 64;
 exports.DEFAULT_MAX_WIDTH = 960;
 exports.DETAILS_COLUMN_WIDTH = 96;
+/** Below this container width a stacked card puts each label above its value. */
+exports.NARROW_CARD_WIDTH = 340;
 const FILL_MIN_WIDTH = exports.DEFAULT_MIN_WIDTH * 3;
 /** Columns hidden at each step, cheapest information first. */
 const HIDE_STEPS = [

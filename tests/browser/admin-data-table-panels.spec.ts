@@ -1,57 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { serveDataTable } from "./data-table-harness";
-
-const mount = (element: string, setup = "") => `
-${setup}
-ReactDOM.createRoot(document.getElementById("root")).render(${element});
-`;
-
-const keysAdapter = `
-const keysAdapter = {
-  async list() {
-    return [
-      { id: "key_1", name: "automation-pipeline-production", maskedKey: "ak_1234567890abcdef", scopes: ["catalog.read"], state: "active", createdAt: "2026-07-13T00:00:00.000Z" },
-      { id: "key_2", name: "reporting", maskedKey: "ak_abcdef1234567890", scopes: ["reports.read"], state: "active", createdAt: "2026-07-14T00:00:00.000Z" },
-    ];
-  },
-  async create() { throw new Error("unused"); },
-  async revoke() { throw new Error("unused"); },
-};`;
-
-const keysPanel = mount(
-  `React.createElement(Kit.ApiKeysPanel, { adapter: keysAdapter, presentation: "responsive", storageKey: "keys" })`,
-  keysAdapter,
-);
-
-const usersPanel = mount(
-  `React.createElement(Kit.UsersPanel, {
-    adapter: usersAdapter,
-    search: false,
-    renderUserActions: (user) => React.createElement(React.Fragment, null,
-      React.createElement("button", { "aria-label": "Edit " + user.label, type: "button" }, "Edit"),
-      React.createElement("button", { "aria-label": "Reset password for " + user.label, type: "button" }, "Reset password")),
-  })`,
-  `const usersAdapter = {
-    async list() {
-      return { items: [{ id: "usr_1", label: "avery.long.email.address@example.test", role: { value: "owner", label: "Owner" }, status: { value: "active", label: "Active" } }], total: 1, page: 1, pageSize: 25 };
-    },
-  };`,
-);
+import { jobsPanel, keysPanel, mount, serveDataTable, usersPanel } from "./data-table-harness";
 
 const eventsPanel = mount(
   `React.createElement(Kit.EventsPanel, { adapter: eventsAdapter, columns: ["occurred", "event", "outcome"], presentation: "table" })`,
   `const eventsAdapter = {
     async list() {
       return { items: [{ id: "evt_1", occurredAt: "2024-01-01T15:12:00.000Z", category: "assistant", action: "assistant.task.completed", message: "Assistant task finished after a long-running catalog reconciliation", severity: "info", outcome: "success", metadata: { task: "task-0123456789abcdef" } }], page: 1, pageSize: 25, total: 1 };
-    },
-  };`,
-);
-
-const jobsPanel = mount(
-  `React.createElement(Kit.OperationalJobsPanel, { adapter: jobsAdapter, title: "Retention runs" })`,
-  `const jobsAdapter = {
-    async list() {
-      return { items: [{ id: "job_1", label: "Retention policy enforcement for long-running audit exports", detail: "Removes old exports", startedAt: "2024-01-01T15:12:00.000Z", state: "completed" }], page: 1, pageSize: 25, total: 1 };
     },
   };`,
 );
@@ -73,7 +27,9 @@ test("ApiKeysPanel keeps its fixed Actions column at 780px instead of squeezing 
   await expect(row).toBeVisible();
   const actions = page.locator('col[data-column="actions"]');
   expect(await actions.evaluate((col) => (col as HTMLElement).style.width)).toBe("168px");
-  expect((await row.getByRole("button", { name: "Revoke" }).boundingBox())!.width).toBeGreaterThan(70);
+  expect((await row.getByRole("button", { name: "Revoke" }).boundingBox())!.width).toBeGreaterThan(
+    70,
+  );
   expect((await row.boundingBox())!.height).toBeLessThan(170);
   expect(await page.evaluate(overflow)).toBeLessThanOrEqual(0);
 });
@@ -132,7 +88,5 @@ test("OperationalJobsPanel rows become grid cards at 280px", async ({ page }) =>
   await serveDataTable(page, { script: jobsPanel, containerWidth: 280 });
   await expect(page.locator("tbody tr").first()).toHaveCSS("display", "grid");
   expect(await page.evaluate(overflow)).toBeLessThanOrEqual(0);
-  await expect(
-    page.locator(".admin-kit__mobile-cell-label", { hasText: "Started" }),
-  ).toBeVisible();
+  await expect(page.locator(".admin-kit__mobile-cell-label", { hasText: "Started" })).toBeVisible();
 });

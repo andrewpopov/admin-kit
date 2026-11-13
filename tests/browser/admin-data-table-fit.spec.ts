@@ -52,7 +52,7 @@ test("hides tertiary, then secondary, columns as the container narrows", async (
 
 test("a fragment cell's second node starts right of its label when stacked", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await serveDataTable(page, { script, containerWidth: 320 });
+  await serveDataTable(page, { script, containerWidth: 390 });
   await expect(page.locator(".admin-kit__data-table-wrap")).toHaveAttribute("data-stacked", "true");
   const scope = page.locator("tbody tr").first().locator("td").nth(1);
   const label = (await scope.locator(".admin-kit__mobile-cell-label").boundingBox())!;

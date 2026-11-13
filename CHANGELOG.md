@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.47.1
+
+### Fixed
+
+- AdminDataTable cell content stays inside its cell: controls and wrapped values never spill into a neighbour, nowrap user columns end in an ellipsis, stacked-card labels never break mid-word and stack above the value under 340px, cells that render nothing drop out of cards, and the row-details toggle is a 44px target on cards and coarse pointers
+  Tables that fit their container by width alone could still paint a cell's content over the next column: timestamps ran into each other and a Delete button covered a Status select. Cells now clip at their own edge, selects, inputs and buttons shrink to the cell instead of overflowing it, and a `nowrap` UsersPanel column truncates with an ellipsis. UsersPanel Role and Status keep room for the widest option, and ApiKeysPanel State keeps room for its pill. Custom UsersPanel columns accept `width` and `minWidth` so a host can reserve what its controls need. In stacked cards the label track sizes to its longest word, so "Deployment" and "Verification" stay whole, and below 340px the label sits above its value; a cell that renders null, false, an empty string or an empty fragment no longer leaves a label or a row. The "View"/"Hide" toggle grows to 44 by 44 pixels when cards stack or the pointer is coarse.
+
 ## 0.47.0
 
 ### Breaking

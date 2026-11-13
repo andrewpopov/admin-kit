@@ -135,8 +135,9 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
                 headerClassName: [column.headerClassName, ...layoutClassNames].filter(Boolean).join(" ") || undefined,
                 className: [column.className, ...layoutClassNames].filter(Boolean).join(" ") || undefined,
                 priority: column.priority,
-                defaultWidth: index === 0 ? undefined : CUSTOM_COLUMN_WIDTH,
-                minWidth: index === 0 ? 200 : 96,
+                truncate: column.nowrap,
+                defaultWidth: index === 0 ? undefined : (column.width ?? CUSTOM_COLUMN_WIDTH),
+                minWidth: column.minWidth ?? (index === 0 ? 200 : 96),
                 sort: column.sortable
                     ? {
                         direction: direction === "asc" ? "ascending" : direction === "desc" ? "descending" : "none",
@@ -155,7 +156,7 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
             {
                 id: "user",
                 header: "User",
-                minWidth: 240,
+                minWidth: 200,
                 cell: (user) => ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__user-identity", children: [(0, jsx_runtime_1.jsx)("strong", { children: user.label }), user.secondaryLabel ? (0, jsx_runtime_1.jsx)("span", { children: user.secondaryLabel }) : null, user.badges?.length ? (0, jsx_runtime_1.jsx)("span", { children: user.badges.join(" · ") }) : null] })),
             },
             ...(hasDetails
@@ -173,7 +174,7 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
                 id: "role",
                 header: "Role",
                 defaultWidth: 168,
-                minWidth: 120,
+                minWidth: 160,
                 cell: (user) => adapter.roles?.length &&
                     adapter.setRole &&
                     user.role &&
@@ -183,7 +184,7 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
                 id: "status",
                 header: "Status",
                 defaultWidth: 168,
-                minWidth: 120,
+                minWidth: 160,
                 cell: (user) => adapter.statuses?.length &&
                     adapter.setStatus &&
                     user.status &&
@@ -195,6 +196,8 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
                         id: "actions",
                         header: "Actions",
                         defaultWidth: 220,
+                        minWidth: 220,
+                        maxWidth: 220,
                         resizable: false,
                         cell: (user) => ((0, jsx_runtime_1.jsx)("div", { className: "admin-kit__user-controls", children: renderUserActions(user, {
                                 reload: load,
