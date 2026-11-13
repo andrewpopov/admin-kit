@@ -45,6 +45,20 @@ const PUBLIC_THEME_TOKENS = new Set([
   'dark-accent',
   'dark-accent-strong',
   'dark-accent-soft',
+  'font-family',
+  'text-page-title-size',
+  'text-page-title-leading',
+  'text-title-size',
+  'text-title-leading',
+  'text-body-size',
+  'text-body-leading',
+  'text-body-sm-size',
+  'text-body-sm-leading',
+  'text-caption-size',
+  'text-caption-leading',
+  'weight-title',
+  'weight-strong',
+  'table-heading-transform',
 ]);
 const sourceFiles = [];
 const packageManifests = [];
@@ -157,6 +171,17 @@ const entryFiles = files.filter(({ path }) => /^(?:main|layout)\.(?:[cm]?[jt]sx?
 if (!entryFiles.some(({ path, text }) => fileImportsStylesheet(text, path))) {
   errors.push('Import @andrewpopov/admin-kit/styles.css from an application main or layout entry point.');
 }
+// styles.css lives in `@layer admin-kit`, and a layered rule loses to every
+// unlayered host rule (a preflight reset, a global `button { background }`).
+// A host that never declares the layer in an order statement renders the kit
+// unstyled, so a pin bump in an unmigrated host must fail here.
+const LAYER_ORDER_STATEMENT = /@layer\s+[^{};]*\badmin-kit\b[^{};]*;/;
+const stripCssComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+if (!files.some(({ path, text }) => /\.css$/.test(path) && LAYER_ORDER_STATEMENT.test(stripCssComments(text)))) {
+  errors.push(
+    'Declare the Admin Kit cascade layer in a host stylesheet that loads before the kit: for example `@layer theme, base, admin-kit, components, utilities;` placed before the Tailwind and @andrewpopov/admin-kit/styles.css imports, with any unlayered reset moved into a layer declared before admin-kit.',
+  );
+}
 for (const { path, text } of files) {
   if (!/\.css$/.test(path)) continue;
   const rel = relativePosix(path);
@@ -164,7 +189,7 @@ for (const { path, text } of files) {
     const name = match[1];
     if (!PUBLIC_THEME_TOKENS.has(name)) {
       errors.push(
-        `${rel}: --admin-kit-${name} is an internal Admin Kit token and cannot be overridden; only theme tokens (accent, accent-strong, accent-soft, on-accent, radius, radius-sm, dark-accent, dark-accent-strong, dark-accent-soft) may be set to rebrand.`,
+        `${rel}: --admin-kit-${name} is an internal Admin Kit token and cannot be overridden; only the public theme and type tokens may be set (accent, accent-strong, accent-soft, on-accent, radius, radius-sm, dark-accent, dark-accent-strong, dark-accent-soft, font-family, text-{page-title,title,body,body-sm,caption}-{size,leading}, weight-title, weight-strong, table-heading-transform).`,
       );
     }
   }

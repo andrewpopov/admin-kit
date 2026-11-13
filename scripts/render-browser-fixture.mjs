@@ -44,6 +44,7 @@ const {
   AdminPanelStateView,
   OperationalJobsPanel,
   AdminTheme,
+  AdminApiKeyForm,
   AdminDialog,
   AdminConfirmationDialog,
   AdminField,
@@ -487,5 +488,48 @@ async function renderShortPage(fileName, title, tree) {
   host.remove();
   const file = resolve(packageRoot, "tests/browser", fileName);
   writeFileSync(file, page(title, html, shortHead));
+  console.log(`[render-browser-fixture] wrote ${file} (${html.length} bytes of rendered markup)`);
+}
+
+// Bare controls in every kit root, beside one host control that is not in a kit root.
+// The layered variant declares a host reset in `@layer base` before the kit (the README order).
+const controlsTree = React.createElement(
+  "div",
+  { className: "admin-kit admin-kit--theme-core", "data-admin-kit-theme": "core" },
+  React.createElement("button", { id: "host-button", type: "button" }, "Host button"),
+  React.createElement(AdminActionButton, { id: "kit-primary", tone: "primary" }, "Kit primary"),
+  React.createElement(AdminPanelStateView, {
+    state: { kind: "error", title: "Failed", detail: "Try again.", onRetry: () => undefined },
+  }),
+  React.createElement("div", { className: "admin-kit__column-menu" }, React.createElement("button", { id: "menu-button", type: "button" }, "Wider")),
+  React.createElement(AdminApiKeyForm, {
+    mode: "create",
+    pending: false,
+    scopeGroups: [{ id: "g", label: "Group", scopes: [{ value: "read", label: "Read" }] }],
+    onSubmit: () => undefined,
+  }),
+);
+const hostReset = "button, input, select { background: transparent; border: 0; padding: 0; font: 13.33px Arial; }";
+await renderControlsPage("admin-controls.html", `<style>.host-note { color: red; }</style>`);
+await renderControlsPage(
+  "admin-controls-layered.html",
+  `<style>@layer theme, base, admin-kit, components, utilities;</style>`,
+  `<style>@layer base { ${hostReset} }</style>`,
+);
+
+async function renderControlsPage(fileName, beforeKit, afterKit = "") {
+  const host = document.createElement("div");
+  document.body.append(host);
+  const controlsRoot = createRoot(host);
+  await act(async () => {
+    controlsRoot.render(controlsTree);
+  });
+  const html = host.innerHTML;
+  await act(async () => {
+    controlsRoot.unmount();
+  });
+  host.remove();
+  const file = resolve(packageRoot, "tests/browser", fileName);
+  writeFileSync(file, page("Admin Kit controls fixture", html, afterKit).replace("<link", `${beforeKit}\n    <link`));
   console.log(`[render-browser-fixture] wrote ${file} (${html.length} bytes of rendered markup)`);
 }

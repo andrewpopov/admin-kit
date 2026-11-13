@@ -155,7 +155,7 @@ test("keeps the phone app header compact so content starts near the top", async 
   expect(fontSize, "desktop frame title keeps its larger size").toBeGreaterThanOrEqual(28);
 });
 
-test("styles only column headers as uppercase headers, not row headers", async ({ page }) => {
+test("styles column headers as sentence-case caption headers, not row headers", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(fixture);
   const wrap = page.getByTestId("stack-table-wrap");
@@ -169,8 +169,12 @@ test("styles only column headers as uppercase headers, not row headers", async (
   expect(Number(rowStyle.fontWeight)).toBe(600);
   expect(
     await wrap.locator("thead th").first().evaluate((node) => getComputedStyle(node).textTransform),
-    "column headers keep the uppercase header look",
-  ).toBe("uppercase");
+    "column headers are sentence case by default (--admin-kit-table-heading-transform)",
+  ).toBe("none");
+  expect(
+    await wrap.locator("thead th").first().evaluate((node) => getComputedStyle(node).fontWeight),
+    "column headers use the strong weight",
+  ).toBe("600");
 });
 
 test("keeps a disabled primary button readable (text contrast at least 4.5:1)", async ({ page }) => {
@@ -568,4 +572,62 @@ test("AdminApp keeps the navigation and Menu toggle when there are two sections"
   await expect(page.locator("nav.admin-kit__portal-navigation")).toBeVisible();
   await page.setViewportSize({ width: 375, height: 812 });
   await expect(page.getByRole("button", { name: "Menu" })).toBeVisible();
+});
+
+const controlsFixture = pathToFileURL(resolve("tests/browser/admin-controls.html")).href;
+const layeredControlsFixture = pathToFileURL(resolve("tests/browser/admin-controls-layered.html")).href;
+
+const controlStyle = (locator: import("@playwright/test").Locator) =>
+  locator.evaluate((node) => {
+    const style = getComputedStyle(node);
+    return {
+      minHeight: style.minHeight,
+      borderTop: style.borderTopWidth,
+      fontFamily: style.fontFamily,
+      fontSize: style.fontSize,
+      background: style.backgroundColor,
+    };
+  });
+
+test("leaves a bare host button inside .admin-kit unstyled by the kit", async ({ page }) => {
+  await page.goto(controlsFixture);
+  const host = await controlStyle(page.locator("#host-button"));
+  expect(host.minHeight, "host button keeps the UA min-block-size").toBe("0px");
+  expect(host.borderTop, "host button gets no kit border").not.toBe("1px");
+});
+
+test("keeps kit font, border and min height on bare controls in kit roots", async ({ page }) => {
+  await page.goto(controlsFixture);
+  const kitFont = await page.evaluate(() => getComputedStyle(document.querySelector(".admin-kit")!).fontFamily);
+
+  const retry = await controlStyle(page.locator(".admin-kit__state button"));
+  expect(retry.minHeight, "state retry button min height").toBe("44px");
+  expect(retry.borderTop, "state retry button border").toBe("1px");
+  expect(retry.fontFamily, "state retry button font").toBe(kitFont);
+
+  const menu = await controlStyle(page.locator("#menu-button"));
+  expect(menu.minHeight, "column-menu button min height").toBe("32px");
+  expect(menu.fontFamily, "column-menu button font").toBe(kitFont);
+
+  for (const selector of [".admin-kit__field input[type=text]", ".admin-kit__field select"]) {
+    const control = await controlStyle(page.locator(selector));
+    expect(control.fontFamily, `${selector} font`).toBe(kitFont);
+    expect(control.fontSize, `${selector} size`).toBe("16px");
+    expect(control.minHeight, `${selector} min height`).toBe("44px");
+    expect(control.borderTop, `${selector} border`).toBe("1px");
+  }
+});
+
+test("renders kit buttons styled under a host reset in @layer base declared before admin-kit", async ({
+  page,
+}) => {
+  await page.goto(layeredControlsFixture);
+  const primary = await controlStyle(page.locator("#kit-primary"));
+  expect(primary.minHeight).toBe("44px");
+  expect(primary.borderTop).toBe("1px");
+  expect(primary.background, "primary keeps its accent background").not.toBe("rgba(0, 0, 0, 0)");
+  const retry = await controlStyle(page.locator(".admin-kit__state button"));
+  expect(retry.borderTop).toBe("1px");
+  const host = await controlStyle(page.locator("#host-button"));
+  expect(host.borderTop, "the host reset still applies to host buttons").toBe("0px");
 });

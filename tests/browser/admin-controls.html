@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>.host-note { color: red; }</style>
+    <link rel="stylesheet" href="../../dist/styles.css" />
+    
+    <title>Admin Kit controls fixture</title>
+  </head>
+  <body>
+    <div class="admin-kit admin-kit--theme-core" data-admin-kit-theme="core"><button id="host-button" type="button">Host button</button><button id="kit-primary" class="admin-kit__button admin-kit__button--primary" type="button">Kit primary</button><div class="admin-kit__state admin-kit__state--error" role="alert"><strong>Failed</strong><p>Try again.</p><button type="button">Try again</button></div><div class="admin-kit__column-menu"><button id="menu-button" type="button">Wider</button></div><div class="admin-kit__key-form"><p class="admin-kit__key-form-intro">Name the credential, choose how long it should live, and pick the scopes it may use. These settings apply to the key you're about to create.</p><div class="admin-kit__key-form-grid"><label class="admin-kit__field"><span class="admin-kit__field-label">Name</span><input placeholder="e.g. CI deploy" type="text" value=""></label><label class="admin-kit__field"><span class="admin-kit__field-label">Expires</span><select><option value="30">30 days</option><option value="90">90 days</option><option value="365">365 days</option><option value="never">Never</option></select></label></div><div><p class="admin-kit__key-form-legend">Scopes <span>— what this key is allowed to do</span></p><div class="admin-kit__scope-picker"><fieldset class="admin-kit__scope-group"><legend class="admin-kit__scope-group-legend">Group</legend><div class="admin-kit__scope-group-header"><span aria-hidden="true" class="admin-kit__scope-group-count">0/1</span><button class="admin-kit__scope-group-toggle" type="button">Select all in Group</button></div><ul class="admin-kit__scope-options"><li><label class="admin-kit__scope-option"><input type="checkbox" value="read"><span class="admin-kit__scope-option-copy"><span class="admin-kit__scope-option-label">Read</span><code class="admin-kit__scope-option-value">read</code></span></label></li></ul></fieldset></div></div><div class="admin-kit__key-form-footer"><p aria-live="polite">0 scopes selected · the secret is shown once, right after you create the key.</p><div class="admin-kit__key-form-actions"><button class="admin-kit__button admin-kit__button--primary" disabled="" type="button">Create API key</button></div></div></div></div>
+  </body>
+</html>

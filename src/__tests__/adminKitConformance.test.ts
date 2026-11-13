@@ -24,6 +24,7 @@ function createConsumerFixture(): string {
     join(root, "src", "app", "layout.tsx"),
     'import "@andrewpopov/admin-kit/styles.css"; export default function Layout() { return null; }',
   );
+  writeFileSync(join(root, "src", "layers.css"), "@layer theme, base, admin-kit, components, utilities;\n");
   return root;
 }
 
@@ -40,6 +41,7 @@ function createBareConsumerFixture(): string {
       },
     }),
   );
+  writeFileSync(join(root, "src", "layers.css"), "@layer theme, base, admin-kit, components, utilities;\n");
   return root;
 }
 
@@ -279,6 +281,62 @@ describe("admin-kit-conformance", () => {
   it("accepts a source-level public theme-token override", () => {
     const root = createConsumerFixture();
     writeFileSync(join(root, "src", "app.css"), ":root { --admin-kit-accent: red; }");
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("[admin-kit-conformance] PASS");
+  });
+
+  it("fails when no host stylesheet declares the admin-kit layer order", () => {
+    const root = createConsumerFixture();
+    rmSync(join(root, "src", "layers.css"));
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("Declare the Admin Kit cascade layer");
+  });
+
+  it("rejects an @layer statement that does not name admin-kit, or names it only in a comment", () => {
+    const root = createConsumerFixture();
+    writeFileSync(
+      join(root, "src", "layers.css"),
+      "/* @layer theme, base, admin-kit, utilities; */\n@layer theme, base, utilities;\n@layer base { .x { color: red } }\n",
+    );
+
+    const result = runConformance(root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("Declare the Admin Kit cascade layer");
+  });
+
+  it("passes with the layer order declared in a host stylesheet", () => {
+    const result = runConformance(createConsumerFixture());
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("[admin-kit-conformance] PASS");
+  });
+
+  it("accepts a source-level public type-token override", () => {
+    const root = createConsumerFixture();
+    writeFileSync(
+      join(root, "src", "app.css"),
+      [
+        ":root {",
+        "  --admin-kit-font-family: system-ui;",
+        "  --admin-kit-text-page-title-size: 1.5rem;",
+        "  --admin-kit-text-page-title-leading: 2rem;",
+        "  --admin-kit-text-title-size: 1.125rem;",
+        "  --admin-kit-text-body-size: 0.875rem;",
+        "  --admin-kit-text-body-sm-size: 0.8125rem;",
+        "  --admin-kit-text-caption-leading: 1rem;",
+        "  --admin-kit-weight-title: 600;",
+        "  --admin-kit-weight-strong: 500;",
+        "  --admin-kit-table-heading-transform: uppercase;",
+        "}",
+      ].join("\n"),
+    );
 
     const result = runConformance(root);
 

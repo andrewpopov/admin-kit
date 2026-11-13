@@ -57,6 +57,44 @@ contract across products.
 import "@andrewpopov/admin-kit/styles.css";
 ```
 
+### Cascade layer and host layer order
+
+The whole stylesheet is wrapped in `@layer admin-kit`, so any host rule that is
+not in an earlier layer, and every Tailwind utility, beats it regardless of
+specificity. A host using Tailwind v4 declares the layer order once, before
+importing Tailwind and the kit stylesheet:
+
+```css
+@layer theme, base, admin-kit, components, utilities;
+@import "tailwindcss";
+```
+
+```ts
+import "./index.css"; // the order statement above must be seen first
+import "@andrewpopov/admin-kit/styles.css";
+```
+
+This puts the kit above Tailwind's preflight (`base`) and below `utilities`.
+`admin-kit-conformance` fails when no host stylesheet declares an `@layer` order
+statement naming `admin-kit`. Any unlayered reset (including the Tailwind 3
+preflight) beats the kit, so move it into a layer declared before `admin-kit`.
+
+The generic button, input and select rules (`font: inherit`, the outlined
+44px button box, hover and disabled states) apply only to:
+
+- controls carrying an `admin-kit__*` class (for example `admin-kit__button`);
+- bare controls inside the kit's own roots: the keys, users, events, flags,
+  memberships, sessions, logs, operations and settings panels, plus `.admin-kit__dialog`
+  (including host children passed to `AdminDialog`), `.admin-kit__state`,
+  `.admin-kit__column-menu`, and, for input/select/textarea font only,
+  `.admin-kit__key-form` and `.admin-kit__field`.
+
+A host control elsewhere under `.admin-kit` (panel header actions, workspace
+toolbars, card actions) is not restyled and needs `admin-kit__button` to get the
+kit look. A host control rendered inside a panel root or a dialog (a panel
+render prop, dialog children) is restyled; give it a utility class, which
+beats the `admin-kit` layer, to opt out.
+
 ## Release notes for signed-in users
 
 `ReleaseNotesPanel` is a read-only product page, available from
@@ -192,6 +230,24 @@ Public theme tokens (safe to override): `--admin-kit-accent`,
 `--admin-kit-on-accent`, `--admin-kit-radius`, `--admin-kit-radius-sm`,
 `--admin-kit-dark-accent`, `--admin-kit-dark-accent-strong`,
 `--admin-kit-dark-accent-soft`.
+
+Public type tokens (safe to override, on `:root` or any `.admin-kit` wrapper):
+
+| Token | Default |
+| --- | --- |
+| `--admin-kit-font-family` | `ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` |
+| `--admin-kit-text-page-title-size` / `-leading` | `1.5rem` / `1.5` |
+| `--admin-kit-text-title-size` / `-leading` | `1.125rem` / `1.5` |
+| `--admin-kit-text-body-size` / `-leading` | `1rem` / `1.5` |
+| `--admin-kit-text-body-sm-size` / `-leading` | `0.875rem` / `1.5` |
+| `--admin-kit-text-caption-size` / `-leading` | `0.75rem` / `1.5` |
+| `--admin-kit-weight-title` | `600` (page and panel titles) |
+| `--admin-kit-weight-strong` | `600` (column headers, pills, badges, labels) |
+| `--admin-kit-table-heading-transform` | `none` (set `uppercase` to restore uppercase column headers) |
+
+`.admin-kit` sets its `font-size` from the body token, and every `font-size`
+in the stylesheet reads one of the size tokens, so a host maps its own scale
+onto the kit by overriding these.
 
 Admin Kit declares its tokens on `.admin-kit--theme-core`, and a host
 stylesheet often loads before admin-kit's, so a same-specificity host rule can
