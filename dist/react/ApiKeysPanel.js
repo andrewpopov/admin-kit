@@ -213,7 +213,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
             cardSlot: "detail",
             header: "Scope",
             defaultWidth: 176,
-            minWidth: 144,
+            minWidth: 128,
             cell: (key) => key.scopes.length ? ((0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__scope-chips", children: key.scopes.map((scope) => ((0, jsx_runtime_1.jsx)("li", { className: "admin-kit__scope-chip", children: scope }, scope))) })) : ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-empty", children: "\u2014" })),
         },
         ...(hasDetails
@@ -233,8 +233,8 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
             id: "state",
             cardSlot: "badge",
             header: "State",
-            defaultWidth: 88,
-            minWidth: 80,
+            defaultWidth: 96,
+            minWidth: 96,
             cell: (key) => ((0, jsx_runtime_1.jsx)("span", { className: `admin-kit__state-pill admin-kit__state-pill--key-${key.state}`, children: key.state })),
         },
         {

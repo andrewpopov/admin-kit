@@ -39,8 +39,12 @@ export interface AdminUserTableColumn<User extends AdminUserSummary> {
     className?: string;
     headerClassName?: string;
     sortable?: boolean;
-    /** Keeps concise values such as timestamps on a single line. */
+    /** Keeps concise values such as timestamps on a single line; the cell ends in an ellipsis when it is too narrow. */
     nowrap?: boolean;
+    /** px. Preferred width; shrinks to `minWidth` to fit. Defaults to 160. */
+    width?: number;
+    /** px. The narrowest the column renders before it is hidden or the table stacks. Set it to what the cell's controls need. */
+    minWidth?: number;
     /** Responsive priority; lower-priority columns are hidden before the table scrolls. */
     priority?: "primary" | "secondary" | "tertiary";
 }

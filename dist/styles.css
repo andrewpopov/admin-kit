@@ -572,6 +572,9 @@
 .admin-kit__data-table-wrap { scrollbar-gutter: stable; max-height: var(--admin-kit-data-table-max-height, min(70vh, 48rem)); overflow: auto; }
 .admin-kit__data-table { min-width: var(--admin-kit-data-table-min-width, 42rem); table-layout: fixed; width: var(--admin-kit-data-table-width, 100%); }
 .admin-kit__data-table td { overflow-wrap: anywhere; }
+.admin-kit__data-table:not([data-stacked]) td { overflow: hidden; }
+.admin-kit__data-table .admin-kit__cell-value :is(select, input, button) { max-inline-size: 100%; min-inline-size: 0; }
+.admin-kit__data-table .admin-kit__cell-value :is(select, input) { box-sizing: border-box; text-overflow: ellipsis; }
 .admin-kit__data-table thead th { position: sticky; top: 0; z-index: 1; }
 .admin-kit__data-table-heading-text { display: block; overflow: hidden; padding-inline-end: 1rem; text-overflow: ellipsis; white-space: nowrap; }
 .admin-kit__column-resizer { cursor: col-resize; display: flex; inset-block: 0; inset-inline-end: 0; justify-content: center; position: absolute; touch-action: none; width: 1.5rem; z-index: 2; }
@@ -583,6 +586,8 @@
 .admin-kit__column-resizer:hover::after, .admin-kit__column-resizer:focus-visible::after { background: var(--admin-kit-accent); width: 3px; }
 .admin-kit__table-cell--truncate, .admin-kit__table-cell--truncate > :not(.admin-kit__mobile-cell-label), .admin-kit__table-cell--truncate .admin-kit__cell-value > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-kit__data-table-toggle { background: none; border: 0; color: var(--admin-kit-accent); cursor: pointer; font: inherit; font-weight: var(--admin-kit-weight-strong); min-height: 2rem; padding: 0; }
+.admin-kit__data-table[data-stacked] .admin-kit__data-table-toggle { align-items: center; display: inline-flex; justify-content: center; min-block-size: 2.75rem; min-inline-size: 2.75rem; padding-inline: 0.5rem; }
+@media (pointer: coarse) { .admin-kit__data-table .admin-kit__data-table-toggle { align-items: center; display: inline-flex; justify-content: center; min-block-size: 2.75rem; min-inline-size: 2.75rem; padding-inline: 0.5rem; } }
 .admin-kit__data-table-row--expanded td { border-bottom: 0; }
 .admin-kit__data-table-details-row td { background: var(--admin-kit-surface-subtle); }
 .admin-kit__data-table tbody .admin-kit__data-table-details-row:hover { background: transparent; }
@@ -600,13 +605,15 @@
 .admin-kit__data-table[data-stacked] thead { clip: rect(0 0 0 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
 .admin-kit__data-table[data-stacked] tbody { display: grid; gap: 0.75rem; }
 .admin-kit__data-table[data-stacked] tr { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-border); border-radius: var(--admin-kit-radius-sm); display: grid; grid-template-columns: minmax(0, 1fr) auto; overflow: hidden; }
-.admin-kit__data-table[data-stacked] td { align-items: start; border-bottom: 0; border-top: 1px solid var(--admin-kit-border); display: grid; gap: 0.75rem; grid-column: 1 / -1; grid-template-columns: minmax(5.5rem, 0.35fr) minmax(0, 1fr); min-width: 0; order: 4; white-space: normal; width: auto; }
+.admin-kit__data-table[data-stacked] td { align-items: start; border-bottom: 0; border-top: 1px solid var(--admin-kit-border); display: grid; gap: 0.75rem; grid-column: 1 / -1; grid-template-columns: minmax(min-content, 7rem) minmax(0, 1fr); min-width: 0; order: 4; white-space: normal; width: auto; }
 .admin-kit__data-table[data-stacked] td:first-child { border-top: 0; }
-.admin-kit__data-table[data-stacked] .admin-kit__mobile-cell-label { color: var(--admin-kit-muted); display: block; font-size: var(--admin-kit-text-caption-size); line-height: var(--admin-kit-text-caption-leading); font-weight: var(--admin-kit-weight-strong); letter-spacing: normal; text-transform: var(--admin-kit-table-heading-transform); }
+.admin-kit__data-table[data-stacked] .admin-kit__mobile-cell-label { overflow-wrap: normal; word-break: keep-all; hyphens: manual; color: var(--admin-kit-muted); display: block; font-size: var(--admin-kit-text-caption-size); line-height: var(--admin-kit-text-caption-leading); font-weight: var(--admin-kit-weight-strong); letter-spacing: normal; text-transform: var(--admin-kit-table-heading-transform); }
 .admin-kit__data-table[data-stacked] .admin-kit__table-cell--truncate, .admin-kit__data-table[data-stacked] .admin-kit__table-cell--truncate > :not(.admin-kit__mobile-cell-label), .admin-kit__data-table[data-stacked] .admin-kit__table-cell--truncate .admin-kit__cell-value > * { overflow: visible; white-space: normal; }
 .admin-kit__data-table[data-stacked] td > :last-child { max-width: 100%; overflow-wrap: anywhere; }
 .admin-kit__data-table[data-stacked] td[data-card-slot] { align-items: baseline; border-top: 0; display: flex; gap: 0.5rem; padding-block: 0.25rem; }
 .admin-kit__data-table[data-stacked] td[data-card-slot] .admin-kit__cell-value { flex: 1 1 auto; }
+.admin-kit__data-table-wrap[data-narrow] .admin-kit__data-table[data-stacked] td:not([data-card-slot]) { grid-template-columns: minmax(0, 1fr); gap: 0.25rem; }
+.admin-kit__data-table-wrap[data-narrow] .admin-kit__data-table[data-stacked] td[data-card-slot]:not([data-card-slot="title"], [data-card-slot="badge"], [data-card-slot="actions"]) { flex-direction: column; gap: 0.125rem; }
 .admin-kit__data-table[data-stacked] :is(td[data-card-slot="title"], td[data-card-slot="badge"], td[data-card-slot="actions"]) .admin-kit__mobile-cell-label { display: none; }
 .admin-kit__data-table[data-stacked] td[data-card-slot="title"] { display: block; font-weight: var(--admin-kit-weight-strong); grid-column: 1; order: 1; padding-block-start: 0.75rem; }
 .admin-kit__data-table[data-stacked] td[data-card-slot="badge"] { display: block; grid-column: 2; order: 2; padding-block-start: 0.75rem; }
@@ -614,6 +621,7 @@
 .admin-kit__data-table[data-stacked] td[data-card-slot="detail"] { order: 5; }
 .admin-kit__data-table[data-stacked] td[data-card-slot="actions"] { order: 6; padding-block-end: 0.75rem; }
 .admin-kit__data-table[data-stacked] .admin-kit__data-table-details-row td { display: block; order: 7; }
+.admin-kit__data-table[data-stacked] td[data-empty] { display: none; }
 .admin-kit__data-table[data-stacked] .admin-kit__data-table-row--expanded { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 .admin-kit__data-table[data-stacked] .admin-kit__data-table-details-row { border-top: 0; border-top-left-radius: 0; border-top-right-radius: 0; margin-top: -0.75rem; }
 .admin-kit__backups-table[data-stacked] .admin-kit__cell-value > button { width: 100%; }

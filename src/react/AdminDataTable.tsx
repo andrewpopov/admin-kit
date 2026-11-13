@@ -1,6 +1,8 @@
 "use client";
 import {
+  Children,
   Fragment,
+  isValidElement,
   useEffect,
   useId,
   useLayoutEffect,
@@ -16,6 +18,7 @@ import {
   clamp,
   columnBounds,
   DETAILS_COLUMN_WIDTH,
+  NARROW_CARD_WIDTH,
   resolveTableFit,
   type AdminDataTableColumnPriority,
 } from "./adminDataTableFit";
@@ -79,6 +82,16 @@ export interface AdminDataTableProps<Row> {
 }
 
 type Widths = Record<string, number>;
+
+/** True for content that paints nothing: null, booleans, '' and fragments of those. */
+function isEmptyNode(node: ReactNode): boolean {
+  return Children.toArray(node).every((child) => {
+    if (child === "") return true;
+    return isValidElement<{ children?: ReactNode }>(child) && child.type === Fragment
+      ? isEmptyNode(child.props.children)
+      : false;
+  });
+}
 
 function readStoredWidths(storageKey: string | undefined): Widths {
   if (!storageKey || typeof window === "undefined") return {};
@@ -180,11 +193,7 @@ export function AdminDataTable<Row>({
     maxWidth: column.maxWidth,
     override: column.defaultWidth === undefined ? undefined : overrides[column.id],
   }));
-  let fit = resolveTableFit(
-    containerWidth,
-    fitColumns,
-    renderDetails ? DETAILS_COLUMN_WIDTH : 0,
-  );
+  let fit = resolveTableFit(containerWidth, fitColumns, renderDetails ? DETAILS_COLUMN_WIDTH : 0);
   if (!renderDetails && !fit.stacked && fit.visibleIds.length < columns.length) {
     fit = resolveTableFit(containerWidth, fitColumns, DETAILS_COLUMN_WIDTH);
   }
@@ -297,6 +306,10 @@ export function AdminDataTable<Row>({
       className={["admin-kit__table-wrap admin-kit__data-table-wrap", wrapClassName]
         .filter(Boolean)
         .join(" ")}
+      data-narrow={
+        (fit.stacked && containerWidth !== undefined && containerWidth < NARROW_CARD_WIDTH) ||
+        undefined
+      }
       data-scrolls={fit.scrolls || undefined}
       data-stacked={fit.stacked || undefined}
       ref={wrapRef}
@@ -326,8 +339,7 @@ export function AdminDataTable<Row>({
           <tr>
             {visibleColumns.map((column) => {
               const width = widthOf(column);
-              const resizable =
-                width !== undefined && column.resizable !== false && !fit.stacked;
+              const resizable = width !== undefined && column.resizable !== false && !fit.stacked;
               const { min, max } = columnBounds(column);
               const menuOpen = resizable && menuFor === column.id;
               const menuId = `${idPrefix}-resize-${column.id}`;
@@ -451,26 +463,30 @@ export function AdminDataTable<Row>({
                   aria-busy={rowBusy?.(row) || undefined}
                   className={isExpanded ? "admin-kit__data-table-row--expanded" : undefined}
                 >
-                  {visibleColumns.map((column) => (
-                    <td
-                      className={
-                        [
-                          column.truncate ? "admin-kit__table-cell--truncate" : undefined,
-                          column.className,
-                        ]
-                          .filter(Boolean)
-                          .join(" ") || undefined
-                      }
-                      data-card-slot={column.cardSlot}
-                      key={column.id}
-                      title={column.title?.(row)}
-                    >
-                      <AdminMobileCellLabel>
-                        {column.headerContent ?? column.header}
-                      </AdminMobileCellLabel>
-                      <div className="admin-kit__cell-value">{column.cell(row)}</div>
-                    </td>
-                  ))}
+                  {visibleColumns.map((column) => {
+                    const content = column.cell(row);
+                    return (
+                      <td
+                        className={
+                          [
+                            column.truncate ? "admin-kit__table-cell--truncate" : undefined,
+                            column.className,
+                          ]
+                            .filter(Boolean)
+                            .join(" ") || undefined
+                        }
+                        data-card-slot={column.cardSlot}
+                        data-empty={isEmptyNode(content) || undefined}
+                        key={column.id}
+                        title={column.title?.(row)}
+                      >
+                        <AdminMobileCellLabel>
+                          {column.headerContent ?? column.header}
+                        </AdminMobileCellLabel>
+                        <div className="admin-kit__cell-value">{content}</div>
+                      </td>
+                    );
+                  })}
                   {hasDetailsColumn ? (
                     <td data-card-slot="actions">
                       <AdminMobileCellLabel>{detailsLabel}</AdminMobileCellLabel>

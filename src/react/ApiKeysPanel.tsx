@@ -448,7 +448,7 @@ function ApiKeysPanelImpl({
       cardSlot: "detail",
       header: "Scope",
       defaultWidth: 176,
-      minWidth: 144,
+      minWidth: 128,
       cell: (key) =>
         key.scopes.length ? (
           <ul className="admin-kit__scope-chips">
@@ -491,8 +491,8 @@ function ApiKeysPanelImpl({
       id: "state",
       cardSlot: "badge",
       header: "State",
-      defaultWidth: 88,
-      minWidth: 80,
+      defaultWidth: 96,
+      minWidth: 96,
       cell: (key) => (
         <span className={`admin-kit__state-pill admin-kit__state-pill--key-${key.state}`}>
           {key.state}

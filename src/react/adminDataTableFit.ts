@@ -3,6 +3,8 @@ export type AdminDataTableColumnPriority = "primary" | "secondary" | "tertiary";
 export const DEFAULT_MIN_WIDTH = 64;
 export const DEFAULT_MAX_WIDTH = 960;
 export const DETAILS_COLUMN_WIDTH = 96;
+/** Below this container width a stacked card puts each label above its value. */
+export const NARROW_CARD_WIDTH = 340;
 const FILL_MIN_WIDTH = DEFAULT_MIN_WIDTH * 3;
 
 export interface FitColumn {

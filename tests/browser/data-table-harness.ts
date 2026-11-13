@@ -121,3 +121,88 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 );
 `;
 }
+
+export const mount = (element: string, setup = "") => `
+${setup}
+ReactDOM.createRoot(document.getElementById("root")).render(${element});
+`;
+
+const keysAdapter = `
+const keysAdapter = {
+  async list() {
+    return [
+      { id: "key_1", name: "automation-pipeline-production", maskedKey: "ak_1234567890abcdef", scopes: ["catalog.read"], state: "active", createdAt: "2026-07-13T00:00:00.000Z" },
+      { id: "key_2", name: "reporting", maskedKey: "ak_abcdef1234567890", scopes: ["reports.read"], state: "active", createdAt: "2026-07-14T00:00:00.000Z" },
+      { id: "key_3", name: "retired", maskedKey: "ak_0000000000000000", scopes: ["reports.read"], state: "revoked", createdAt: "2026-07-15T00:00:00.000Z" },
+    ];
+  },
+  async create() { throw new Error("unused"); },
+  async revoke() { throw new Error("unused"); },
+};`;
+
+export const keysPanel = mount(
+  `React.createElement(Kit.ApiKeysPanel, { adapter: keysAdapter, presentation: "responsive", storageKey: "keys" })`,
+  keysAdapter,
+);
+
+export const usersPanel = mount(
+  `React.createElement(Kit.UsersPanel, {
+    adapter: usersAdapter,
+    search: false,
+    renderUserActions: (user) => React.createElement(React.Fragment, null,
+      React.createElement("button", { "aria-label": "Edit " + user.label, type: "button" }, "Edit"),
+      React.createElement("button", { "aria-label": "Reset password for " + user.label, type: "button" }, "Reset password")),
+  })`,
+  `const usersAdapter = {
+    async list() {
+      return { items: [{ id: "usr_1", label: "avery.long.email.address@example.test", role: { value: "owner", label: "Owner" }, status: { value: "active", label: "Active" } }], total: 1, page: 1, pageSize: 25 };
+    },
+  };`,
+);
+
+const editableUsersAdapter = `const usersAdapter = {
+  roles: [{ value: "owner", label: "Owner" }, { value: "member", label: "Member" }, { value: "administrator", label: "Administrator" }],
+  statuses: [{ value: "active", label: "Active" }, { value: "deactivated", label: "Deactivated" }],
+  setRole: { async execute() {} },
+  setStatus: { async execute() {} },
+  async list() {
+    return { items: [
+      { id: "usr_1", label: "Avery", secondaryLabel: "avery@example.test", role: { value: "administrator", label: "Administrator" }, status: { value: "deactivated", label: "Deactivated" } },
+      { id: "usr_2", label: "Blake", secondaryLabel: "blake.with.a.long.name@example.test", role: { value: "member", label: "Member" }, status: { value: "active", label: "Active" } },
+    ], total: 2, page: 1, pageSize: 25 };
+  },
+};
+const deleteAction = (user) => React.createElement("button", { "aria-label": "Delete " + user.label, type: "button" }, "Delete");`;
+
+/** The default User / Role / Status / Actions table with real selects and a Delete action. */
+export const usersControlsPanel = mount(
+  `React.createElement(Kit.UsersPanel, { adapter: usersAdapter, search: false, renderUserActions: deleteAction })`,
+  editableUsersAdapter,
+);
+
+/** The custom-column schema a host like Cairn passes: Email is tertiary, Updated secondary, dates are nowrap. */
+export const usersCustomColumnsPanel = mount(
+  `React.createElement(Kit.UsersPanel, { adapter: usersAdapter, search: false, columns: customColumns })`,
+  `${editableUsersAdapter}
+const when = "Nov 11, 2026, 2:00 PM";
+const select = (key, label, options, setter) => (user, ctx) => React.createElement("select", { "aria-label": label + " for " + user.label, value: user[key].value, onChange: (e) => ctx[setter](e.target.value) },
+  options.map((o) => React.createElement("option", { key: o.value, value: o.value }, o.label)));
+const customColumns = [
+  { id: "account", label: "Account", priority: "primary", render: (user) => React.createElement("div", { className: "admin-kit__user-identity" }, React.createElement("strong", null, user.label), React.createElement("span", null, user.secondaryLabel)) },
+  { id: "email", label: "Email", priority: "tertiary", render: (user) => user.secondaryLabel },
+  { id: "created", label: "Created", priority: "tertiary", nowrap: true, width: 170, render: () => when },
+  { id: "updated", label: "Updated", priority: "secondary", nowrap: true, width: 170, render: () => when },
+  { id: "role", label: "Role", width: 176, minWidth: 160, render: select("role", "Role", usersAdapter.roles, "setRole") },
+  { id: "status", label: "Status", width: 176, minWidth: 160, render: select("status", "Status", usersAdapter.statuses, "setStatus") },
+  { id: "actions", label: "Actions", width: 120, minWidth: 120, render: deleteAction },
+];`,
+);
+
+export const jobsPanel = mount(
+  `React.createElement(Kit.OperationalJobsPanel, { adapter: jobsAdapter, title: "Retention runs" })`,
+  `const jobsAdapter = {
+    async list() {
+      return { items: [{ id: "job_1", label: "Retention policy enforcement for long-running audit exports", detail: "Removes old exports", startedAt: "2024-01-01T15:12:00.000Z", state: "completed" }], page: 1, pageSize: 25, total: 1 };
+    },
+  };`,
+);

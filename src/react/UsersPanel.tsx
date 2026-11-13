@@ -45,8 +45,12 @@ export interface AdminUserTableColumn<User extends AdminUserSummary> {
   className?: string;
   headerClassName?: string;
   sortable?: boolean;
-  /** Keeps concise values such as timestamps on a single line. */
+  /** Keeps concise values such as timestamps on a single line; the cell ends in an ellipsis when it is too narrow. */
   nowrap?: boolean;
+  /** px. Preferred width; shrinks to `minWidth` to fit. Defaults to 160. */
+  width?: number;
+  /** px. The narrowest the column renders before it is hidden or the table stacks. Set it to what the cell's controls need. */
+  minWidth?: number;
   /** Responsive priority; lower-priority columns are hidden before the table scrolls. */
   priority?: "primary" | "secondary" | "tertiary";
 }
@@ -208,8 +212,9 @@ export function UsersPanel<User extends AdminUserSummary>({
             [column.headerClassName, ...layoutClassNames].filter(Boolean).join(" ") || undefined,
           className: [column.className, ...layoutClassNames].filter(Boolean).join(" ") || undefined,
           priority: column.priority,
-          defaultWidth: index === 0 ? undefined : CUSTOM_COLUMN_WIDTH,
-          minWidth: index === 0 ? 200 : 96,
+          truncate: column.nowrap,
+          defaultWidth: index === 0 ? undefined : (column.width ?? CUSTOM_COLUMN_WIDTH),
+          minWidth: column.minWidth ?? (index === 0 ? 200 : 96),
           sort: column.sortable
             ? {
                 direction:
@@ -230,7 +235,7 @@ export function UsersPanel<User extends AdminUserSummary>({
         {
           id: "user",
           header: "User",
-          minWidth: 240,
+          minWidth: 200,
           cell: (user) => (
             <div className="admin-kit__user-identity">
               <strong>{user.label}</strong>
@@ -266,7 +271,7 @@ export function UsersPanel<User extends AdminUserSummary>({
           id: "role",
           header: "Role",
           defaultWidth: 168,
-          minWidth: 120,
+          minWidth: 160,
           cell: (user) =>
             adapter.roles?.length &&
             adapter.setRole &&
@@ -292,7 +297,7 @@ export function UsersPanel<User extends AdminUserSummary>({
           id: "status",
           header: "Status",
           defaultWidth: 168,
-          minWidth: 120,
+          minWidth: 160,
           cell: (user) =>
             adapter.statuses?.length &&
             adapter.setStatus &&
@@ -320,6 +325,8 @@ export function UsersPanel<User extends AdminUserSummary>({
                 id: "actions",
                 header: "Actions",
                 defaultWidth: 220,
+                minWidth: 220,
+                maxWidth: 220,
                 resizable: false,
                 cell: (user: User) => (
                   <div className="admin-kit__user-controls">
