@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.47.0
+
+### Breaking
+
+- styles.css is now in the `admin-kit` cascade layer, so every host must declare that layer in an `@layer` order statement before the kit import; adds public type tokens and sentence-case column headers
+  The whole stylesheet is wrapped in `@layer admin-kit`. A layered rule loses to every unlayered rule, so a host that has not declared the layer will see an unlayered reset (including the Tailwind 3 preflight and a plain global `button { background }`) beat the kit: card borders go to 0, primary buttons turn transparent and padding collapses.
+  
+  Migration:
+  
+  - Declare the layer order in a host stylesheet that is seen before the kit import, for example `@layer theme, base, admin-kit, components, utilities;` placed before `@import "tailwindcss"` and before `@andrewpopov/admin-kit/styles.css`. `admin-kit-conformance` now fails when no host CSS file declares an `@layer` order statement containing `admin-kit`.
+  - Move any unlayered reset (including the Tailwind 3 `@tailwind base`) into a layer declared before `admin-kit`.
+  
+  Other visible changes:
+  
+  - The generic button, input and select rules no longer match every control under `.admin-kit`. Host buttons placed in kit chrome (panel header actions, workspace toolbars, card actions) lose the kit button look and need the `admin-kit__button` class to keep it.
+  - `.admin-kit` now sets `font-size` from `--admin-kit-text-body-size` (1rem) instead of inheriting the host size, and a new `.admin-kit :where(small)` rule restyles host `<small>` at the caption size.
+  - New public tokens: `--admin-kit-font-family`, `--admin-kit-text-{page-title,title,body,body-sm,caption}-{size,leading}`, `--admin-kit-weight-title`, `--admin-kit-weight-strong` and `--admin-kit-table-heading-transform`, all overridable by hosts and accepted by conformance.
+  - Table column headers are sentence case (set `--admin-kit-table-heading-transform: uppercase` to restore), page and panel titles weigh 600, and state pills and outcome badges drop `text-transform` and use the caption size at 600.
+
+### Added
+
+- AdminDataTable fits its container: defaultWidth is a preferred width that shrinks to minWidth, columns take a priority (tertiary then secondary hide before anything scrolls), rows stack into cards only when the primary columns cannot fit, cells can claim a cardSlot (title, badge, meta, detail, actions), every cell value sits in one .admin-kit__cell-value element, and expandedKeys / onExpandedChange control row expansion. ApiKeysPanel and UsersPanel use the same fit, so the responsive key presentation no longer needs a host viewport hook
+  A table beside a side rail or inside a narrow panel no longer scrolls sideways: it drops its least important columns first, keeps their values one click away in the row details, and turns into compact cards only when its main columns cannot fit. Measured in Cairn, 7 of 9 admin tables overflowed at 1024px before this change.
+
+### Changed
+
+- Existing AdminDataTable hosts see a new layout: tables stack into cards from the measured container width instead of the 48rem viewport query, columns with a defaultWidth shrink toward minWidth, a non-resizable column without a minWidth keeps its defaultWidth, columns hidden by priority stay reachable in a row details toggle, every cell value is wrapped in .admin-kit__cell-value (selectors that targeted a direct td child must target that wrapper), UsersPanel priority hiding no longer uses CSS container queries, and ApiKeysPanel presentation=responsive always renders the table
+  Hosts that styled AdminDataTable cells with `td > …` selectors, relied on the 48rem card breakpoint, or gave Actions columns no `minWidth` should re-check those tables; a classic always-visible scrollbar now reserves its gutter so the layout cannot flip between table and cards.
+
 ## 0.46.1
 
 ### Changed
