@@ -50,6 +50,8 @@ export interface OperationalJobsPanelProps {
   emptyState?: { title: string; detail?: string };
   /** Persist this viewer's column widths under this key. */
   storageKey?: string;
+  /** The table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
+  tableFill?: boolean;
 }
 
 /** Displays host-owned scheduled, import, and retention runs without mislabeling them as backups. */
@@ -62,6 +64,7 @@ export function OperationalJobsPanel({
   formatTimestamp,
   emptyState = { title: "No operational runs yet." },
   storageKey,
+  tableFill,
 }: OperationalJobsPanelProps) {
   const labels = useAdminLabels();
   const [result, setResult] = useState<{ items: readonly AdminOperationalJob[]; total: number }>();
@@ -206,6 +209,7 @@ export function OperationalJobsPanel({
           rowKey={(item) => item.id}
           rows={result.items}
           storageKey={storageKey}
+          fill={tableFill}
           wrapClassName="admin-kit__operations-table-wrap"
         />
       )}
@@ -235,6 +239,8 @@ export interface BackupsPanelProps {
   formatTimestamp?: (iso: string) => string;
   /** Persist this viewer's column widths under this key. */
   storageKey?: string;
+  /** The table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
+  tableFill?: boolean;
 }
 
 export function BackupsPanel({
@@ -245,6 +251,7 @@ export function BackupsPanel({
   className,
   formatTimestamp,
   storageKey,
+  tableFill,
 }: BackupsPanelProps) {
   const labels = useAdminLabels();
   const [result, setResult] = useState<{ items: readonly AdminBackupSummary[]; total: number }>();
@@ -424,6 +431,7 @@ export function BackupsPanel({
           rowKey={(item) => item.id}
           rows={result.items}
           storageKey={storageKey}
+          fill={tableFill}
           wrapClassName="admin-kit__operations-table-wrap admin-kit__backups-table-wrap"
         />
       )}

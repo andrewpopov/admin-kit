@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from "react";
 import { AdminMobileCellLabel } from "./AdminTablePrimitives";
+import { useFillBox } from "./useFillBox";
 import {
   clamp,
   columnBounds,
@@ -47,6 +48,8 @@ export interface AdminDataTableColumn<Row> {
   defaultWidth?: number;
   minWidth?: number;
   maxWidth?: number;
+  /** px. The fill column's (no `defaultWidth`) preferred width, default 280: sized columns shrink toward their `minWidth` before it drops below this. */
+  fillWidth?: number;
   resizable?: boolean;
   /** One line with an ellipsis; pair with `title` and `renderDetails` so the full value stays reachable. */
   truncate?: boolean;
@@ -79,6 +82,8 @@ export interface AdminDataTableProps<Row> {
   rowLabel?: (row: Row) => string;
   className?: string;
   wrapClassName?: string;
+  /** Sizes the table to the viewport (its top down to what sits below it, such as pagination and the frame's padding) so it scrolls itself under a pinned header and the page does not. Stacked cards keep the page flow. */
+  fill?: boolean;
 }
 
 type Widths = Record<string, number>;
@@ -138,6 +143,7 @@ export function AdminDataTable<Row>({
   rowLabel,
   className,
   wrapClassName,
+  fill = false,
 }: AdminDataTableProps<Row>) {
   const idPrefix = useId();
   const [stored, setStored] = useState(() => ({
@@ -181,6 +187,19 @@ export function AdminDataTable<Row>({
     return () => observer.disconnect();
   }, []);
 
+  const fillBox = useFillBox(wrapRef, fill);
+  const [headHeight, setHeadHeight] = useState(0);
+  useIsomorphicLayoutEffect(() => {
+    const head = wrapRef.current?.querySelector("thead");
+    if (!head) return undefined;
+    const measure = () => setHeadHeight(head.offsetHeight);
+    measure();
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(measure);
+    observer.observe(head);
+    return () => observer.disconnect();
+  }, []);
+
   const fitColumns = columns.map((column) => ({
     id: column.id,
     priority: column.priority,
@@ -191,6 +210,7 @@ export function AdminDataTable<Row>({
         ? column.defaultWidth
         : undefined),
     maxWidth: column.maxWidth,
+    fillWidth: column.fillWidth,
     override: column.defaultWidth === undefined ? undefined : overrides[column.id],
   }));
   let fit = resolveTableFit(containerWidth, fitColumns, renderDetails ? DETAILS_COLUMN_WIDTH : 0);
@@ -310,9 +330,18 @@ export function AdminDataTable<Row>({
         (fit.stacked && containerWidth !== undefined && containerWidth < NARROW_CARD_WIDTH) ||
         undefined
       }
+      data-fill={(fill && fillBox !== undefined) || undefined}
       data-scrolls={fit.scrolls || undefined}
       data-stacked={fit.stacked || undefined}
       ref={wrapRef}
+      style={
+        {
+          scrollPaddingBlockStart: fit.stacked || !headHeight ? undefined : `${headHeight}px`,
+          ...(fill && fillBox
+            ? { "--admin-kit-fill-top": `${fillBox.top}px`, "--admin-kit-fill-below": `${fillBox.below}px` }
+            : {}),
+        } as CSSProperties
+      }
     >
       <table
         aria-busy={busy}

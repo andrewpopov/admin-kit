@@ -43,6 +43,8 @@ interface ApiKeysPanelSharedProps {
     formatTimestamp?: (iso: string) => string;
     /** Table presentation: persist this viewer's column widths under this key. */
     storageKey?: string;
+    /** Table presentation: the table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
+    tableFill?: boolean;
 }
 /** The adapter-shaped props and render-prop escape hatches, keyed to CreateInput/UpdateInput. */
 interface ApiKeysPanelDataProps<CreateInput, UpdateInput> {

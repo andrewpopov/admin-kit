@@ -27,5 +27,7 @@ export interface EventsPanelProps {
     emptyState?: ReactNode;
     /** Table presentation: persist this viewer's column widths under this key. */
     storageKey?: string;
+    /** Table presentation: the table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
+    tableFill?: boolean;
 }
-export declare function EventsPanel({ adapter, title, headerPresentation, refreshLabel, search, pageSize, presentation, className, formatTimestamp, columns, emptyState, storageKey, }: EventsPanelProps): import("react").JSX.Element;
+export declare function EventsPanel({ adapter, title, headerPresentation, refreshLabel, search, pageSize, presentation, className, formatTimestamp, columns, emptyState, storageKey, tableFill, }: EventsPanelProps): import("react").JSX.Element;

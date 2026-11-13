@@ -31,6 +31,8 @@ export interface MembershipsPanelProps<
   className?: string;
   /** Persist this viewer's column widths under this key. */
   storageKey?: string;
+  /** The table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
+  tableFill?: boolean;
 }
 
 /**
@@ -49,6 +51,7 @@ export function MembershipsPanel<
   dialogClassName,
   className,
   storageKey,
+  tableFill,
 }: MembershipsPanelProps<InviteInput, Member>) {
   const [members, setMembers] = useState<readonly Member[]>();
   const [loadError, setLoadError] = useState<string>();
@@ -337,6 +340,7 @@ export function MembershipsPanel<
           rowKey={(member) => member.memberId}
           rows={members}
           storageKey={storageKey}
+          fill={tableFill}
           wrapClassName="admin-kit__memberships-table-wrap"
         />
       )}

@@ -47,6 +47,8 @@ export interface EventsPanelProps {
   emptyState?: ReactNode;
   /** Table presentation: persist this viewer's column widths under this key. */
   storageKey?: string;
+  /** Table presentation: the table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
+  tableFill?: boolean;
 }
 
 export function EventsPanel({
@@ -62,6 +64,7 @@ export function EventsPanel({
   columns = ALL_COLUMNS,
   emptyState,
   storageKey,
+  tableFill,
 }: EventsPanelProps) {
   const show = (column: EventsPanelColumn) => columns.includes(column);
   const labels = useAdminLabels();
@@ -278,6 +281,7 @@ export function EventsPanel({
           }
           rows={result.items}
           storageKey={storageKey}
+          fill={tableFill}
           wrapClassName="admin-kit__events-table-wrap"
         />
       ) : (

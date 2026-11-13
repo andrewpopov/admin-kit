@@ -78,6 +78,7 @@ describe("styles.css type tokens", () => {
       "--admin-kit-weight-title",
       "--admin-kit-weight-strong",
       "--admin-kit-table-heading-transform",
+      "--admin-kit-app-min-block-size",
     ];
     for (const name of names) expect(tokenBlock, name).toMatch(new RegExp(`${name}:\\s*[^;]+;`));
   });

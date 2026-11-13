@@ -18,6 +18,8 @@ export interface AdminDataTableColumn<Row> {
     defaultWidth?: number;
     minWidth?: number;
     maxWidth?: number;
+    /** px. The fill column's (no `defaultWidth`) preferred width, default 280: sized columns shrink toward their `minWidth` before it drops below this. */
+    fillWidth?: number;
     resizable?: boolean;
     /** One line with an ellipsis; pair with `title` and `renderDetails` so the full value stays reachable. */
     truncate?: boolean;
@@ -49,6 +51,8 @@ export interface AdminDataTableProps<Row> {
     rowLabel?: (row: Row) => string;
     className?: string;
     wrapClassName?: string;
+    /** Sizes the table to the viewport (its top down to what sits below it, such as pagination and the frame's padding) so it scrolls itself under a pinned header and the page does not. Stacked cards keep the page flow. */
+    fill?: boolean;
 }
 /** Resizable, sticky-header data table that fits its container: columns shrink, low-priority ones hide, and rows become cards when the primary columns cannot fit. */
-export declare function AdminDataTable<Row>({ columns, rows, rowKey, label, storageKey, busy, renderDetails, detailsLabel, expandedKeys, onExpandedChange, rowBusy, renderExpansion, rowLabel, className, wrapClassName, }: AdminDataTableProps<Row>): import("react").JSX.Element;
+export declare function AdminDataTable<Row>({ columns, rows, rowKey, label, storageKey, busy, renderDetails, detailsLabel, expandedKeys, onExpandedChange, rowBusy, renderExpansion, rowLabel, className, wrapClassName, fill, }: AdminDataTableProps<Row>): import("react").JSX.Element;

@@ -433,7 +433,7 @@ describe("AdminDataTable", () => {
         />,
       );
       expect(colWidth(container, "actions")).toBe("168px");
-      expect(colWidth(container, "note")).toBe("172px");
+      expect(colWidth(container, "note")).toBe("100px");
     });
 
     it("keeps hidden columns reachable in a labelled details row", () => {

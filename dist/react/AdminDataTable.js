@@ -5,6 +5,7 @@ exports.AdminDataTable = AdminDataTable;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const AdminTablePrimitives_1 = require("./AdminTablePrimitives");
+const useFillBox_1 = require("./useFillBox");
 const adminDataTableFit_1 = require("./adminDataTableFit");
 const KEYBOARD_STEP = 16;
 const KEYBOARD_LARGE_STEP = 64;
@@ -51,7 +52,7 @@ function writeStoredWidths(storageKey, widths) {
     }
 }
 /** Resizable, sticky-header data table that fits its container: columns shrink, low-priority ones hide, and rows become cards when the primary columns cannot fit. */
-function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false, renderDetails, detailsLabel = "Details", expandedKeys, onExpandedChange, rowBusy, renderExpansion, rowLabel, className, wrapClassName, }) {
+function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false, renderDetails, detailsLabel = "Details", expandedKeys, onExpandedChange, rowBusy, renderExpansion, rowLabel, className, wrapClassName, fill = false, }) {
     const idPrefix = (0, react_1.useId)();
     const [stored, setStored] = (0, react_1.useState)(() => ({
         key: storageKey,
@@ -95,6 +96,20 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
         observer.observe(wrap);
         return () => observer.disconnect();
     }, []);
+    const fillBox = (0, useFillBox_1.useFillBox)(wrapRef, fill);
+    const [headHeight, setHeadHeight] = (0, react_1.useState)(0);
+    useIsomorphicLayoutEffect(() => {
+        const head = wrapRef.current?.querySelector("thead");
+        if (!head)
+            return undefined;
+        const measure = () => setHeadHeight(head.offsetHeight);
+        measure();
+        if (typeof ResizeObserver === "undefined")
+            return undefined;
+        const observer = new ResizeObserver(measure);
+        observer.observe(head);
+        return () => observer.disconnect();
+    }, []);
     const fitColumns = columns.map((column) => ({
         id: column.id,
         priority: column.priority,
@@ -104,6 +119,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
                 ? column.defaultWidth
                 : undefined),
         maxWidth: column.maxWidth,
+        fillWidth: column.fillWidth,
         override: column.defaultWidth === undefined ? undefined : overrides[column.id],
     }));
     let fit = (0, adminDataTableFit_1.resolveTableFit)(containerWidth, fitColumns, renderDetails ? adminDataTableFit_1.DETAILS_COLUMN_WIDTH : 0);
@@ -220,7 +236,12 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
     return ((0, jsx_runtime_1.jsx)("div", { className: ["admin-kit__table-wrap admin-kit__data-table-wrap", wrapClassName]
             .filter(Boolean)
             .join(" "), "data-narrow": (fit.stacked && containerWidth !== undefined && containerWidth < adminDataTableFit_1.NARROW_CARD_WIDTH) ||
-            undefined, "data-scrolls": fit.scrolls || undefined, "data-stacked": fit.stacked || undefined, ref: wrapRef, children: (0, jsx_runtime_1.jsxs)("table", { "aria-busy": busy, "aria-label": label, className: ["admin-kit__table admin-kit__data-table", className].filter(Boolean).join(" "), "data-stacked": fit.stacked || undefined, style: tableSize, children: [(0, jsx_runtime_1.jsxs)("colgroup", { children: [visibleColumns.map((column) => {
+            undefined, "data-fill": (fill && fillBox !== undefined) || undefined, "data-scrolls": fit.scrolls || undefined, "data-stacked": fit.stacked || undefined, ref: wrapRef, style: {
+            scrollPaddingBlockStart: fit.stacked || !headHeight ? undefined : `${headHeight}px`,
+            ...(fill && fillBox
+                ? { "--admin-kit-fill-top": `${fillBox.top}px`, "--admin-kit-fill-below": `${fillBox.below}px` }
+                : {}),
+        }, children: (0, jsx_runtime_1.jsxs)("table", { "aria-busy": busy, "aria-label": label, className: ["admin-kit__table admin-kit__data-table", className].filter(Boolean).join(" "), "data-stacked": fit.stacked || undefined, style: tableSize, children: [(0, jsx_runtime_1.jsxs)("colgroup", { children: [visibleColumns.map((column) => {
                             const width = widthOf(column);
                             return ((0, jsx_runtime_1.jsx)("col", { className: column.className, "data-column": column.id, style: width === undefined ? undefined : { width: `${width}px` } }, column.id));
                         }), hasDetailsColumn ? (0, jsx_runtime_1.jsx)("col", { style: { width: `${adminDataTableFit_1.DETAILS_COLUMN_WIDTH}px` } }) : null] }), (0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { children: [visibleColumns.map((column) => {

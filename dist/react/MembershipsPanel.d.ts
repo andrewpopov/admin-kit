@@ -19,9 +19,11 @@ export interface MembershipsPanelProps<InviteInput = never, Member extends Admin
     className?: string;
     /** Persist this viewer's column widths under this key. */
     storageKey?: string;
+    /** The table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
+    tableFill?: boolean;
 }
 /**
  * Scoped membership administration. Hosts own identity discovery, invitation
  * delivery, authorization, inheritance, transport, and audit policy.
  */
-export declare function MembershipsPanel<InviteInput = never, Member extends AdminMembershipSummary = AdminMembershipSummary>({ adapter, title, renderAddMember, renderMemberActions, getRemoveDescription, dialogClassName, className, storageKey, }: MembershipsPanelProps<InviteInput, Member>): import("react").JSX.Element;
+export declare function MembershipsPanel<InviteInput = never, Member extends AdminMembershipSummary = AdminMembershipSummary>({ adapter, title, renderAddMember, renderMemberActions, getRemoveDescription, dialogClassName, className, storageKey, tableFill, }: MembershipsPanelProps<InviteInput, Member>): import("react").JSX.Element;
