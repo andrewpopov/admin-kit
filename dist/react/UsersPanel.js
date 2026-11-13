@@ -137,6 +137,7 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
                 priority: column.priority,
                 truncate: column.nowrap,
                 defaultWidth: index === 0 ? undefined : (column.width ?? CUSTOM_COLUMN_WIDTH),
+                fillWidth: column.fillWidth,
                 minWidth: column.minWidth ?? (index === 0 ? 200 : 96),
                 sort: column.sortable
                     ? {

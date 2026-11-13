@@ -10,7 +10,7 @@ exports.DETAILS_COLUMN_WIDTH = 96;
 /** Below this container width a stacked card puts each label above its value. */
 exports.NARROW_CARD_WIDTH = 340;
 const FILL_MIN_WIDTH = exports.DEFAULT_MIN_WIDTH * 3;
-/** The width a fill column with no `minWidth` or `fillWidth` asks for before sized columns keep their own preferred widths. */
+/** The width a fill column asks for when it sets no `fillWidth`, before sized columns keep their own preferred widths. */
 exports.DEFAULT_FILL_WIDTH = 280;
 /** Columns hidden at each step, cheapest information first. */
 const HIDE_STEPS = [
@@ -39,8 +39,7 @@ function preferredOf(column) {
     return clamp(column.override ?? column.defaultWidth, min, max);
 }
 function fillPreferredOf(column) {
-    const requested = column.fillWidth ?? (column.minWidth === undefined ? exports.DEFAULT_FILL_WIDTH : 0);
-    return Math.max(minimumOf(column), requested);
+    return Math.max(minimumOf(column), column.fillWidth ?? exports.DEFAULT_FILL_WIDTH);
 }
 function sum(values) {
     return values.reduce((total, value) => total + value, 0);

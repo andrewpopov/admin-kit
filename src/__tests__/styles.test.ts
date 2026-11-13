@@ -420,10 +420,10 @@ describe("shell and table layout contracts (ZIRK-1150)", () => {
 });
 
 describe("app frame minimum height", () => {
-  it("reads the public min-block-size token on both frames, defaulting to 100dvh", () => {
+  it("reads the public min-block-size token on both frames", () => {
     for (const frame of [".admin-kit__app", ".admin-kit__app-shell"]) {
       const rule = styles.match(new RegExp(`^${frame.replace(".", "\\.")} \\{([^}]*)\\}`, "m"))?.[1] ?? "";
-      expect(rule, frame).toContain("min-block-size: var(--admin-kit-app-min-block-size, 100dvh);");
+      expect(rule, frame).toContain("min-block-size: var(--admin-kit-app-min-block-size);");
     }
   });
 });

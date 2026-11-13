@@ -292,7 +292,7 @@ describe("admin-kit-conformance", () => {
     const root = createConsumerFixture();
     writeFileSync(
       join(root, "src", "app.css"),
-      ":root { --admin-kit-app-min-block-size: calc(100dvh - 45px); --admin-kit-table-footer-reserve: 5rem; }",
+      ":root { --admin-kit-app-min-block-size: calc(100dvh - 45px); }",
     );
 
     const result = runConformance(root);

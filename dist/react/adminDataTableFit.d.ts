@@ -4,7 +4,7 @@ export declare const DEFAULT_MAX_WIDTH = 960;
 export declare const DETAILS_COLUMN_WIDTH = 96;
 /** Below this container width a stacked card puts each label above its value. */
 export declare const NARROW_CARD_WIDTH = 340;
-/** The width a fill column with no `minWidth` or `fillWidth` asks for before sized columns keep their own preferred widths. */
+/** The width a fill column asks for when it sets no `fillWidth`, before sized columns keep their own preferred widths. */
 export declare const DEFAULT_FILL_WIDTH = 280;
 export interface FitColumn {
     id: string;

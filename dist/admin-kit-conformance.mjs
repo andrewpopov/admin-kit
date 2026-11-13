@@ -60,7 +60,6 @@ const PUBLIC_THEME_TOKENS = new Set([
   'weight-strong',
   'table-heading-transform',
   'app-min-block-size',
-  'table-footer-reserve',
 ]);
 const sourceFiles = [];
 const packageManifests = [];
@@ -191,7 +190,7 @@ for (const { path, text } of files) {
     const name = match[1];
     if (!PUBLIC_THEME_TOKENS.has(name)) {
       errors.push(
-        `${rel}: --admin-kit-${name} is an internal Admin Kit token and cannot be overridden; only the public theme and type tokens may be set (accent, accent-strong, accent-soft, on-accent, radius, radius-sm, dark-accent, dark-accent-strong, dark-accent-soft, font-family, text-{page-title,title,body,body-sm,caption}-{size,leading}, weight-title, weight-strong, table-heading-transform, app-min-block-size, table-footer-reserve).`,
+        `${rel}: --admin-kit-${name} is an internal Admin Kit token and cannot be overridden; only the public theme, type and layout tokens may be set (accent, accent-strong, accent-soft, on-accent, radius, radius-sm, dark-accent, dark-accent-strong, dark-accent-soft, font-family, text-{page-title,title,body,body-sm,caption}-{size,leading}, weight-title, weight-strong, table-heading-transform, app-min-block-size).`,
       );
     }
   }

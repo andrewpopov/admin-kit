@@ -97,6 +97,11 @@ describe("resolveTableFit", () => {
       expect(fillSpace(888, resolveTableFit(888, wide, details))).toBeGreaterThanOrEqual(320);
     });
 
+    it("asks for fillWidth even when the fill column sets a lower minWidth", () => {
+      const pinned = deliveries.map((column) => (column.id === "delivery" ? { ...column, minWidth: 160 } : column));
+      expect(fillSpace(888, resolveTableFit(888, pinned, details))).toBeGreaterThanOrEqual(280);
+    });
+
     it("lets the fill column fall toward its minimum once sized columns are at theirs", () => {
       const fit = resolveTableFit(760, deliveries, details);
       expect(fit.stacked).toBe(false);

@@ -53,6 +53,8 @@ export interface AdminUserTableColumn<User extends AdminUserSummary> {
   width?: number;
   /** px. The narrowest the column renders before it is hidden or the table stacks. Set it to what the cell's controls need. */
   minWidth?: number;
+  /** px. The first column's (the one that fills) preferred width, default 280: other columns shrink toward their `minWidth` before it drops below this. */
+  fillWidth?: number;
   /** Responsive priority; lower-priority columns are hidden before the table scrolls. */
   priority?: "primary" | "secondary" | "tertiary";
 }
@@ -217,6 +219,7 @@ export function UsersPanel<User extends AdminUserSummary>({
           priority: column.priority,
           truncate: column.nowrap,
           defaultWidth: index === 0 ? undefined : (column.width ?? CUSTOM_COLUMN_WIDTH),
+          fillWidth: column.fillWidth,
           minWidth: column.minWidth ?? (index === 0 ? 200 : 96),
           sort: column.sortable
             ? {

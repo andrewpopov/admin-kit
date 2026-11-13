@@ -6,7 +6,7 @@ export const DETAILS_COLUMN_WIDTH = 96;
 /** Below this container width a stacked card puts each label above its value. */
 export const NARROW_CARD_WIDTH = 340;
 const FILL_MIN_WIDTH = DEFAULT_MIN_WIDTH * 3;
-/** The width a fill column with no `minWidth` or `fillWidth` asks for before sized columns keep their own preferred widths. */
+/** The width a fill column asks for when it sets no `fillWidth`, before sized columns keep their own preferred widths. */
 export const DEFAULT_FILL_WIDTH = 280;
 
 export interface FitColumn {
@@ -64,8 +64,7 @@ function preferredOf(column: FitColumn) {
 }
 
 function fillPreferredOf(column: FitColumn) {
-  const requested = column.fillWidth ?? (column.minWidth === undefined ? DEFAULT_FILL_WIDTH : 0);
-  return Math.max(minimumOf(column), requested);
+  return Math.max(minimumOf(column), column.fillWidth ?? DEFAULT_FILL_WIDTH);
 }
 
 function sum(values: readonly number[]) {

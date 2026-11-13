@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from "react";
 import { AdminMobileCellLabel } from "./AdminTablePrimitives";
+import { useFillBox } from "./useFillBox";
 import {
   clamp,
   columnBounds,
@@ -47,7 +48,7 @@ export interface AdminDataTableColumn<Row> {
   defaultWidth?: number;
   minWidth?: number;
   maxWidth?: number;
-  /** px. On the fill column (no `defaultWidth`): the width sized columns shrink to protect. Default 280 unless the column sets `minWidth`, which then is its preferred width. */
+  /** px. The fill column's (no `defaultWidth`) preferred width, default 280: sized columns shrink toward their `minWidth` before it drops below this. */
   fillWidth?: number;
   resizable?: boolean;
   /** One line with an ellipsis; pair with `title` and `renderDetails` so the full value stays reachable. */
@@ -81,7 +82,7 @@ export interface AdminDataTableProps<Row> {
   rowLabel?: (row: Row) => string;
   className?: string;
   wrapClassName?: string;
-  /** Sizes the table to the viewport (top to bottom, less `--admin-kit-table-footer-reserve`) so it scrolls itself under a pinned header and the page does not. Stacked cards keep the page flow. */
+  /** Sizes the table to the viewport (its top down to what sits below it, such as pagination and the frame's padding) so it scrolls itself under a pinned header and the page does not. Stacked cards keep the page flow. */
   fill?: boolean;
 }
 
@@ -159,7 +160,6 @@ export function AdminDataTable<Row>({
   const expanded = expandedKeys ?? expandedState;
   const wrapRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState<number>();
-  const [fillTop, setFillTop] = useState<number>();
   const drag = useRef<{ id: string; startX: number; startWidth: number }>();
   const dragged = useRef(false);
   const handles = useRef(new Map<string, HTMLElement>());
@@ -187,26 +187,18 @@ export function AdminDataTable<Row>({
     return () => observer.disconnect();
   }, []);
 
+  const fillBox = useFillBox(wrapRef, fill);
+  const [headHeight, setHeadHeight] = useState(0);
   useIsomorphicLayoutEffect(() => {
-    const wrap = wrapRef.current;
-    if (!fill || !wrap) {
-      setFillTop(undefined);
-      return undefined;
-    }
-    const measure = () => setFillTop(Math.round(wrap.getBoundingClientRect().top + window.scrollY));
+    const head = wrapRef.current?.querySelector("thead");
+    if (!head) return undefined;
+    const measure = () => setHeadHeight(head.offsetHeight);
     measure();
-    window.addEventListener("resize", measure);
-    if (typeof ResizeObserver === "undefined") {
-      return () => window.removeEventListener("resize", measure);
-    }
+    if (typeof ResizeObserver === "undefined") return undefined;
     const observer = new ResizeObserver(measure);
-    observer.observe(document.documentElement);
-    if (wrap.parentElement) observer.observe(wrap.parentElement);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, [fill]);
+    observer.observe(head);
+    return () => observer.disconnect();
+  }, []);
 
   const fitColumns = columns.map((column) => ({
     id: column.id,
@@ -338,14 +330,17 @@ export function AdminDataTable<Row>({
         (fit.stacked && containerWidth !== undefined && containerWidth < NARROW_CARD_WIDTH) ||
         undefined
       }
-      data-fill={(fill && fillTop !== undefined) || undefined}
+      data-fill={(fill && fillBox !== undefined) || undefined}
       data-scrolls={fit.scrolls || undefined}
       data-stacked={fit.stacked || undefined}
       ref={wrapRef}
       style={
-        fill && fillTop !== undefined
-          ? ({ "--admin-kit-fill-top": `${fillTop}px` } as CSSProperties)
-          : undefined
+        {
+          scrollPaddingBlockStart: fit.stacked || !headHeight ? undefined : `${headHeight}px`,
+          ...(fill && fillBox
+            ? { "--admin-kit-fill-top": `${fillBox.top}px`, "--admin-kit-fill-below": `${fillBox.below}px` }
+            : {}),
+        } as CSSProperties
       }
     >
       <table

@@ -173,3 +173,120 @@ test("the frame minimum height defaults to the viewport", async ({ page }) => {
   await serveDataTable(page, { script: frame("{}"), headStyle: bareFrame });
   expect(await frameHeight(page)).toBe(800);
 });
+
+const usersInApp = `
+const usersAdapter = { async list() {
+  return { items: Array.from({ length: 50 }, (_, index) => ({
+    id: "usr_" + index, label: "User " + index, secondaryLabel: "user" + index + "@example.test",
+    role: { value: "member", label: "Member" }, status: { value: "active", label: "Active" },
+  })), total: 200, page: 1, pageSize: 25 };
+} };
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(Kit.AdminApp, {
+  activeSection: "users",
+  onSectionChange: () => undefined,
+  groups: [{ id: "administration", label: "Administration", sections: [{
+    id: "users", label: "Users", capability: "users",
+    render: () => React.createElement(Kit.UsersPanel, { adapter: usersAdapter, search: false, tableFill: true }),
+  }] }],
+}));
+`;
+const hostHeader =
+  'body { margin: 0 } .admin-kit { padding: 0 !important; --admin-kit-app-min-block-size: calc(100dvh - 45px) } #root::before { content: ""; display: block; height: 45px }';
+
+for (const [width, height] of [
+  [1280, 800],
+  [1024, 768],
+  [1440, 900],
+  [1280, 600],
+]) {
+  test(`a real UsersPanel in AdminApp with pagination does not scroll the page at ${width}x${height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height });
+    await serveDataTable(page, { script: usersInApp, headStyle: hostHeader });
+    await expect(page.locator(".admin-kit__data-table-wrap")).toHaveAttribute("data-fill", "true");
+    const pagination = page.getByRole("navigation", { name: "User pagination" });
+    await expect(pagination).toBeVisible();
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(pageOverflow), "page scroll").toBeLessThanOrEqual(0);
+    const nav = (await pagination.boundingBox())!;
+    expect(nav.y + nav.height, "pagination bottom").toBeLessThanOrEqual(height);
+    const wrap = (await page.locator(".admin-kit__data-table-wrap").boundingBox())!;
+    expect(height - (wrap.y + wrap.height), "the table fills down to the pagination").toBeLessThan(150);
+  });
+}
+
+const bandOutsideParent = `
+const rows = Array.from({ length: 50 }, (_, index) => ({ id: "row" + index, name: "Deployment " + index }));
+const columns = [
+  { id: "name", header: "Name", minWidth: 160, cell: (row) => row.name },
+  { id: "state", header: "State", defaultWidth: 120, minWidth: 100, cell: () => "active" },
+];
+ReactDOM.createRoot(document.getElementById("root")).render(
+  React.createElement("div", { style: { minHeight: "100dvh" } },
+    React.createElement("div", { id: "band", style: { height: "160px" } }, "Controls"),
+    React.createElement("section", null,
+      React.createElement(AdminDataTable, { columns, rows, rowKey: (row) => row.id, label: "Keys", fill: true }),
+      React.createElement("nav", { "aria-label": "Pagination", style: { height: "44px" } }, "Page 1"))),
+);
+`;
+
+test("fill table grows into the room a band outside its parent frees", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await serveDataTable(page, {
+    script: bandOutsideParent,
+    headStyle: "body { margin: 0 } .admin-kit { padding: 0 !important }",
+  });
+  const wrap = page.locator(".admin-kit__data-table-wrap");
+  await expect(wrap).toHaveAttribute("data-fill", "true");
+  await page.locator("#band").evaluate((band) => (band.hidden = true));
+  await expect
+    .poll(async () => {
+      const box = (await wrap.boundingBox())!;
+      return 800 - (box.y + box.height);
+    })
+    .toBeLessThanOrEqual(60);
+});
+
+const tabbableRows = `
+const rows = Array.from({ length: 50 }, (_, index) => ({ id: "row" + index, name: "Deployment " + index }));
+const columns = [
+  { id: "name", header: "Name", minWidth: 160, cell: (row) => row.name },
+  { id: "act", header: "Action", defaultWidth: 160, minWidth: 120, cell: (row) => React.createElement("button", { type: "button" }, "Open " + row.name) },
+];
+ReactDOM.createRoot(document.getElementById("root")).render(
+  React.createElement(AdminDataTable, { columns, rows, rowKey: (row) => row.id, label: "Keys", fill: true }),
+);
+`;
+
+test("Shift+Tab never leaves the focused control under the pinned header", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await serveDataTable(page, { script: tabbableRows, headStyle: bareFrame });
+  const wrap = page.locator(".admin-kit__data-table-wrap");
+  await expect(wrap).toHaveAttribute("data-fill", "true");
+  const hidden: string[] = [];
+  for (const target of [10, 20, 30, 40]) {
+    await wrap.evaluate((node, name) => {
+      const button = [...node.querySelectorAll("button")].find((candidate) => candidate.textContent === name)!;
+      const header = node.querySelector("th")!.getBoundingClientRect().height;
+      node.scrollTop += button.getBoundingClientRect().top - node.getBoundingClientRect().top - header / 2;
+    }, `Open Deployment ${target}`);
+    await page.getByRole("button", { name: `Open Deployment ${target + 1}`, exact: true }).focus();
+    await page.keyboard.press("Shift+Tab");
+    const cleared = await page.evaluate(() => {
+      const focused = document.activeElement!.getBoundingClientRect();
+      return focused.top >= document.querySelector("th")!.getBoundingClientRect().bottom - 1;
+    });
+    if (!cleared) hidden.push(`Deployment ${target}`);
+  }
+  expect(hidden).toEqual([]);
+});
+
+test("a short viewport keeps the table at most 60% of the screen", async ({ page }) => {
+  await page.setViewportSize({ width: 667, height: 375 });
+  await serveDataTable(page, { script: filledTable(true), headStyle: bareFrame });
+  const wrap = page.locator(".admin-kit__data-table-wrap");
+  await expect(wrap).toHaveAttribute("data-fill", "true");
+  await expect(wrap).not.toHaveAttribute("data-stacked", /.*/);
+  expect((await wrap.boundingBox())!.height).toBeLessThanOrEqual(375 * 0.6 + 1);
+});
