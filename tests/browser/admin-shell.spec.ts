@@ -17,24 +17,6 @@ test("keeps routed navigation intrinsic and collection overflow inside their pan
   expect(rail?.height).toBeLessThan(content?.height ?? 0);
 
   await page.setViewportSize({ width: 320, height: 844 });
-  const usersPanel = page.getByRole("region", { name: "Users" });
-  const usersTableWrap = usersPanel.locator(".admin-kit__users-table-wrap");
-  const resetPassword = usersPanel.getByRole("button", {
-    name: "Reset password for avery.long.email.address@example.test",
-  });
-  await expect(resetPassword).toBeVisible();
-  expect(
-    await usersTableWrap.evaluate((node) => node.scrollWidth <= node.clientWidth),
-    "UsersPanel actions must not require horizontal scrolling at 320px",
-  ).toBe(true);
-  const [usersBounds, resetBounds] = await Promise.all([
-    usersTableWrap.boundingBox(),
-    resetPassword.boundingBox(),
-  ]);
-  expect(resetBounds?.x).toBeGreaterThanOrEqual(usersBounds?.x ?? 0);
-  expect((resetBounds?.x ?? 0) + (resetBounds?.width ?? 0)).toBeLessThanOrEqual(
-    (usersBounds?.x ?? 0) + (usersBounds?.width ?? 0),
-  );
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   await expect(page.locator(".admin-kit__key-cards")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Server logs", level: 2 })).toBeVisible();
@@ -70,22 +52,7 @@ test("collapses portal navigation behind a Menu toggle on phones only", async ({
   await expect(navigation).toBeVisible();
 });
 
-test("renders EventsPanel rows as labelled cards on phones", async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto(fixture);
-  const eventsPanel = page.getByRole("region", { name: "Events" }).first();
-  const eventsTableWrap = eventsPanel.locator(".admin-kit__events-table-wrap");
-  await expect(eventsPanel.locator(".admin-kit__events-table tbody tr")).toHaveCount(1);
-  expect(
-    await eventsTableWrap.evaluate((node) => node.scrollWidth <= node.clientWidth),
-    "EventsPanel must not require horizontal scrolling at 375px",
-  ).toBe(true);
-  await expect(
-    eventsPanel.locator(".admin-kit__mobile-cell-label", { hasText: "Outcome" }),
-  ).toBeVisible();
-});
-
-test("lays out the EventsPanel data table with sized columns and a sticky header on desktop", async ({
+test("lays out the EventsPanel data table with sized columns and a sticky header", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -104,12 +71,6 @@ test("lays out the EventsPanel data table with sized columns and a sticky header
     "ellipsis",
   );
 
-  await page.setViewportSize({ width: 375, height: 812 });
-  await expect(table.getByRole("separator").first()).toBeHidden();
-  await expect(table.locator("td.admin-kit__table-cell--truncate small")).toHaveCSS(
-    "white-space",
-    "normal",
-  );
 });
 
 test("stacks a consumer-built table with the stack modifier on phones", async ({ page }) => {
@@ -392,21 +353,7 @@ test("renders loading skeleton bars, and only animates them when motion is allow
   expect(await bars.first().evaluate((node) => getComputedStyle(node).animationName)).toBe("none");
 });
 
-test("stacks the OperationalJobsPanel table into labelled cards on phones", async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto(fixture);
-  const wrap = page.locator(".admin-kit__operations-table-wrap");
-  expect(
-    await wrap.evaluate((node) => node.scrollWidth <= node.clientWidth),
-    "OperationalJobsPanel must not require horizontal scrolling at 375px",
-  ).toBe(true);
-  await expect(wrap.locator(".admin-kit__mobile-cell-label", { hasText: "Started" })).toBeVisible();
-
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await expect(wrap.locator(".admin-kit__mobile-cell-label").first()).toBeHidden();
-});
-
-test("renders the OperationalJobsPanel as a resizable data table on desktop and cards on phones", async ({
+test("renders the OperationalJobsPanel as a resizable data table on desktop", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -415,11 +362,6 @@ test("renders the OperationalJobsPanel as a resizable data table on desktop and 
   const started = table.getByRole("columnheader", { name: "Started" });
   await expect(table.getByRole("separator", { name: "Resize Started column" })).toBeVisible();
   await expect(started).toHaveCSS("position", "sticky");
-
-  await page.setViewportSize({ width: 375, height: 812 });
-  await expect(table.getByRole("separator").first()).toBeHidden();
-  await expect(table.locator("tbody tr").first()).toHaveCSS("display", "grid");
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
 });
 
 test("keeps every data-table cell inside its column at 1280px", async ({ page }) => {

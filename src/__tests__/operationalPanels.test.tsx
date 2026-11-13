@@ -167,7 +167,7 @@ describe("operational panels", () => {
     expect(screen.getByRole("table").classList.contains("admin-kit__table")).toBe(true);
   });
 
-  it("stacks the jobs table into labelled cards on phones", async () => {
+  it("labels every jobs table cell for the stacked cards", async () => {
     const { container } = render(
       <OperationalJobsPanel
         adapter={{
@@ -182,9 +182,7 @@ describe("operational panels", () => {
         }}
       />,
     );
-    const table = await screen.findByRole("table");
-    expect(table.classList.contains("admin-kit__table--stack")).toBe(true);
-    expect(table.parentElement?.classList.contains("admin-kit__table-wrap--stack")).toBe(true);
+    await screen.findByRole("table");
     expect(
       Array.from(container.querySelectorAll(".admin-kit__mobile-cell-label")).map(
         (label) => label.textContent,

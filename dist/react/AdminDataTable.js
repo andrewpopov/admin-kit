@@ -5,24 +5,14 @@ exports.AdminDataTable = AdminDataTable;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const AdminTablePrimitives_1 = require("./AdminTablePrimitives");
-const DEFAULT_MIN_WIDTH = 64;
-const DEFAULT_MAX_WIDTH = 960;
+const adminDataTableFit_1 = require("./adminDataTableFit");
 const KEYBOARD_STEP = 16;
 const KEYBOARD_LARGE_STEP = 64;
 const MENU_STEP = 32;
 const DRAG_THRESHOLD = 4;
 const STORAGE_PREFIX = "admin-kit:table-widths:";
-const DETAILS_COLUMN_WIDTH = 96;
+const useIsomorphicLayoutEffect = typeof window === "undefined" ? react_1.useEffect : react_1.useLayoutEffect;
 const SORT_ARROWS = { ascending: "↑", descending: "↓", none: "↕" };
-function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, Math.round(value)));
-}
-function bounds(column) {
-    return {
-        min: column.minWidth ?? DEFAULT_MIN_WIDTH,
-        max: column.maxWidth ?? DEFAULT_MAX_WIDTH,
-    };
-}
 function readStoredWidths(storageKey) {
     if (!storageKey || typeof window === "undefined")
         return {};
@@ -50,8 +40,8 @@ function writeStoredWidths(storageKey, widths) {
         // Storage is optional: the widths still apply for this visit.
     }
 }
-/** Resizable, sticky-header data table; below 48rem rows become labelled cards. */
-function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false, renderDetails, detailsLabel = "Details", rowBusy, renderExpansion, rowLabel, className, wrapClassName, }) {
+/** Resizable, sticky-header data table that fits its container: columns shrink, low-priority ones hide, and rows become cards when the primary columns cannot fit. */
+function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false, renderDetails, detailsLabel = "Details", expandedKeys, onExpandedChange, rowBusy, renderExpansion, rowLabel, className, wrapClassName, }) {
     const idPrefix = (0, react_1.useId)();
     const [stored, setStored] = (0, react_1.useState)(() => ({
         key: storageKey,
@@ -63,7 +53,10 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
     const overrides = stored.key === storageKey ? stored.widths : {};
     const latest = (0, react_1.useRef)(overrides);
     latest.current = overrides;
-    const [expanded, setExpanded] = (0, react_1.useState)(() => new Set());
+    const [expandedState, setExpandedState] = (0, react_1.useState)([]);
+    const expanded = expandedKeys ?? expandedState;
+    const wrapRef = (0, react_1.useRef)(null);
+    const [containerWidth, setContainerWidth] = (0, react_1.useState)();
     const drag = (0, react_1.useRef)();
     const dragged = (0, react_1.useRef)(false);
     const handles = (0, react_1.useRef)(new Map());
@@ -80,12 +73,39 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
         document.addEventListener("pointerdown", closeOutside);
         return () => document.removeEventListener("pointerdown", closeOutside);
     }, [idPrefix, menuFor]);
-    const widthOf = (column) => {
-        if (column.defaultWidth === undefined)
+    useIsomorphicLayoutEffect(() => {
+        const wrap = wrapRef.current;
+        if (!wrap)
             return undefined;
-        const { min, max } = bounds(column);
-        return clamp(overrides[column.id] ?? column.defaultWidth, min, max);
-    };
+        const measure = () => setContainerWidth(wrap.clientWidth || undefined);
+        measure();
+        if (typeof ResizeObserver === "undefined")
+            return undefined;
+        const observer = new ResizeObserver(measure);
+        observer.observe(wrap);
+        return () => observer.disconnect();
+    }, []);
+    const fitColumns = columns.map((column) => ({
+        id: column.id,
+        priority: column.priority,
+        defaultWidth: column.defaultWidth,
+        minWidth: column.minWidth ??
+            (column.resizable === false && column.defaultWidth !== undefined
+                ? column.defaultWidth
+                : undefined),
+        maxWidth: column.maxWidth,
+        override: column.defaultWidth === undefined ? undefined : overrides[column.id],
+    }));
+    let fit = (0, adminDataTableFit_1.resolveTableFit)(containerWidth, fitColumns, renderDetails ? adminDataTableFit_1.DETAILS_COLUMN_WIDTH : 0);
+    if (!renderDetails && !fit.stacked && fit.visibleIds.length < columns.length) {
+        fit = (0, adminDataTableFit_1.resolveTableFit)(containerWidth, fitColumns, adminDataTableFit_1.DETAILS_COLUMN_WIDTH);
+    }
+    const visibleColumns = columns.filter((column) => fit.visibleIds.includes(column.id));
+    const hiddenColumns = fit.stacked
+        ? []
+        : columns.filter((column) => !fit.visibleIds.includes(column.id));
+    const hasDetailsColumn = Boolean(renderDetails) || hiddenColumns.length > 0;
+    const widthOf = (column) => fit.widths[column.id];
     const persist = (widths) => {
         const known = new Set(columns.map((column) => column.id));
         writeStoredWidths(storageKey, Object.fromEntries(Object.entries(widths).filter(([id]) => known.has(id))));
@@ -95,8 +115,8 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
         if (width === undefined)
             delete next[column.id];
         else {
-            const { min, max } = bounds(column);
-            next[column.id] = clamp(width, min, max);
+            const { min, max } = (0, adminDataTableFit_1.columnBounds)(column);
+            next[column.id] = (0, adminDataTableFit_1.clamp)(width, min, max);
         }
         latest.current = next;
         setStored({ key: storageKey, widths: next });
@@ -108,7 +128,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
         if (current === undefined)
             return;
         const step = event.shiftKey ? KEYBOARD_LARGE_STEP : KEYBOARD_STEP;
-        const { min, max } = bounds(column);
+        const { min, max } = (0, adminDataTableFit_1.columnBounds)(column);
         let next = null;
         if (event.key === "Escape" && menuFor === column.id) {
             setMenuFor(undefined);
@@ -129,7 +149,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
         if (next === null)
             return;
         event.preventDefault();
-        setWidth(column, next === undefined ? undefined : clamp(next, min, max), { save: true });
+        setWidth(column, next === undefined ? undefined : (0, adminDataTableFit_1.clamp)(next, min, max), { save: true });
     };
     const onPointerDown = (column, event) => {
         const startWidth = widthOf(column);
@@ -173,35 +193,29 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
         event.stopPropagation();
         closeMenu(column);
     };
-    const toggle = (key) => setExpanded((current) => {
-        const next = new Set(current);
-        if (next.has(key))
-            next.delete(key);
-        else
-            next.add(key);
-        return next;
-    });
-    const fixedWidth = columns.reduce((total, column) => total + (widthOf(column) ?? column.minWidth ?? DEFAULT_MIN_WIDTH * 3), 0) + (renderDetails ? DETAILS_COLUMN_WIDTH : 0);
-    const columnCount = columns.length + (renderDetails ? 1 : 0);
-    const hasFillColumn = columns.some((column) => column.defaultWidth === undefined);
-    const tableSize = {
-        "--admin-kit-data-table-min-width": `${fixedWidth}px`,
-        ...(hasFillColumn ? {} : { "--admin-kit-data-table-width": `${fixedWidth}px` }),
+    const toggle = (key) => {
+        const next = expanded.includes(key)
+            ? expanded.filter((open) => open !== key)
+            : [...expanded, key];
+        if (expandedKeys === undefined)
+            setExpandedState(next);
+        onExpandedChange?.(next);
     };
-    return ((0, jsx_runtime_1.jsx)("div", { className: [
-            "admin-kit__table-wrap admin-kit__table-wrap--stack admin-kit__data-table-wrap",
-            wrapClassName,
-        ]
+    const columnCount = visibleColumns.length + (hasDetailsColumn ? 1 : 0);
+    const hasFillColumn = visibleColumns.some((column) => column.defaultWidth === undefined);
+    const tableSize = {
+        "--admin-kit-data-table-min-width": `${fit.minTableWidth}px`,
+        ...(hasFillColumn ? {} : { "--admin-kit-data-table-width": `${fit.minTableWidth}px` }),
+    };
+    return ((0, jsx_runtime_1.jsx)("div", { className: ["admin-kit__table-wrap admin-kit__data-table-wrap", wrapClassName]
             .filter(Boolean)
-            .join(" "), children: (0, jsx_runtime_1.jsxs)("table", { "aria-busy": busy, "aria-label": label, className: ["admin-kit__table admin-kit__table--stack admin-kit__data-table", className]
-                .filter(Boolean)
-                .join(" "), style: tableSize, children: [(0, jsx_runtime_1.jsxs)("colgroup", { children: [columns.map((column) => {
+            .join(" "), "data-scrolls": fit.scrolls || undefined, "data-stacked": fit.stacked || undefined, ref: wrapRef, children: (0, jsx_runtime_1.jsxs)("table", { "aria-busy": busy, "aria-label": label, className: ["admin-kit__table admin-kit__data-table", className].filter(Boolean).join(" "), "data-stacked": fit.stacked || undefined, style: tableSize, children: [(0, jsx_runtime_1.jsxs)("colgroup", { children: [visibleColumns.map((column) => {
                             const width = widthOf(column);
                             return ((0, jsx_runtime_1.jsx)("col", { className: column.className, "data-column": column.id, style: width === undefined ? undefined : { width: `${width}px` } }, column.id));
-                        }), renderDetails ? (0, jsx_runtime_1.jsx)("col", { style: { width: `${DETAILS_COLUMN_WIDTH}px` } }) : null] }), (0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { children: [columns.map((column) => {
+                        }), hasDetailsColumn ? (0, jsx_runtime_1.jsx)("col", { style: { width: `${adminDataTableFit_1.DETAILS_COLUMN_WIDTH}px` } }) : null] }), (0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { children: [visibleColumns.map((column) => {
                                 const width = widthOf(column);
-                                const resizable = width !== undefined && column.resizable !== false;
-                                const { min, max } = bounds(column);
+                                const resizable = width !== undefined && column.resizable !== false && !fit.stacked;
+                                const { min, max } = (0, adminDataTableFit_1.columnBounds)(column);
                                 const menuOpen = resizable && menuFor === column.id;
                                 const menuId = `${idPrefix}-resize-${column.id}`;
                                 return ((0, jsx_runtime_1.jsxs)("th", { "aria-label": column.header, "aria-sort": column.sort?.direction, className: [
@@ -225,19 +239,19 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
                                                                 setWidth(column, undefined, { save: true });
                                                                 closeMenu(column);
                                                             }, type: "button", children: "Reset width" })] })) : null] })) : null] }, column.id));
-                            }), renderDetails ? ((0, jsx_runtime_1.jsx)("th", { className: "admin-kit__data-table-heading", scope: "col", children: detailsLabel })) : null] }) }), (0, jsx_runtime_1.jsx)("tbody", { children: rows.map((row) => {
+                            }), hasDetailsColumn ? ((0, jsx_runtime_1.jsx)("th", { className: "admin-kit__data-table-heading", scope: "col", children: detailsLabel })) : null] }) }), (0, jsx_runtime_1.jsx)("tbody", { children: rows.map((row) => {
                         const key = rowKey(row);
-                        const isOpen = expanded.has(key);
+                        const isOpen = expanded.includes(key);
                         const detailsId = `${idPrefix}-details-${key}`;
                         const expansion = renderExpansion?.(row);
                         const isExpanded = isOpen || (expansion !== null && expansion !== undefined);
-                        return ((0, jsx_runtime_1.jsxs)(react_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("tr", { "aria-busy": rowBusy?.(row) || undefined, className: isExpanded ? "admin-kit__data-table-row--expanded" : undefined, children: [columns.map((column) => ((0, jsx_runtime_1.jsxs)("td", { className: [
+                        return ((0, jsx_runtime_1.jsxs)(react_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("tr", { "aria-busy": rowBusy?.(row) || undefined, className: isExpanded ? "admin-kit__data-table-row--expanded" : undefined, children: [visibleColumns.map((column) => ((0, jsx_runtime_1.jsxs)("td", { className: [
                                                 column.truncate ? "admin-kit__table-cell--truncate" : undefined,
                                                 column.className,
                                             ]
                                                 .filter(Boolean)
-                                                .join(" ") || undefined, title: column.title?.(row), children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: column.headerContent ?? column.header }), column.cell(row)] }, column.id))), renderDetails ? ((0, jsx_runtime_1.jsxs)("td", { children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: detailsLabel }), (0, jsx_runtime_1.jsx)("button", { "aria-controls": isOpen ? detailsId : undefined, "aria-expanded": isOpen, "aria-label": rowLabel
+                                                .join(" ") || undefined, "data-card-slot": column.cardSlot, title: column.title?.(row), children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: column.headerContent ?? column.header }), (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__cell-value", children: column.cell(row) })] }, column.id))), hasDetailsColumn ? ((0, jsx_runtime_1.jsxs)("td", { "data-card-slot": "actions", children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: detailsLabel }), (0, jsx_runtime_1.jsx)("button", { "aria-controls": isOpen ? detailsId : undefined, "aria-expanded": isOpen, "aria-label": rowLabel
                                                         ? `${isOpen ? "Hide" : "View"} ${detailsLabel.toLowerCase()} for ${rowLabel(row)}`
-                                                        : undefined, className: "admin-kit__data-table-toggle", onClick: () => toggle(key), type: "button", children: isOpen ? "Hide" : "View" })] })) : null] }), renderDetails && isOpen ? ((0, jsx_runtime_1.jsx)("tr", { className: "admin-kit__data-table-details-row", id: detailsId, children: (0, jsx_runtime_1.jsx)("td", { colSpan: columnCount, children: renderDetails(row) }) })) : null, expansion !== null && expansion !== undefined ? ((0, jsx_runtime_1.jsx)("tr", { className: "admin-kit__data-table-details-row", children: (0, jsx_runtime_1.jsx)("td", { colSpan: columnCount, children: expansion }) })) : null] }, key));
+                                                        : undefined, className: "admin-kit__data-table-toggle", "data-row-key": key, onClick: () => toggle(key), type: "button", children: isOpen ? "Hide" : "View" })] })) : null] }), hasDetailsColumn && isOpen ? ((0, jsx_runtime_1.jsx)("tr", { className: "admin-kit__data-table-details-row", id: detailsId, children: (0, jsx_runtime_1.jsxs)("td", { colSpan: columnCount, children: [renderDetails?.(row), hiddenColumns.length > 0 ? ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__data-table-hidden-values", children: hiddenColumns.map((column) => ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: column.headerContent ?? column.header }), (0, jsx_runtime_1.jsx)("dd", { children: column.cell(row) })] }, column.id))) })) : null] }) })) : null, expansion !== null && expansion !== undefined ? ((0, jsx_runtime_1.jsx)("tr", { className: "admin-kit__data-table-details-row", children: (0, jsx_runtime_1.jsx)("td", { colSpan: columnCount, children: expansion }) })) : null] }, key));
                     }) })] }) }));
 }

@@ -38,7 +38,7 @@ interface ApiKeysPanelSharedProps {
   headerPresentation?: AdminPanelHeaderPresentation;
   /** Host-owned primary actions displayed beside the panel title. */
   headerActions?: ReactNode;
-  /** Responsive uses table scan density on desktop and compact cards on narrow screens. */
+  /** Responsive renders the table, which fits its container and stacks into cards when the primary columns cannot fit. */
   presentation?: "cards" | "responsive" | "table";
   /**
    * Renders a host-vocabulary posture/health summary above the create/list
@@ -178,7 +178,6 @@ function ApiKeysPanelImpl({
   // load/mutation lifecycle below.
   const [createOpen, setCreateOpen] = useState(false);
   const [editingKeyId, setEditingKeyId] = useState<string>();
-  const [isCompact, setIsCompact] = useState(false);
   const latestLoadId = useRef(0);
   // Bumped only when the `adapter` prop itself changes (unlike `latestLoadId`,
   // which also advances on every ordinary reload). Mutations capture this at
@@ -216,14 +215,6 @@ function ApiKeysPanelImpl({
       latestLoadId.current += 1;
     };
   }, [load]);
-  useEffect(() => {
-    if (typeof window.matchMedia !== "function") return undefined;
-    const query = window.matchMedia("(max-width: 48rem)");
-    const sync = () => setIsCompact(query.matches);
-    sync();
-    query.addEventListener("change", sync);
-    return () => query.removeEventListener("change", sync);
-  }, []);
   useEffect(() => {
     setSecret(undefined);
     setCopyStatus(undefined);
@@ -359,8 +350,7 @@ function ApiKeysPanelImpl({
     : undefined;
   const activeCount = lifecycleKeys.filter((key) => key.state === "active").length;
   const hasDetails = lifecycleKeys.some((key) => key.details?.length);
-  const resolvedPresentation =
-    presentation === "responsive" ? (isCompact ? "cards" : "table") : presentation;
+  const resolvedPresentation = presentation === "responsive" ? "table" : presentation;
   // The built-in inline scope editor is active only when the host opted in via
   // `scopeGroups`, did not override edit rendering, and the adapter can persist
   // an update (`adapter.update` is optional — without it Save would no-op).
@@ -443,6 +433,7 @@ function ApiKeysPanelImpl({
   const keyColumns: AdminDataTableColumn<AdminApiKey>[] = [
     {
       id: "key",
+      cardSlot: "title",
       header: vocabulary ? capitalizedSingular : "Key",
       minWidth: 160,
       cell: (key) => (
@@ -454,6 +445,7 @@ function ApiKeysPanelImpl({
     },
     {
       id: "scope",
+      cardSlot: "detail",
       header: "Scope",
       defaultWidth: 176,
       minWidth: 144,
@@ -474,6 +466,8 @@ function ApiKeysPanelImpl({
       ? [
           {
             id: "details",
+            cardSlot: "detail" as const,
+            priority: "tertiary" as const,
             header: "Details",
             defaultWidth: 176,
             minWidth: 144,
@@ -495,6 +489,7 @@ function ApiKeysPanelImpl({
       : []),
     {
       id: "state",
+      cardSlot: "badge",
       header: "State",
       defaultWidth: 88,
       minWidth: 80,
@@ -506,6 +501,8 @@ function ApiKeysPanelImpl({
     },
     {
       id: "created",
+      cardSlot: "meta",
+      priority: "tertiary",
       header: "Created",
       defaultWidth: 120,
       minWidth: 104,
@@ -514,6 +511,8 @@ function ApiKeysPanelImpl({
     },
     {
       id: "lastUsed",
+      cardSlot: "meta",
+      priority: "tertiary",
       header: "Last used",
       defaultWidth: 120,
       minWidth: 104,
@@ -523,6 +522,8 @@ function ApiKeysPanelImpl({
     },
     {
       id: "expires",
+      cardSlot: "meta",
+      priority: "secondary",
       header: "Expires",
       defaultWidth: 120,
       minWidth: 104,
@@ -532,6 +533,7 @@ function ApiKeysPanelImpl({
     },
     {
       id: "actions",
+      cardSlot: "actions",
       header: "Actions",
       defaultWidth: 168,
       resizable: false,
