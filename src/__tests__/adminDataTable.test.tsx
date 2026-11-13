@@ -367,16 +367,17 @@ describe("AdminDataTable", () => {
     });
 
     it("hides tertiary columns when the container cannot hold them", () => {
-      setContainerWidth(340);
+      setContainerWidth(378);
       render(<AdminDataTable columns={wideColumns} rowKey={(r) => r.id} rows={rows} />);
       expect(screen.getAllByRole("columnheader").map((th) => th.textContent)).toEqual([
         "Name",
         "Note",
+        "Details",
       ]);
     });
 
     it("stacks into cards only when the primary columns do not fit", () => {
-      setContainerWidth(340);
+      setContainerWidth(378);
       const roomy = render(
         <AdminDataTable columns={wideColumns} rowKey={(r) => r.id} rows={rows} />,
       );
@@ -410,6 +411,39 @@ describe("AdminDataTable", () => {
       expect(cell.children).toHaveLength(2);
       expect(value.textContent).toBe("AdaBest effort");
       expect(value.querySelectorAll("strong, small")).toHaveLength(2);
+    });
+
+    it("keeps a non-resizable column without a minWidth at its default width", () => {
+      setContainerWidth(500);
+      const { container } = render(
+        <AdminDataTable
+          columns={[
+            { id: "name", header: "Name", minWidth: 160, cell: (r) => r.name },
+            { id: "note", header: "Note", defaultWidth: 300, minWidth: 100, cell: (r) => r.note },
+            {
+              id: "actions",
+              header: "Actions",
+              defaultWidth: 168,
+              resizable: false,
+              cell: () => "Revoke",
+            },
+          ]}
+          rowKey={(r) => r.id}
+          rows={rows}
+        />,
+      );
+      expect(colWidth(container, "actions")).toBe("168px");
+      expect(colWidth(container, "note")).toBe("172px");
+    });
+
+    it("keeps hidden columns reachable in a labelled details row", () => {
+      setContainerWidth(378);
+      render(<AdminDataTable columns={wideColumns} rowKey={(r) => r.id} rows={rows} />);
+      expect(screen.queryByText("extra")).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "View" }));
+      const values = document.querySelector(".admin-kit__data-table-hidden-values")!;
+      expect(values.querySelector("dt")?.textContent).toBe("Extra");
+      expect(values.querySelector("dd")?.textContent).toBe("extra");
     });
 
     it("sets the card slot on the cell", () => {

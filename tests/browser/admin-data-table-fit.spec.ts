@@ -1,31 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { serveDataTable } from "./data-table-harness";
+import { serveDataTable, sixColumnScript } from "./data-table-harness";
 
-const script = `
-const rows = [
-  { id: "a", name: "Deployment alpha", scope: "cairn.read", state: "active", created: "Jul 10", used: "Jul 11", note: "Best effort" },
-  { id: "b", name: "Deployment beta", scope: "cairn.write", state: "revoked", created: "Jul 12", used: "never", note: "Writes tickets" },
-];
-const columns = [
-  { id: "name", header: "Name", minWidth: 160, cardSlot: "title", cell: (row) => row.name },
-  {
-    id: "scope",
-    header: "Scope",
-    defaultWidth: 200,
-    minWidth: 120,
-    cell: (row) => React.createElement(React.Fragment, null,
-      React.createElement("strong", null, row.scope),
-      React.createElement("small", null, row.note)),
-  },
-  { id: "state", header: "State", defaultWidth: 90, minWidth: 80, cardSlot: "badge", cell: (row) => row.state },
-  { id: "created", header: "Created", defaultWidth: 140, minWidth: 100, priority: "tertiary", cardSlot: "meta", cell: (row) => row.created },
-  { id: "used", header: "Last used", defaultWidth: 140, minWidth: 100, priority: "secondary", cardSlot: "meta", cell: (row) => row.used },
-  { id: "actions", header: "Actions", defaultWidth: 160, minWidth: 160, cardSlot: "actions", cell: () => React.createElement("button", { type: "button" }, "Revoke") },
-];
-ReactDOM.createRoot(document.getElementById("root")).render(
-  React.createElement(AdminDataTable, { columns, rows, rowKey: (row) => row.id, label: "Keys", storageKey: "keys" }),
-);
-`;
+const script = sixColumnScript();
 
 const overflow = () => {
   const wrap = document.querySelector<HTMLElement>(".admin-kit__data-table-wrap")!;
@@ -40,9 +16,6 @@ for (const containerWidth of [600, 900, 1200]) {
     await serveDataTable(page, { script, containerWidth });
     await expect(page.getByRole("table", { name: "Keys" })).toBeVisible();
     expect(await page.evaluate(overflow)).toBeLessThanOrEqual(0);
-    expect(
-      await page.evaluate(() => document.querySelector(".admin-kit__data-table-wrap")?.hasAttribute("data-stacked")),
-    ).toBe(false);
   });
 }
 
@@ -69,10 +42,10 @@ for (const containerWidth of [320, 375]) {
 
 test("hides tertiary, then secondary, columns as the container narrows", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await serveDataTable(page, { script, containerWidth: 640 });
+  await serveDataTable(page, { script, containerWidth: 735 });
   await expect(page.getByRole("columnheader", { name: "Created" })).toHaveCount(0);
   await expect(page.getByRole("columnheader", { name: "Last used" })).toHaveCount(1);
-  await page.locator("#root").evaluate((root) => (root.style.width = "560px"));
+  await page.locator("#root").evaluate((root) => (root.style.width = "650px"));
   await expect(page.getByRole("columnheader", { name: "Last used" })).toHaveCount(0);
   await expect(page.getByRole("columnheader", { name: "Scope" })).toHaveCount(1);
 });

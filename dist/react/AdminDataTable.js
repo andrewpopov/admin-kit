@@ -85,15 +85,26 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
         observer.observe(wrap);
         return () => observer.disconnect();
     }, []);
-    const fit = (0, adminDataTableFit_1.resolveTableFit)(containerWidth, columns.map((column) => ({
+    const fitColumns = columns.map((column) => ({
         id: column.id,
         priority: column.priority,
         defaultWidth: column.defaultWidth,
-        minWidth: column.minWidth,
+        minWidth: column.minWidth ??
+            (column.resizable === false && column.defaultWidth !== undefined
+                ? column.defaultWidth
+                : undefined),
         maxWidth: column.maxWidth,
         override: column.defaultWidth === undefined ? undefined : overrides[column.id],
-    })), renderDetails ? adminDataTableFit_1.DETAILS_COLUMN_WIDTH : 0);
+    }));
+    let fit = (0, adminDataTableFit_1.resolveTableFit)(containerWidth, fitColumns, renderDetails ? adminDataTableFit_1.DETAILS_COLUMN_WIDTH : 0);
+    if (!renderDetails && !fit.stacked && fit.visibleIds.length < columns.length) {
+        fit = (0, adminDataTableFit_1.resolveTableFit)(containerWidth, fitColumns, adminDataTableFit_1.DETAILS_COLUMN_WIDTH);
+    }
     const visibleColumns = columns.filter((column) => fit.visibleIds.includes(column.id));
+    const hiddenColumns = fit.stacked
+        ? []
+        : columns.filter((column) => !fit.visibleIds.includes(column.id));
+    const hasDetailsColumn = Boolean(renderDetails) || hiddenColumns.length > 0;
     const widthOf = (column) => fit.widths[column.id];
     const persist = (widths) => {
         const known = new Set(columns.map((column) => column.id));
@@ -190,7 +201,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
             setExpandedState(next);
         onExpandedChange?.(next);
     };
-    const columnCount = visibleColumns.length + (renderDetails ? 1 : 0);
+    const columnCount = visibleColumns.length + (hasDetailsColumn ? 1 : 0);
     const hasFillColumn = visibleColumns.some((column) => column.defaultWidth === undefined);
     const tableSize = {
         "--admin-kit-data-table-min-width": `${fit.minTableWidth}px`,
@@ -201,7 +212,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
             .join(" "), "data-scrolls": fit.scrolls || undefined, "data-stacked": fit.stacked || undefined, ref: wrapRef, children: (0, jsx_runtime_1.jsxs)("table", { "aria-busy": busy, "aria-label": label, className: ["admin-kit__table admin-kit__data-table", className].filter(Boolean).join(" "), "data-stacked": fit.stacked || undefined, style: tableSize, children: [(0, jsx_runtime_1.jsxs)("colgroup", { children: [visibleColumns.map((column) => {
                             const width = widthOf(column);
                             return ((0, jsx_runtime_1.jsx)("col", { className: column.className, "data-column": column.id, style: width === undefined ? undefined : { width: `${width}px` } }, column.id));
-                        }), renderDetails ? (0, jsx_runtime_1.jsx)("col", { style: { width: `${adminDataTableFit_1.DETAILS_COLUMN_WIDTH}px` } }) : null] }), (0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { children: [visibleColumns.map((column) => {
+                        }), hasDetailsColumn ? (0, jsx_runtime_1.jsx)("col", { style: { width: `${adminDataTableFit_1.DETAILS_COLUMN_WIDTH}px` } }) : null] }), (0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { children: [visibleColumns.map((column) => {
                                 const width = widthOf(column);
                                 const resizable = width !== undefined && column.resizable !== false && !fit.stacked;
                                 const { min, max } = (0, adminDataTableFit_1.columnBounds)(column);
@@ -228,7 +239,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
                                                                 setWidth(column, undefined, { save: true });
                                                                 closeMenu(column);
                                                             }, type: "button", children: "Reset width" })] })) : null] })) : null] }, column.id));
-                            }), renderDetails ? ((0, jsx_runtime_1.jsx)("th", { className: "admin-kit__data-table-heading", scope: "col", children: detailsLabel })) : null] }) }), (0, jsx_runtime_1.jsx)("tbody", { children: rows.map((row) => {
+                            }), hasDetailsColumn ? ((0, jsx_runtime_1.jsx)("th", { className: "admin-kit__data-table-heading", scope: "col", children: detailsLabel })) : null] }) }), (0, jsx_runtime_1.jsx)("tbody", { children: rows.map((row) => {
                         const key = rowKey(row);
                         const isOpen = expanded.includes(key);
                         const detailsId = `${idPrefix}-details-${key}`;
@@ -239,8 +250,8 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
                                                 column.className,
                                             ]
                                                 .filter(Boolean)
-                                                .join(" ") || undefined, "data-card-slot": column.cardSlot, title: column.title?.(row), children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: column.headerContent ?? column.header }), (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__cell-value", children: column.cell(row) })] }, column.id))), renderDetails ? ((0, jsx_runtime_1.jsxs)("td", { "data-card-slot": "actions", children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: detailsLabel }), (0, jsx_runtime_1.jsx)("button", { "aria-controls": isOpen ? detailsId : undefined, "aria-expanded": isOpen, "aria-label": rowLabel
+                                                .join(" ") || undefined, "data-card-slot": column.cardSlot, title: column.title?.(row), children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: column.headerContent ?? column.header }), (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__cell-value", children: column.cell(row) })] }, column.id))), hasDetailsColumn ? ((0, jsx_runtime_1.jsxs)("td", { "data-card-slot": "actions", children: [(0, jsx_runtime_1.jsx)(AdminTablePrimitives_1.AdminMobileCellLabel, { children: detailsLabel }), (0, jsx_runtime_1.jsx)("button", { "aria-controls": isOpen ? detailsId : undefined, "aria-expanded": isOpen, "aria-label": rowLabel
                                                         ? `${isOpen ? "Hide" : "View"} ${detailsLabel.toLowerCase()} for ${rowLabel(row)}`
-                                                        : undefined, className: "admin-kit__data-table-toggle", "data-row-key": key, onClick: () => toggle(key), type: "button", children: isOpen ? "Hide" : "View" })] })) : null] }), renderDetails && isOpen ? ((0, jsx_runtime_1.jsx)("tr", { className: "admin-kit__data-table-details-row", id: detailsId, children: (0, jsx_runtime_1.jsx)("td", { colSpan: columnCount, children: renderDetails(row) }) })) : null, expansion !== null && expansion !== undefined ? ((0, jsx_runtime_1.jsx)("tr", { className: "admin-kit__data-table-details-row", children: (0, jsx_runtime_1.jsx)("td", { colSpan: columnCount, children: expansion }) })) : null] }, key));
+                                                        : undefined, className: "admin-kit__data-table-toggle", "data-row-key": key, onClick: () => toggle(key), type: "button", children: isOpen ? "Hide" : "View" })] })) : null] }), hasDetailsColumn && isOpen ? ((0, jsx_runtime_1.jsx)("tr", { className: "admin-kit__data-table-details-row", id: detailsId, children: (0, jsx_runtime_1.jsxs)("td", { colSpan: columnCount, children: [renderDetails?.(row), hiddenColumns.length > 0 ? ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__data-table-hidden-values", children: hiddenColumns.map((column) => ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: column.headerContent ?? column.header }), (0, jsx_runtime_1.jsx)("dd", { children: column.cell(row) })] }, column.id))) })) : null] }) })) : null, expansion !== null && expansion !== undefined ? ((0, jsx_runtime_1.jsx)("tr", { className: "admin-kit__data-table-details-row", children: (0, jsx_runtime_1.jsx)("td", { colSpan: columnCount, children: expansion }) })) : null] }, key));
                     }) })] }) }));
 }

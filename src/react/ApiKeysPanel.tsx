@@ -512,7 +512,7 @@ function ApiKeysPanelImpl({
     {
       id: "lastUsed",
       cardSlot: "meta",
-      priority: "secondary",
+      priority: "tertiary",
       header: "Last used",
       defaultWidth: 120,
       minWidth: 104,

@@ -250,7 +250,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
         {
             id: "lastUsed",
             cardSlot: "meta",
-            priority: "secondary",
+            priority: "tertiary",
             header: "Last used",
             defaultWidth: 120,
             minWidth: 104,

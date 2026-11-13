@@ -168,19 +168,31 @@ export function AdminDataTable<Row>({
     return () => observer.disconnect();
   }, []);
 
-  const fit = resolveTableFit(
+  const fitColumns = columns.map((column) => ({
+    id: column.id,
+    priority: column.priority,
+    defaultWidth: column.defaultWidth,
+    minWidth:
+      column.minWidth ??
+      (column.resizable === false && column.defaultWidth !== undefined
+        ? column.defaultWidth
+        : undefined),
+    maxWidth: column.maxWidth,
+    override: column.defaultWidth === undefined ? undefined : overrides[column.id],
+  }));
+  let fit = resolveTableFit(
     containerWidth,
-    columns.map((column) => ({
-      id: column.id,
-      priority: column.priority,
-      defaultWidth: column.defaultWidth,
-      minWidth: column.minWidth,
-      maxWidth: column.maxWidth,
-      override: column.defaultWidth === undefined ? undefined : overrides[column.id],
-    })),
+    fitColumns,
     renderDetails ? DETAILS_COLUMN_WIDTH : 0,
   );
+  if (!renderDetails && !fit.stacked && fit.visibleIds.length < columns.length) {
+    fit = resolveTableFit(containerWidth, fitColumns, DETAILS_COLUMN_WIDTH);
+  }
   const visibleColumns = columns.filter((column) => fit.visibleIds.includes(column.id));
+  const hiddenColumns = fit.stacked
+    ? []
+    : columns.filter((column) => !fit.visibleIds.includes(column.id));
+  const hasDetailsColumn = Boolean(renderDetails) || hiddenColumns.length > 0;
   const widthOf = (column: AdminDataTableColumn<Row>): number | undefined => fit.widths[column.id];
 
   const persist = (widths: Widths) => {
@@ -273,7 +285,7 @@ export function AdminDataTable<Row>({
     onExpandedChange?.(next);
   };
 
-  const columnCount = visibleColumns.length + (renderDetails ? 1 : 0);
+  const columnCount = visibleColumns.length + (hasDetailsColumn ? 1 : 0);
   const hasFillColumn = visibleColumns.some((column) => column.defaultWidth === undefined);
   const tableSize = {
     "--admin-kit-data-table-min-width": `${fit.minTableWidth}px`,
@@ -308,7 +320,7 @@ export function AdminDataTable<Row>({
               />
             );
           })}
-          {renderDetails ? <col style={{ width: `${DETAILS_COLUMN_WIDTH}px` }} /> : null}
+          {hasDetailsColumn ? <col style={{ width: `${DETAILS_COLUMN_WIDTH}px` }} /> : null}
         </colgroup>
         <thead>
           <tr>
@@ -419,7 +431,7 @@ export function AdminDataTable<Row>({
                 </th>
               );
             })}
-            {renderDetails ? (
+            {hasDetailsColumn ? (
               <th className="admin-kit__data-table-heading" scope="col">
                 {detailsLabel}
               </th>
@@ -459,7 +471,7 @@ export function AdminDataTable<Row>({
                       <div className="admin-kit__cell-value">{column.cell(row)}</div>
                     </td>
                   ))}
-                  {renderDetails ? (
+                  {hasDetailsColumn ? (
                     <td data-card-slot="actions">
                       <AdminMobileCellLabel>{detailsLabel}</AdminMobileCellLabel>
                       <button
@@ -480,9 +492,21 @@ export function AdminDataTable<Row>({
                     </td>
                   ) : null}
                 </tr>
-                {renderDetails && isOpen ? (
+                {hasDetailsColumn && isOpen ? (
                   <tr className="admin-kit__data-table-details-row" id={detailsId}>
-                    <td colSpan={columnCount}>{renderDetails(row)}</td>
+                    <td colSpan={columnCount}>
+                      {renderDetails?.(row)}
+                      {hiddenColumns.length > 0 ? (
+                        <dl className="admin-kit__data-table-hidden-values">
+                          {hiddenColumns.map((column) => (
+                            <div key={column.id}>
+                              <dt>{column.headerContent ?? column.header}</dt>
+                              <dd>{column.cell(row)}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      ) : null}
+                    </td>
                   </tr>
                 ) : null}
                 {expansion !== null && expansion !== undefined ? (
