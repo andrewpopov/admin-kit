@@ -1,12 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEFAULT_FILL_WIDTH = exports.NARROW_CARD_WIDTH = exports.DETAILS_COLUMN_WIDTH = exports.DEFAULT_MAX_WIDTH = exports.DEFAULT_MIN_WIDTH = void 0;
+exports.DEFAULT_FILL_WIDTH = exports.NARROW_CARD_WIDTH = exports.TIMESTAMP_COLUMN_WIDTH = exports.DETAILS_COLUMN_WIDTH = exports.DEFAULT_MAX_WIDTH = exports.DEFAULT_MIN_WIDTH = void 0;
 exports.columnBounds = columnBounds;
 exports.clamp = clamp;
 exports.resolveTableFit = resolveTableFit;
 exports.DEFAULT_MIN_WIDTH = 64;
 exports.DEFAULT_MAX_WIDTH = 960;
 exports.DETAILS_COLUMN_WIDTH = 96;
+/** A column that holds the default `formatAdminTimestamp` text on one line: its widest form (e.g. "May 30, 2026, 12:59 AM", about 178px in the kit font) plus the cell's 2 x 16px padding. */
+exports.TIMESTAMP_COLUMN_WIDTH = 216;
 /** Below this container width a stacked card puts each label above its value. */
 exports.NARROW_CARD_WIDTH = 340;
 const FILL_MIN_WIDTH = exports.DEFAULT_MIN_WIDTH * 3;

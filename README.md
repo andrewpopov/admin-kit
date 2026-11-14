@@ -976,15 +976,25 @@ Everything above a table can fold away so the table takes the screen.
   order, and focus stays on the toggle.
 - Collapsed, `collapsedSummary` shows in the title row (inline from 64rem, on its
   own line below it). Put applied filters there as `AdminFilterChip`s; removing
-  a chip returns focus to the toggle.
+  a chip returns focus to the toggle. On a phone the title (at least 8rem wide,
+  wrapping by words), the toggle and `actions` share one row when they fit and
+  only the summary takes the line beneath; at 30rem or narrower the toggle shows
+  just its chevron and "(N)" and keeps "Show controls" / "Hide controls" as its
+  accessible name.
 - `defaultCollapsed` is `"auto"`: collapsed below 64rem wide or 45rem tall,
   expanded otherwise; pass a boolean to fix it. The viewer's choice is stored in
   `localStorage` as `admin-kit:header:<storageKey>:<regular|compact>`, one key
   per width class, never in the URL or on a server. Storage that throws is
   ignored (the choice then lasts for the visit). A client-rendered host reads
   the stored state before first paint; a server-rendered host renders expanded
-  and collapses on hydration, which can shift the layout once. When the summary
-  overflows (many chips) it scrolls sideways with an edge fade.
+  and collapses on hydration, which can shift the layout once. The summary line
+  wraps instead of scrolling or fading: each text item clamps at two lines with
+  an ellipsis, and chips (an item that is, or contains, an `AdminFilterChip`)
+  are never clipped, so a long list of chips grows the band by whole rows.
+  Keep other controls (links, buttons) out of summary items: a clamped item
+  can hide them.
+  `AdminFilterChip`'s remove button is at least 28px on a fine pointer and 44px
+  on a coarse one.
 - Give each page its own `storageKey`. With no description, summary or toolbar
   there is nothing to collapse and no toggle renders.
 

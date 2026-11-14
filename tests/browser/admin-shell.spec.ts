@@ -62,7 +62,7 @@ test("lays out the EventsPanel data table with sized columns and a sticky header
     .first()
     .locator(".admin-kit__data-table");
   const occurred = table.getByRole("columnheader", { name: "Occurred" });
-  expect((await occurred.boundingBox())?.width).toBe(184);
+  expect((await occurred.boundingBox())?.width).toBe(216);
   await expect(occurred).toHaveCSS("position", "sticky");
   await expect(table).toHaveCSS("table-layout", "fixed");
   await expect(table.getByRole("separator", { name: "Resize Occurred column" })).toBeVisible();

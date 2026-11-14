@@ -55,3 +55,40 @@ test("resizes and resets a data table column with single clicks only, and the wi
     await page.evaluate(() => localStorage.getItem("admin-kit:table-widths:scopes")),
   ).toBeNull();
 });
+
+test("the last column's divider sits on the table's right edge, not 12px inside it", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await serveDataTable(page, {
+    script: `
+const rows = [{ id: "a", name: "Retention sweep", state: "succeeded" }];
+const columns = [
+  { id: "name", header: "Job", cell: (row) => row.name },
+  { id: "state", header: "Status", defaultWidth: 128, cell: (row) => row.state },
+];
+ReactDOM.createRoot(document.getElementById("root")).render(
+  React.createElement(AdminDataTable, { columns, rows, rowKey: (row) => row.id, label: "Jobs" }),
+);`,
+  });
+  const heading = page.locator("thead th").last();
+  await expect(heading).toBeVisible();
+  const box = (await heading.boundingBox())!;
+  const handle = page.getByRole("separator", { name: "Resize Status column" });
+  const handleBox = (await handle.boundingBox())!;
+  expect(handleBox.x + handleBox.width).toBeCloseTo(box.x + box.width, 0);
+  const shot = await page.screenshot({
+    clip: { x: box.x + box.width - 4, y: box.y + box.height / 2, width: 4, height: 1 },
+  });
+  const [head, edge] = await page.evaluate(async (base64) => {
+    const bitmap = await createImageBitmap(
+      await (await fetch(`data:image/png;base64,${base64}`)).blob(),
+    );
+    const canvas = new OffscreenCanvas(bitmap.width, 1);
+    const context = canvas.getContext("2d")!;
+    context.drawImage(bitmap, 0, 0);
+    const read = (x: number) => Array.from(context.getImageData(x, 0, 1, 1).data.slice(0, 3));
+    return [read(0), read(bitmap.width - 1)];
+  }, shot.toString("base64"));
+  expect(edge, "the divider is drawn in the last pixel column").not.toEqual(head);
+});
