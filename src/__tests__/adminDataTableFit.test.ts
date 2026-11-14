@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveTableFit, type FitColumn } from "../react/adminDataTableFit";
+import { columnBounds, resolveTableFit, type FitColumn } from "../react/adminDataTableFit";
 
 const columns: FitColumn[] = [
   { id: "name", minWidth: 160 },
@@ -125,5 +125,16 @@ describe("resolveTableFit", () => {
     expect(squeezed.widths.resource).toBe(101);
     expect(squeezed.visibleIds).toEqual(["name", "resource"]);
     expect(resolveTableFit(200, labelled).stacked).toBe(true);
+  });
+
+  it("raises maxWidth to the header floor and lifts a stored override below it", () => {
+    expect(columnBounds({ minWidth: 50, maxWidth: 80, headerWidth: 101 })).toEqual({
+      min: 101,
+      max: 101,
+    });
+    const fit = resolveTableFit(1200, [
+      { id: "resource", defaultWidth: 240, headerWidth: 101, override: 50 },
+    ]);
+    expect(fit.widths.resource).toBe(101);
   });
 });

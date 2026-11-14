@@ -21,10 +21,8 @@ const HIDE_STEPS = [
     ["tertiary", "secondary"],
 ];
 function columnBounds(column) {
-    return {
-        min: Math.max(column.minWidth ?? exports.DEFAULT_MIN_WIDTH, column.headerWidth ?? 0),
-        max: column.maxWidth ?? exports.DEFAULT_MAX_WIDTH,
-    };
+    const min = Math.max(column.minWidth ?? exports.DEFAULT_MIN_WIDTH, column.headerWidth ?? 0);
+    return { min, max: Math.max(min, column.maxWidth ?? exports.DEFAULT_MAX_WIDTH) };
 }
 function clamp(value, min, max) {
     return Math.min(max, Math.max(min, Math.round(value)));

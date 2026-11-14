@@ -208,6 +208,7 @@ export function AdminDataTable<Row>({
       header: column.header,
       sortable: column.sort !== undefined,
     })),
+    containerWidth !== undefined,
   );
   const boundsOf = (column: AdminDataTableColumn<Row>) =>
     columnBounds({ ...column, headerWidth: headerFloors[column.id] });

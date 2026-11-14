@@ -88,7 +88,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 for (const [name, script] of Object.entries(panels)) {
-  for (const containerWidth of [780, 888, 1200]) {
+  for (const containerWidth of name === "EventsPanel" ? [780, 840, 888, 1200] : [780, 888, 1200]) {
     test(`${name} at ${containerWidth}px: cell content fits its cell and controls never overlap`, async ({
       page,
     }) => {
@@ -103,7 +103,7 @@ for (const [name, script] of Object.entries(panels)) {
   }
 }
 
-for (const containerWidth of [900, 1040]) {
+for (const containerWidth of [860, 900]) {
   test(`EventsPanel default Occurred column at ${containerWidth}px never clips a column header`, async ({
     page,
   }) => {
@@ -113,6 +113,18 @@ for (const containerWidth of [900, 1040]) {
     expect(await page.evaluate(wrapOverflow)).toBeLessThanOrEqual(0);
   });
 }
+
+test("EventsPanel mounted hidden measures its headers when revealed", async ({ page }) => {
+  await serveDataTable(page, {
+    script: eventsPanel,
+    containerWidth: 860,
+    headStyle: "#root { display: none; }",
+  });
+  await page.waitForTimeout(300);
+  await page.evaluate(() => document.getElementById("root")!.style.setProperty("display", "block"));
+  await expect(page.locator("tbody tr").first()).toBeVisible();
+  await expect.poll(() => page.evaluate(clippedHeaders)).toEqual([]);
+});
 
 test("UsersPanel never squeezes a Role or Status select below its options: it stacks first", async ({
   page,

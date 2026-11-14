@@ -13,15 +13,18 @@ function sameFloors(a, b) {
     const keys = Object.keys(b);
     return Object.keys(a).length === keys.length && keys.every((key) => a[key] === b[key]);
 }
-/** The widest each header's text, sort arrow and cell padding need, by column id: probes sit in the real header so they inherit its font, transform and spacing. Empty until the table is in the DOM. */
+/** The widest each header's text, sort arrow and cell padding need, by column id: probes sit in the real header so they inherit its font, transform and spacing. Empty until the table is rendered (not hidden). */
 function measureHeaderFloors(wrap, columns) {
     const cell = wrap.querySelector("thead th");
     const text = cell?.querySelector(".admin-kit__data-table-heading-text");
-    if (!cell || !text)
+    if (!cell || !text || cell.getClientRects().length === 0)
         return {};
     const cellStyle = window.getComputedStyle(cell);
     const textStyle = window.getComputedStyle(text);
-    const padding = pixels(cellStyle.paddingLeft) + pixels(cellStyle.paddingRight) + pixels(textStyle.paddingRight);
+    const padding = pixels(cellStyle.paddingLeft) +
+        pixels(cellStyle.paddingRight) +
+        pixels(textStyle.paddingLeft) +
+        pixels(textStyle.paddingRight);
     const probes = columns.map((column) => {
         const probe = document.createElement("span");
         probe.setAttribute("aria-hidden", "true");
@@ -41,8 +44,8 @@ function measureHeaderFloors(wrap, columns) {
         probe.remove();
     return floors;
 }
-/** Re-measures when a header's text or sort affordance changes, and when web fonts finish loading. */
-function useHeaderFloors(wrapRef, columns) {
+/** Re-measures when a header's text or sort affordance changes, when web fonts finish loading, and when the table first becomes `shown` (a table mounted hidden measures nothing). */
+function useHeaderFloors(wrapRef, columns, shown) {
     const [floors, setFloors] = (0, react_1.useState)({});
     const key = JSON.stringify(columns);
     useIsomorphicLayoutEffect(() => {
@@ -57,6 +60,6 @@ function useHeaderFloors(wrapRef, columns) {
         const fonts = typeof document === "undefined" ? undefined : document.fonts;
         fonts?.addEventListener?.("loadingdone", measure);
         return () => fonts?.removeEventListener?.("loadingdone", measure);
-    }, [wrapRef, key]);
+    }, [wrapRef, key, shown]);
     return floors;
 }

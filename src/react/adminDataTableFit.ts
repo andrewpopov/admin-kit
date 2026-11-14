@@ -47,10 +47,8 @@ const HIDE_STEPS: readonly (readonly AdminDataTableColumnPriority[])[] = [
 export function columnBounds(
   column: Pick<FitColumn, "minWidth" | "maxWidth" | "headerWidth">,
 ) {
-  return {
-    min: Math.max(column.minWidth ?? DEFAULT_MIN_WIDTH, column.headerWidth ?? 0),
-    max: column.maxWidth ?? DEFAULT_MAX_WIDTH,
-  };
+  const min = Math.max(column.minWidth ?? DEFAULT_MIN_WIDTH, column.headerWidth ?? 0);
+  return { min, max: Math.max(min, column.maxWidth ?? DEFAULT_MAX_WIDTH) };
 }
 
 export function clamp(value: number, min: number, max: number) {

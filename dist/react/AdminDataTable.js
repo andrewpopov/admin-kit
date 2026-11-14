@@ -115,7 +115,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
         id: column.id,
         header: column.header,
         sortable: column.sort !== undefined,
-    })));
+    })), containerWidth !== undefined);
     const boundsOf = (column) => (0, adminDataTableFit_1.columnBounds)({ ...column, headerWidth: headerFloors[column.id] });
     const fitColumns = columns.map((column) => ({
         id: column.id,
