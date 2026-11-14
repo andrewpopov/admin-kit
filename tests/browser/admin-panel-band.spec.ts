@@ -566,14 +566,14 @@ test.describe("collapsed band on a phone", () => {
 });
 
 test.describe("filter chip remove target", () => {
-  test("is at least 24px on a fine pointer and keeps a legible ×", async ({ page }) => {
+  test("is at least 28px on a fine pointer and keeps a legible ×", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await serveDataTable(page, { script: chipsBand });
     expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(false);
     const remove = page.getByRole("button", { name: "Remove filter: Category: Request" });
     const box = (await remove.boundingBox())!;
-    expect(box.height).toBeGreaterThanOrEqual(24);
-    expect(box.width).toBeGreaterThanOrEqual(24);
+    expect(box.height).toBeGreaterThanOrEqual(28);
+    expect(box.width).toBeGreaterThanOrEqual(28);
     const fontSize = await remove.evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
     expect(fontSize).toBeGreaterThanOrEqual(18);
   });

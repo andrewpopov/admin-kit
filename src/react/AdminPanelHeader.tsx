@@ -149,7 +149,9 @@ export function AdminPanelHeader({
         </div>
         {band && collapsed ? (
           <AdminBandContext.Provider value={bandFocus}>
-            <div className="admin-kit__panel-header-summary-line">{band.collapsedSummary}</div>
+            <div className="admin-kit__panel-header-summary-line">
+              {typeof band.collapsedSummary === "string" ? <span>{band.collapsedSummary}</span> : band.collapsedSummary}
+            </div>
           </AdminBandContext.Provider>
         ) : null}
         {actions ? <div className="admin-kit__panel-header-actions">{actions}</div> : null}

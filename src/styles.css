@@ -499,7 +499,6 @@
 .admin-kit__panel-header-toggle:hover { background: var(--admin-kit-surface-subtle); }
 .admin-kit__panel-header-toggle svg { transition: transform 150ms ease; }
 .admin-kit__panel-header-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
-@media (max-width: 30rem) { .admin-kit__panel-header-toggle-label { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: hidden; position: absolute; white-space: nowrap; } }
 .admin-kit__panel-header-summary-line { align-items: center; color: var(--admin-kit-muted); display: flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; min-inline-size: 0; }
 .admin-kit__panel-header-summary-line > :not(.admin-kit__filter-chip, :has(.admin-kit__filter-chip)) { -webkit-box-orient: vertical; -webkit-line-clamp: 2; display: -webkit-box; line-clamp: 2; min-inline-size: 0; overflow: hidden; overflow-wrap: anywhere; }
 .admin-kit__panel-header--collapsed .admin-kit__panel-header-summary-line { flex: 1 0 100%; order: 3; }
@@ -510,7 +509,7 @@
 }
 .admin-kit__filter-chip { align-items: center; background: var(--admin-kit-accent-soft); border-radius: 999px; color: var(--admin-kit-text); display: inline-flex; font-size: var(--admin-kit-text-body-sm-size); line-height: var(--admin-kit-text-body-sm-leading); max-inline-size: 100%; padding-inline-start: 0.625rem; }
 .admin-kit__filter-chip > span { min-inline-size: 0; overflow-wrap: anywhere; }
-.admin-kit__filter-chip button { appearance: none; background: none; border: 0; border-radius: 999px; color: inherit; cursor: pointer; font: inherit; font-size: 1.25rem; line-height: 1; min-block-size: 1.75rem; min-inline-size: 1.75rem; padding: 0; }
+.admin-kit__filter-chip button { appearance: none; background: none; border: 0; border-radius: 999px; color: inherit; cursor: pointer; font: inherit; font-size: var(--admin-kit-text-title-size); line-height: 1; min-block-size: 1.75rem; min-inline-size: 1.75rem; padding: 0; }
 .admin-kit__filter-chip button:hover { background: var(--admin-kit-border); }
 @media (pointer: coarse) { .admin-kit__panel-header-toggle, .admin-kit__filter-chip button { min-block-size: 2.75rem; min-inline-size: 2.75rem; } }
 .admin-kit__events-search, .admin-kit__users-search { min-inline-size: min(20rem, 100%); }
@@ -874,6 +873,7 @@
 /* Opt-in narrow stacked table: same card layout as --stack, but only on true phone widths (30rem),
    so a landscape phone keeps the table. Put --stack-narrow on the wrap and the table. */
 @media (max-width: 30rem) {
+  .admin-kit__panel-header-toggle-label { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: hidden; position: absolute; white-space: nowrap; }
   .admin-kit__table-wrap--stack-narrow { overflow-x: visible; }
   .admin-kit__table--stack-narrow { display: block; min-width: 0; }
   .admin-kit__table--stack-narrow thead { clip: rect(0 0 0 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }

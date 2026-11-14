@@ -991,6 +991,8 @@ Everything above a table can fold away so the table takes the screen.
   wraps instead of scrolling or fading: each text item clamps at two lines with
   an ellipsis, and chips (an item that is, or contains, an `AdminFilterChip`)
   are never clipped, so a long list of chips grows the band by whole rows.
+  Keep other controls (links, buttons) out of summary items: a clamped item
+  can hide them.
   `AdminFilterChip`'s remove button is at least 28px on a fine pointer and 44px
   on a coarse one.
 - Give each page its own `storageKey`. With no description, summary or toolbar
