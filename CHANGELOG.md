@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.48.2
+
+### Changed
+
+- EventsPanel tables stack below about 815px of container instead of about 750px, and tables whose minWidth is below their header text hide columns or stack earlier
+  Because a column can no longer shrink below its header, tables whose `minWidth` is smaller than the header text, such as the Events panel's Actor and Resource, need more room before they hide low-priority columns or stack into cards. Give a column a `priority` or a larger `minWidth` to choose what yields first.
+
+### Fixed
+
+- AdminDataTable never shrinks a column below its header text, sort arrow and padding
+  The fit measures each column header (text, sort arrow and cell padding) in the browser and uses it as a floor above `minWidth`, so a column with no `minWidth` such as the Events panel's Actor and Resource no longer clips its header. When the floors do not fit, low-priority columns hide and then rows stack, as before. Headers set only through `headerContent` are measured by their `header` text.
+
 ## 0.48.1
 
 ### Fixed
