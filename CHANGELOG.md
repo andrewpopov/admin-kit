@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.48.1
+
+### Fixed
+
+- The collapsible header band keeps a readable title on phones, shares one row with the toggle and actions, and wraps its summary chips instead of fading them
+  The title keeps at least 8rem and wraps by words; at 30rem or narrower the toggle shows only its chevron and count (its accessible name is unchanged) so title, toggle and one action share a row, and only the summary takes the next line (a collapsed band at 390px with one action is 76px tall, was 400px). The summary line no longer scrolls sideways or fades: text clamps at two lines and `AdminFilterChip`s wrap, never clipped. The chip's × is larger and its remove button is 44px on a coarse pointer.
+- AdminDataTable column dividers sit on the column edge, so the last column no longer ends in a 12px empty strip
+  The resize handle drew its divider in the middle of its 24px hit area, 12px inside the column's right edge, which left a visible empty strip after the last header. The divider now sits on the edge; the hit area is unchanged.
+- EventsPanel's default Occurred column is wide enough for its one-line, year-bearing timestamp
+  `EventsPanel` sizes the Occurred column to 216px when it uses the default timestamp format, so "May 30, 2026, 12:59 AM" no longer overflows its cell in a narrow table. A host `formatTimestamp` keeps the 184px/128px sizing.
+
 ## 0.48.0
 
 ### Added
