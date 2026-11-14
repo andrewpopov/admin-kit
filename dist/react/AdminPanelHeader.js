@@ -33,31 +33,6 @@ function useAdminBandFocus() {
     return (0, react_1.useContext)(AdminBandContext)?.focusToggle ?? noop;
 }
 function noop() { }
-const useIsomorphicLayoutEffect = typeof window === "undefined" ? react_1.useEffect : react_1.useLayoutEffect;
-function BandSummaryLine({ children }) {
-    const lineRef = (0, react_1.useRef)(null);
-    const [overflowing, setOverflowing] = (0, react_1.useState)(false);
-    const measure = () => {
-        const line = lineRef.current;
-        if (line)
-            setOverflowing(line.scrollWidth > line.clientWidth + 1);
-    };
-    useIsomorphicLayoutEffect(measure);
-    (0, react_1.useEffect)(() => {
-        const line = lineRef.current;
-        if (!line || typeof ResizeObserver === "undefined")
-            return;
-        const observer = new ResizeObserver(measure);
-        observer.observe(line);
-        return () => observer.disconnect();
-    }, []);
-    return ((0, jsx_runtime_1.jsx)("div", { className: [
-            "admin-kit__panel-header-summary-line",
-            overflowing ? "admin-kit__panel-header-summary-line--overflowing" : undefined,
-        ]
-            .filter(Boolean)
-            .join(" "), ref: lineRef, children: children }));
-}
 /**
  * One title/action band shared by standalone panels and panel-led pages.
  * Renders nothing when `presentation="none"` — see the contract documented
@@ -85,5 +60,5 @@ function AdminPanelHeader({ title, presentation = "section", detail, summary, ac
             className,
         ]
             .filter(Boolean)
-            .join(" "), children: [(0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__panel-header-main", children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)(Heading, { children: title }), band ? null : detail] }), band && collapsed ? ((0, jsx_runtime_1.jsx)(AdminBandContext.Provider, { value: bandFocus, children: (0, jsx_runtime_1.jsx)(BandSummaryLine, { children: band.collapsedSummary }) })) : null, actions ? (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__panel-header-actions", children: actions }) : null, band ? ((0, jsx_runtime_1.jsxs)("button", { "aria-controls": regionId, "aria-expanded": !collapsed, className: "admin-kit__panel-header-toggle", onClick: () => setCollapsed(!collapsed), ref: toggleRef, type: "button", children: [(0, jsx_runtime_1.jsx)("svg", { "aria-hidden": "true", focusable: "false", height: "16", viewBox: "0 0 16 16", width: "16", children: (0, jsx_runtime_1.jsx)("path", { d: "M4 6l4 4 4-4", fill: "none", stroke: "currentColor", strokeWidth: "1.75" }) }), (0, jsx_runtime_1.jsx)("span", { children: collapsed ? "Show controls" : "Hide controls" }), collapsed && activeCount > 0 ? ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("span", { "aria-hidden": "true", children: ["(", activeCount, ")"] }), (0, jsx_runtime_1.jsxs)("span", { className: "admin-kit__visually-hidden", children: [", ", activeCount, " ", activeCount === 1 ? "filter" : "filters", " applied"] })] })) : null] })) : null] }), band ? ((0, jsx_runtime_1.jsxs)("div", { "aria-label": "Page controls", className: "admin-kit__panel-header-region", hidden: collapsed, id: regionId, role: "group", children: [detail, regionContent] })) : (regionContent)] }));
+            .join(" "), children: [(0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__panel-header-main", children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)(Heading, { children: title }), band ? null : detail] }), band && collapsed ? ((0, jsx_runtime_1.jsx)(AdminBandContext.Provider, { value: bandFocus, children: (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__panel-header-summary-line", children: band.collapsedSummary }) })) : null, actions ? (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__panel-header-actions", children: actions }) : null, band ? ((0, jsx_runtime_1.jsxs)("button", { "aria-controls": regionId, "aria-expanded": !collapsed, className: "admin-kit__panel-header-toggle", onClick: () => setCollapsed(!collapsed), ref: toggleRef, type: "button", children: [(0, jsx_runtime_1.jsx)("svg", { "aria-hidden": "true", focusable: "false", height: "16", viewBox: "0 0 16 16", width: "16", children: (0, jsx_runtime_1.jsx)("path", { d: "M4 6l4 4 4-4", fill: "none", stroke: "currentColor", strokeWidth: "1.75" }) }), (0, jsx_runtime_1.jsx)("span", { className: "admin-kit__panel-header-toggle-label", children: collapsed ? "Show controls" : "Hide controls" }), collapsed && activeCount > 0 ? ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)("span", { "aria-hidden": "true", children: ["(", activeCount, ")"] }), (0, jsx_runtime_1.jsxs)("span", { className: "admin-kit__visually-hidden", children: [", ", activeCount, " ", activeCount === 1 ? "filter" : "filters", " applied"] })] })) : null] })) : null] }), band ? ((0, jsx_runtime_1.jsxs)("div", { "aria-label": "Page controls", className: "admin-kit__panel-header-region", hidden: collapsed, id: regionId, role: "group", children: [detail, regionContent] })) : (regionContent)] }));
 }

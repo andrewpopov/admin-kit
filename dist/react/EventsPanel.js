@@ -9,6 +9,7 @@ const AdminLabels_1 = require("./AdminLabels");
 const AdminDataTable_1 = require("./AdminDataTable");
 const AdminFilterChip_1 = require("./AdminFilterChip");
 const AdminPanelHeader_1 = require("./AdminPanelHeader");
+const adminDataTableFit_1 = require("./adminDataTableFit");
 const AdminPanelState_1 = require("./AdminPanelState");
 const SEARCH_DEBOUNCE_MS = 250;
 const ALL_COLUMNS = [
@@ -169,8 +170,9 @@ function eventTableColumns(visible, formatTimestamp) {
         occurred: {
             id: "occurred",
             header: "Occurred",
-            defaultWidth: 184,
-            minWidth: 128,
+            ...(formatTimestamp
+                ? { defaultWidth: 184, minWidth: 128 }
+                : { defaultWidth: adminDataTableFit_1.TIMESTAMP_COLUMN_WIDTH, minWidth: adminDataTableFit_1.TIMESTAMP_COLUMN_WIDTH }),
             cell: (event) => (0, jsx_runtime_1.jsx)(OccurredCell, { formatTimestamp: formatTimestamp, iso: event.occurredAt }),
         },
         event: {

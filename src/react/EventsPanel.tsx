@@ -16,6 +16,7 @@ import {
   type AdminPanelBandOptions,
   type AdminPanelHeaderPresentation,
 } from "./AdminPanelHeader";
+import { TIMESTAMP_COLUMN_WIDTH } from "./adminDataTableFit";
 import { AdminPanelStateView } from "./AdminPanelState";
 
 const SEARCH_DEBOUNCE_MS = 250;
@@ -471,8 +472,9 @@ function eventTableColumns(
     occurred: {
       id: "occurred",
       header: "Occurred",
-      defaultWidth: 184,
-      minWidth: 128,
+      ...(formatTimestamp
+        ? { defaultWidth: 184, minWidth: 128 }
+        : { defaultWidth: TIMESTAMP_COLUMN_WIDTH, minWidth: TIMESTAMP_COLUMN_WIDTH }),
       cell: (event) => <OccurredCell formatTimestamp={formatTimestamp} iso={event.occurredAt} />,
     },
     event: {

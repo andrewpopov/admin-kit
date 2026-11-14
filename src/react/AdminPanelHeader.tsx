@@ -2,12 +2,9 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useId,
-  useLayoutEffect,
   useMemo,
   useRef,
-  useState,
   type ElementType,
   type ReactNode,
 } from "react";
@@ -79,38 +76,6 @@ export function useAdminBandFocus(): () => void {
 }
 
 function noop() {}
-
-const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
-
-function BandSummaryLine({ children }: { children: ReactNode }) {
-  const lineRef = useRef<HTMLDivElement>(null);
-  const [overflowing, setOverflowing] = useState(false);
-  const measure = () => {
-    const line = lineRef.current;
-    if (line) setOverflowing(line.scrollWidth > line.clientWidth + 1);
-  };
-  useIsomorphicLayoutEffect(measure);
-  useEffect(() => {
-    const line = lineRef.current;
-    if (!line || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(line);
-    return () => observer.disconnect();
-  }, []);
-  return (
-    <div
-      className={[
-        "admin-kit__panel-header-summary-line",
-        overflowing ? "admin-kit__panel-header-summary-line--overflowing" : undefined,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-      ref={lineRef}
-    >
-      {children}
-    </div>
-  );
-}
 
 export interface AdminPanelHeaderProps {
   title: string;
@@ -184,7 +149,7 @@ export function AdminPanelHeader({
         </div>
         {band && collapsed ? (
           <AdminBandContext.Provider value={bandFocus}>
-            <BandSummaryLine>{band.collapsedSummary}</BandSummaryLine>
+            <div className="admin-kit__panel-header-summary-line">{band.collapsedSummary}</div>
           </AdminBandContext.Provider>
         ) : null}
         {actions ? <div className="admin-kit__panel-header-actions">{actions}</div> : null}
@@ -200,7 +165,9 @@ export function AdminPanelHeader({
             <svg aria-hidden="true" focusable="false" height="16" viewBox="0 0 16 16" width="16">
               <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.75" />
             </svg>
-            <span>{collapsed ? "Show controls" : "Hide controls"}</span>
+            <span className="admin-kit__panel-header-toggle-label">
+              {collapsed ? "Show controls" : "Hide controls"}
+            </span>
             {collapsed && activeCount > 0 ? (
               <>
                 <span aria-hidden="true">({activeCount})</span>

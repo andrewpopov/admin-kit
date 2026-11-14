@@ -2,6 +2,8 @@ export type AdminDataTableColumnPriority = "primary" | "secondary" | "tertiary";
 export declare const DEFAULT_MIN_WIDTH = 64;
 export declare const DEFAULT_MAX_WIDTH = 960;
 export declare const DETAILS_COLUMN_WIDTH = 96;
+/** A column that holds the default `formatAdminTimestamp` text on one line: its widest form (e.g. "May 30, 2026, 12:59 AM", about 178px in the kit font) plus the cell's 2 x 16px padding. */
+export declare const TIMESTAMP_COLUMN_WIDTH = 216;
 /** Below this container width a stacked card puts each label above its value. */
 export declare const NARROW_CARD_WIDTH = 340;
 /** The width a fill column asks for when it sets no `fillWidth`, before sized columns keep their own preferred widths. */

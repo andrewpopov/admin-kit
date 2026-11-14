@@ -72,6 +72,40 @@ const chipsBand = mount(
   })`,
 );
 
+const phoneBand = mount(
+  `React.createElement(React.Fragment, null,
+    React.createElement(Kit.AdminPanelHeader, {
+      title: "Audit events",
+      presentation: "page",
+      actions: React.createElement(Kit.AdminActionButton, { type: "button" }, "Refresh"),
+      toolbar: React.createElement("input", { "aria-label": "Search", type: "search" }),
+      collapsible: {
+        storageKey: "phone",
+        activeCount: 2,
+        defaultCollapsed: true,
+        collapsedSummary: React.createElement("span", null, "48,213 events"),
+      },
+    }),
+    React.createElement(Kit.AdminDataTable, { columns, rows, rowKey: (row) => row.id, label: "Events" }))`,
+  `const rows = Array.from({ length: 6 }, (_, index) => ({ id: "row" + index, name: "Event " + index }));
+   const columns = [{ id: "name", header: "Name", cell: (row) => row.name }];`,
+);
+
+const longSummaryBand = mount(
+  `React.createElement(Kit.AdminPanelHeader, {
+    title: "Audit events",
+    presentation: "page",
+    toolbar: React.createElement("input", { "aria-label": "Search", type: "search" }),
+    collapsible: {
+      storageKey: "long",
+      defaultCollapsed: true,
+      collapsedSummary: React.createElement(React.Fragment, null,
+        React.createElement("span", null, "48,213 events matched across every request category, severity and outcome the audit log has recorded since the retention window opened, including the failures the on-call rotation has not yet triaged or acknowledged"),
+        React.createElement(Kit.AdminFilterChip, { label: "Search: /api/agent/sessions/very/long/path/that/keeps/going", onRemove() {} })),
+    },
+  })`,
+);
+
 const eventsPlain = mount(
   `React.createElement(Kit.EventsPanel, {
     adapter: eventsAdapter,
@@ -399,22 +433,33 @@ test.describe("review fixes", () => {
   });
 
   for (const width of [390, 320]) {
-    test(`the collapsed summary scrolls sideways with an edge fade at ${width}px, and the toggle shares the title row`, async ({
+    test(`the collapsed summary wraps its chips and shows every one at ${width}px, with no sideways scroll or fade`, async ({
       page,
     }) => {
       await page.setViewportSize({ width, height: 844 });
       await serveDataTable(page, { script: chipsBand });
       const line = page.locator(".admin-kit__panel-header-summary-line");
       await expect(line).toBeVisible();
-      await expect(line).toHaveClass(/--overflowing/);
-      const { scroll, client, mask } = await line.evaluate((node) => ({
+      const { scroll, client, mask, chips, bounds } = await line.evaluate((node) => ({
         scroll: node.scrollWidth,
         client: node.clientWidth,
-        mask: getComputedStyle(node).maskImage || getComputedStyle(node).webkitMaskImage,
+        mask: getComputedStyle(node).maskImage,
+        bounds: node.getBoundingClientRect().toJSON(),
+        chips: [...node.querySelectorAll(".admin-kit__filter-chip")].map((chip) => ({
+          box: chip.getBoundingClientRect().toJSON(),
+          remove: chip.querySelector("button")!.getBoundingClientRect().toJSON(),
+        })),
       }));
-      expect(scroll).toBeGreaterThan(client);
-      expect(mask).toContain("linear-gradient");
-      await line.evaluate((node) => (node.scrollLeft = node.scrollWidth));
+      expect(scroll).toBeLessThanOrEqual(client);
+      expect(mask).toBe("none");
+      expect(chips).toHaveLength(4);
+      for (const { box, remove } of chips) {
+        expect(box.left).toBeGreaterThanOrEqual(bounds.left - 1);
+        expect(box.right).toBeLessThanOrEqual(bounds.right + 1);
+        expect(remove.right).toBeLessThanOrEqual(bounds.right + 1);
+      }
+      const rows = new Set(chips.map(({ box }) => Math.round(box.top)));
+      expect(rows.size, "chips wrap onto more than one row").toBeGreaterThan(1);
       await expect(
         page.getByRole("button", { name: "Remove filter: Category: Request" }),
       ).toBeInViewport();
@@ -426,11 +471,152 @@ test.describe("review fixes", () => {
     });
   }
 
-  test("the summary line has no fade when everything fits", async ({ page }) => {
-    await page.setViewportSize({ width: 1920, height: 1080 });
-    await serveDataTable(page, { script: chipsBand });
-    await expect(page.locator(".admin-kit__panel-header-summary-line")).not.toHaveClass(
-      /--overflowing/,
+  test("summary text clamps at two lines while chips are never clipped", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await serveDataTable(page, { script: longSummaryBand });
+    const text = page.locator(".admin-kit__panel-header-summary-line > span").first();
+    await expect(text).toBeVisible();
+    const lines = await text.evaluate(
+      (node) => node.getBoundingClientRect().height / parseFloat(getComputedStyle(node).lineHeight),
     );
+    expect(lines).toBeGreaterThan(1.5);
+    expect(lines).toBeLessThanOrEqual(2.05);
+    const chip = page.locator(".admin-kit__filter-chip");
+    await expect(chip).toBeInViewport({ ratio: 1 });
+    const clipped = await chip.evaluate((node) => {
+      const label = node.firstElementChild as HTMLElement;
+      return (
+        label.scrollHeight > label.clientHeight + 1 || label.scrollWidth > label.clientWidth + 1
+      );
+    });
+    expect(clipped).toBe(false);
   });
+});
+
+test.describe("collapsed band on a phone", () => {
+  const phone = { width: 390, height: 844 };
+
+  test("title, toggle and action share one row and the table top stays at or under 260px", async ({
+    page,
+  }) => {
+    await page.setViewportSize(phone);
+    await serveDataTable(page, { script: phoneBand });
+    const title = page.getByRole("heading", { name: "Audit events" });
+    await expect(title).toBeVisible();
+    const [titleBox, toggleBox, actionBox, lineBox] = await Promise.all([
+      title.boundingBox(),
+      toggle(page).boundingBox(),
+      page.getByRole("button", { name: "Refresh" }).boundingBox(),
+      page.locator(".admin-kit__panel-header-summary-line").boundingBox(),
+    ]);
+    const lineHeight = await title.evaluate((node) =>
+      parseFloat(getComputedStyle(node).lineHeight),
+    );
+    expect(titleBox!.height, "the title stays on one line").toBeLessThan(lineHeight * 1.5);
+    expect(titleBox!.width).toBeGreaterThanOrEqual(128);
+    for (const box of [toggleBox!, actionBox!]) {
+      expect(Math.abs(box.y + box.height / 2 - (titleBox!.y + titleBox!.height / 2))).toBeLessThan(
+        24,
+      );
+    }
+    expect(lineBox!.y, "the summary line is beneath the row").toBeGreaterThanOrEqual(
+      Math.max(toggleBox!.y + toggleBox!.height, actionBox!.y + actionBox!.height),
+    );
+    const header = await page.locator("header").boundingBox();
+    test.info().annotations.push({ type: "band height", description: `${header!.height}` });
+    expect(await tableTop(page)).toBeLessThanOrEqual(260);
+    expect(header!.height).toBeLessThanOrEqual(140);
+  });
+
+  test("a long title wraps by words and keeps a readable width next to the action", async ({
+    page,
+  }) => {
+    await page.setViewportSize(phone);
+    await serveDataTable(page, {
+      script: phoneBand.replace("Audit events", "Operational retention schedule"),
+    });
+    const title = page.getByRole("heading", { name: "Operational retention schedule" });
+    await expect(title).toBeVisible();
+    const width = (await title.boundingBox())!.width;
+    expect(width).toBeGreaterThanOrEqual(128);
+    const brokenWords = await title.evaluate((node) => {
+      const words = (node.textContent ?? "").split(" ");
+      const range = document.createRange();
+      const text = node.firstChild!;
+      let offset = 0;
+      return words.some((word) => {
+        range.setStart(text, offset);
+        range.setEnd(text, offset + word.length);
+        offset += word.length + 1;
+        return range.getClientRects().length > 1;
+      });
+    });
+    expect(brokenWords).toBe(false);
+  });
+
+  test("the toggle keeps its accessible name when the phone shows only the chevron and count", async ({
+    page,
+  }) => {
+    await page.setViewportSize(phone);
+    await serveDataTable(page, { script: phoneBand });
+    const button = page.getByRole("button", { name: /Show controls.*2 filters applied/ });
+    await expect(button).toBeVisible();
+    expect((await button.boundingBox())!.width).toBeLessThan(100);
+  });
+});
+
+test.describe("filter chip remove target", () => {
+  test("is at least 24px on a fine pointer and keeps a legible ×", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await serveDataTable(page, { script: chipsBand });
+    expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(false);
+    const remove = page.getByRole("button", { name: "Remove filter: Category: Request" });
+    const box = (await remove.boundingBox())!;
+    expect(box.height).toBeGreaterThanOrEqual(24);
+    expect(box.width).toBeGreaterThanOrEqual(24);
+    const fontSize = await remove.evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
+    expect(fontSize).toBeGreaterThanOrEqual(18);
+  });
+
+  test.describe("on a coarse pointer", () => {
+    test.use({ hasTouch: true, isMobile: true });
+
+    test("is at least 44px tall and wide", async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await serveDataTable(page, { script: chipsBand });
+      expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(true);
+      const boxes = await page
+        .locator(".admin-kit__filter-chip button")
+        .evaluateAll((buttons) => buttons.map((node) => node.getBoundingClientRect().toJSON()));
+      expect(boxes).toHaveLength(4);
+      for (const box of boxes) {
+        expect(box.height).toBeGreaterThanOrEqual(44);
+        expect(box.width).toBeGreaterThanOrEqual(44);
+      }
+    });
+  });
+});
+
+test("the default Events time column keeps its year on one line in a narrow container", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await serveDataTable(page, { script: eventsPlain, containerWidth: 900 });
+  const cell = page.locator("tbody tr").first().locator("td").first();
+  await expect(cell).toBeVisible();
+  const { text, textWidth, room, widest } = await cell.evaluate((td) => {
+    const span = td.querySelector(".admin-kit__event-time > span") as HTMLElement;
+    const style = getComputedStyle(td);
+    const context = document.createElement("canvas").getContext("2d")!;
+    context.font = getComputedStyle(span).font;
+    return {
+      text: span.textContent ?? "",
+      textWidth: span.getBoundingClientRect().width,
+      room: td.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
+      widest: context.measureText("May 30, 2026, 12:59 AM").width,
+    };
+  });
+  expect(text).toMatch(/2026/);
+  expect(textWidth).toBeLessThanOrEqual(room + 0.5);
+  expect(widest).toBeLessThanOrEqual(room + 0.5);
 });
