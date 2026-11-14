@@ -16,6 +16,8 @@ export interface FitColumn {
     maxWidth?: number;
     /** A fill column's preferred width; sized columns shrink before it drops below this. */
     fillWidth?: number;
+    /** The width the header text, sort arrow and cell padding need; the column never renders narrower, whatever `minWidth` says. */
+    headerWidth?: number;
     /** A viewer-resized width; unlike `defaultWidth` it never shrinks to fit. */
     override?: number;
 }
@@ -30,7 +32,7 @@ export interface TableFit {
     /** Viewer-resized widths exceed the container: the wrap scrolls sideways. */
     scrolls: boolean;
 }
-export declare function columnBounds(column: Pick<FitColumn, "minWidth" | "maxWidth">): {
+export declare function columnBounds(column: Pick<FitColumn, "minWidth" | "maxWidth" | "headerWidth">): {
     min: number;
     max: number;
 };

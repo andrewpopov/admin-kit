@@ -42,7 +42,7 @@ for (const containerWidth of [320, 375]) {
 
 test("hides tertiary, then secondary, columns as the container narrows", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await serveDataTable(page, { script, containerWidth: 735 });
+  await serveDataTable(page, { script, containerWidth: 740 });
   await expect(page.getByRole("columnheader", { name: "Created" })).toHaveCount(0);
   await expect(page.getByRole("columnheader", { name: "Last used" })).toHaveCount(1);
   await page.locator("#root").evaluate((root) => (root.style.width = "650px"));

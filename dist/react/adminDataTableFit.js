@@ -21,17 +21,15 @@ const HIDE_STEPS = [
     ["tertiary", "secondary"],
 ];
 function columnBounds(column) {
-    return {
-        min: column.minWidth ?? exports.DEFAULT_MIN_WIDTH,
-        max: column.maxWidth ?? exports.DEFAULT_MAX_WIDTH,
-    };
+    const min = Math.max(column.minWidth ?? exports.DEFAULT_MIN_WIDTH, column.headerWidth ?? 0);
+    return { min, max: Math.max(min, column.maxWidth ?? exports.DEFAULT_MAX_WIDTH) };
 }
 function clamp(value, min, max) {
     return Math.min(max, Math.max(min, Math.round(value)));
 }
 function minimumOf(column) {
     return column.defaultWidth === undefined
-        ? (column.minWidth ?? FILL_MIN_WIDTH)
+        ? Math.max(column.minWidth ?? FILL_MIN_WIDTH, column.headerWidth ?? 0)
         : columnBounds(column).min;
 }
 function preferredOf(column) {
