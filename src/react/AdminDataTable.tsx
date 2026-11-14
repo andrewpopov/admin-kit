@@ -15,6 +15,7 @@ import {
 } from "react";
 import { AdminMobileCellLabel } from "./AdminTablePrimitives";
 import { useFillBox } from "./useFillBox";
+import { useHeaderFloors } from "./useHeaderFloors";
 import {
   clamp,
   columnBounds,
@@ -200,8 +201,19 @@ export function AdminDataTable<Row>({
     return () => observer.disconnect();
   }, []);
 
+  const headerFloors = useHeaderFloors(
+    wrapRef,
+    columns.map((column) => ({
+      id: column.id,
+      header: column.header,
+      sortable: column.sort !== undefined,
+    })),
+  );
+  const boundsOf = (column: AdminDataTableColumn<Row>) =>
+    columnBounds({ ...column, headerWidth: headerFloors[column.id] });
   const fitColumns = columns.map((column) => ({
     id: column.id,
+    headerWidth: headerFloors[column.id],
     priority: column.priority,
     defaultWidth: column.defaultWidth,
     minWidth:
@@ -240,7 +252,7 @@ export function AdminDataTable<Row>({
     const next = { ...latest.current };
     if (width === undefined) delete next[column.id];
     else {
-      const { min, max } = columnBounds(column);
+      const { min, max } = boundsOf(column);
       next[column.id] = clamp(width, min, max);
     }
     latest.current = next;
@@ -252,7 +264,7 @@ export function AdminDataTable<Row>({
     const current = widthOf(column);
     if (current === undefined) return;
     const step = event.shiftKey ? KEYBOARD_LARGE_STEP : KEYBOARD_STEP;
-    const { min, max } = columnBounds(column);
+    const { min, max } = boundsOf(column);
     let next: number | undefined | null = null;
     if (event.key === "Escape" && menuFor === column.id) {
       setMenuFor(undefined);
@@ -369,7 +381,7 @@ export function AdminDataTable<Row>({
             {visibleColumns.map((column) => {
               const width = widthOf(column);
               const resizable = width !== undefined && column.resizable !== false && !fit.stacked;
-              const { min, max } = columnBounds(column);
+              const { min, max } = boundsOf(column);
               const menuOpen = resizable && menuFor === column.id;
               const menuId = `${idPrefix}-resize-${column.id}`;
               return (

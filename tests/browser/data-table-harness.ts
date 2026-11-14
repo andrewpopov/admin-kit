@@ -206,3 +206,13 @@ export const jobsPanel = mount(
     },
   };`,
 );
+
+/** The audit EventsPanel with its default Occurred column (no `formatTimestamp`), as Cairn mounts it. */
+export const eventsPanel = mount(
+  `React.createElement(Kit.EventsPanel, { adapter: eventsAdapter, presentation: "table" })`,
+  `const eventsAdapter = {
+    async list() {
+      return { items: [{ id: "evt_1", occurredAt: "2026-05-30T00:59:00.000Z", action: "api_key.created", message: "Created an API key", category: "access", severity: "info", outcome: "success", actor: { id: "usr_1", label: "avery@example.test" }, resource: { id: "key_1", label: "automation-pipeline-production" } }], total: 1, page: 1, pageSize: 25 };
+    },
+  };`,
+);

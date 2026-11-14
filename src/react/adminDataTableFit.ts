@@ -19,6 +19,8 @@ export interface FitColumn {
   maxWidth?: number;
   /** A fill column's preferred width; sized columns shrink before it drops below this. */
   fillWidth?: number;
+  /** The width the header text, sort arrow and cell padding need; the column never renders narrower, whatever `minWidth` says. */
+  headerWidth?: number;
   /** A viewer-resized width; unlike `defaultWidth` it never shrinks to fit. */
   override?: number;
 }
@@ -42,9 +44,11 @@ const HIDE_STEPS: readonly (readonly AdminDataTableColumnPriority[])[] = [
   ["tertiary", "secondary"],
 ];
 
-export function columnBounds(column: Pick<FitColumn, "minWidth" | "maxWidth">) {
+export function columnBounds(
+  column: Pick<FitColumn, "minWidth" | "maxWidth" | "headerWidth">,
+) {
   return {
-    min: column.minWidth ?? DEFAULT_MIN_WIDTH,
+    min: Math.max(column.minWidth ?? DEFAULT_MIN_WIDTH, column.headerWidth ?? 0),
     max: column.maxWidth ?? DEFAULT_MAX_WIDTH,
   };
 }
@@ -55,7 +59,7 @@ export function clamp(value: number, min: number, max: number) {
 
 function minimumOf(column: FitColumn) {
   return column.defaultWidth === undefined
-    ? (column.minWidth ?? FILL_MIN_WIDTH)
+    ? Math.max(column.minWidth ?? FILL_MIN_WIDTH, column.headerWidth ?? 0)
     : columnBounds(column).min;
 }
 

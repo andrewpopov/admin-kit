@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
+  eventsPanel,
   jobsPanel,
   keysPanel,
   mount,
@@ -15,6 +16,7 @@ const panels = {
   "UsersPanel with controls": usersControlsPanel,
   "UsersPanel with custom columns": usersCustomColumnsPanel,
   OperationalJobsPanel: jobsPanel,
+  EventsPanel: eventsPanel,
 };
 
 const cellOverflow = () =>
@@ -26,6 +28,18 @@ const cellOverflow = () =>
         ? [`${cell.textContent} (${value.scrollWidth} > ${value.clientWidth})`]
         : [];
     });
+
+const clippedHeaders = () =>
+  [
+    ...document.querySelectorAll<HTMLElement>(
+      ".admin-kit__data-table:not([data-stacked]) .admin-kit__data-table-heading-text",
+    ),
+  ].flatMap(
+    (heading) =>
+      heading.scrollWidth > heading.clientWidth + 1
+        ? [`${heading.textContent} (${heading.scrollWidth} > ${heading.clientWidth})`]
+        : [],
+  );
 
 const selectsFitTheirOptions = () =>
   [...document.querySelectorAll<HTMLSelectElement>("tbody select")].flatMap((select) => {
@@ -80,12 +94,24 @@ for (const [name, script] of Object.entries(panels)) {
     }) => {
       await serveDataTable(page, { script, containerWidth });
       await expect(page.locator("tbody tr").first()).toBeVisible();
+      expect(await page.evaluate(clippedHeaders)).toEqual([]);
       expect(await page.evaluate(cellOverflow)).toEqual([]);
       expect(await page.evaluate(selectsFitTheirOptions)).toEqual([]);
       expect(await page.evaluate(interactiveOverlaps)).toEqual([]);
       expect(await page.evaluate(wrapOverflow)).toBeLessThanOrEqual(0);
     });
   }
+}
+
+for (const containerWidth of [900, 1040]) {
+  test(`EventsPanel default Occurred column at ${containerWidth}px never clips a column header`, async ({
+    page,
+  }) => {
+    await serveDataTable(page, { script: eventsPanel, containerWidth });
+    await expect(page.locator("tbody tr").first()).toBeVisible();
+    expect(await page.evaluate(clippedHeaders)).toEqual([]);
+    expect(await page.evaluate(wrapOverflow)).toBeLessThanOrEqual(0);
+  });
 }
 
 test("UsersPanel never squeezes a Role or Status select below its options: it stacks first", async ({

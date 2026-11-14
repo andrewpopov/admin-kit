@@ -114,4 +114,16 @@ describe("resolveTableFit", () => {
       expect(fit.widths).toEqual({ status: 120, detail: 280, attempts: 90, when: 150 });
     });
   });
+
+  it("never renders a column below its header width, and hides or stacks instead", () => {
+    const labelled: FitColumn[] = [
+      { id: "name", minWidth: 160 },
+      { id: "resource", defaultWidth: 240, headerWidth: 101 },
+      { id: "extra", defaultWidth: 140, minWidth: 100, priority: "tertiary" },
+    ];
+    const squeezed = resolveTableFit(300, labelled);
+    expect(squeezed.widths.resource).toBe(101);
+    expect(squeezed.visibleIds).toEqual(["name", "resource"]);
+    expect(resolveTableFit(200, labelled).stacked).toBe(true);
+  });
 });

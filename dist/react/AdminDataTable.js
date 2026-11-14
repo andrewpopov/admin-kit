@@ -6,6 +6,7 @@ const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const AdminTablePrimitives_1 = require("./AdminTablePrimitives");
 const useFillBox_1 = require("./useFillBox");
+const useHeaderFloors_1 = require("./useHeaderFloors");
 const adminDataTableFit_1 = require("./adminDataTableFit");
 const KEYBOARD_STEP = 16;
 const KEYBOARD_LARGE_STEP = 64;
@@ -110,8 +111,15 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
         observer.observe(head);
         return () => observer.disconnect();
     }, []);
+    const headerFloors = (0, useHeaderFloors_1.useHeaderFloors)(wrapRef, columns.map((column) => ({
+        id: column.id,
+        header: column.header,
+        sortable: column.sort !== undefined,
+    })));
+    const boundsOf = (column) => (0, adminDataTableFit_1.columnBounds)({ ...column, headerWidth: headerFloors[column.id] });
     const fitColumns = columns.map((column) => ({
         id: column.id,
+        headerWidth: headerFloors[column.id],
         priority: column.priority,
         defaultWidth: column.defaultWidth,
         minWidth: column.minWidth ??
@@ -141,7 +149,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
         if (width === undefined)
             delete next[column.id];
         else {
-            const { min, max } = (0, adminDataTableFit_1.columnBounds)(column);
+            const { min, max } = boundsOf(column);
             next[column.id] = (0, adminDataTableFit_1.clamp)(width, min, max);
         }
         latest.current = next;
@@ -154,7 +162,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
         if (current === undefined)
             return;
         const step = event.shiftKey ? KEYBOARD_LARGE_STEP : KEYBOARD_STEP;
-        const { min, max } = (0, adminDataTableFit_1.columnBounds)(column);
+        const { min, max } = boundsOf(column);
         let next = null;
         if (event.key === "Escape" && menuFor === column.id) {
             setMenuFor(undefined);
@@ -247,7 +255,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
                         }), hasDetailsColumn ? (0, jsx_runtime_1.jsx)("col", { style: { width: `${adminDataTableFit_1.DETAILS_COLUMN_WIDTH}px` } }) : null] }), (0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { children: [visibleColumns.map((column) => {
                                 const width = widthOf(column);
                                 const resizable = width !== undefined && column.resizable !== false && !fit.stacked;
-                                const { min, max } = (0, adminDataTableFit_1.columnBounds)(column);
+                                const { min, max } = boundsOf(column);
                                 const menuOpen = resizable && menuFor === column.id;
                                 const menuId = `${idPrefix}-resize-${column.id}`;
                                 return ((0, jsx_runtime_1.jsxs)("th", { "aria-label": column.header, "aria-sort": column.sort?.direction, className: [
