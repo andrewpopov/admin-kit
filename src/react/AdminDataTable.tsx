@@ -271,8 +271,10 @@ export function AdminDataTable<Row>({
       setMenuFor(undefined);
       return;
     }
-    if (event.key === "ArrowRight" || event.key === "ArrowUp") next = current + step;
-    else if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = current - step;
+    const growKey = getComputedStyle(event.currentTarget).direction === "rtl" ? "ArrowLeft" : "ArrowRight";
+    const shrinkKey = growKey === "ArrowLeft" ? "ArrowRight" : "ArrowLeft";
+    if (event.key === growKey || event.key === "ArrowUp") next = current + step;
+    else if (event.key === shrinkKey || event.key === "ArrowDown") next = current - step;
     else if (event.key === "PageUp") next = current + KEYBOARD_LARGE_STEP;
     else if (event.key === "PageDown") next = current - KEYBOARD_LARGE_STEP;
     else if (event.key === "Home") next = undefined;

@@ -37,14 +37,14 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install github:andrewpopov/admin-kit#v0.36.0
+npm install @andrewpopov/admin-kit@0.48.2
 ```
 
-This package is distributed as a pinned git tag, not through a registry.
-Install `github:andrewpopov/admin-kit#vX.Y.Z`, pin to the release you've
-verified against, and bump the tag deliberately rather than tracking a moving
-ref. See [releases/tags](https://github.com/andrewpopov/admin-kit/tags) for
-available versions.
+This package is published to the fleet registry. Point the `@andrewpopov` scope
+at it in `.npmrc` (`@andrewpopov:registry=https://npm.tail615381.ts.net/`), pin
+an exact version you've verified against, and bump it deliberately rather than
+using a range. Each version is an annotated `vX.Y.Z` tag on
+[andrewpopov/admin-kit](https://github.com/andrewpopov/admin-kit/tags).
 
 `react` and `react-dom` are peer dependencies (`^18 || ^19`). `react-dom` is
 required because confirmation dialogs render through a portal.
@@ -1244,11 +1244,13 @@ npm run verify:pack
 npm run test:browser
 ```
 
-Pull requests and `main` run the same unit, type, package-consumer, generated
-asset, and Chromium checks. A release tag must equal the package version and
-have a matching changelog heading. After a tag is merged, consumers must update
-their git dependency with `npm update` (or the package-manager equivalent),
-verify the installed version, and run their affected admin journey.
+GitHub Actions is disabled for this repository; the local `.githooks/pre-push`
+gate runs `npm run verify` (lint, typecheck, unit, Chromium, compile, dist
+freshness, pack, bins, and the production and full-tree audits). A release tag
+must equal the package version and have a matching changelog heading. After a
+tag is published, consumers bump their exact registry pin, verify the installed
+version in `node_modules/@andrewpopov/admin-kit/package.json`, and run their
+affected admin journey.
 
 ## Migration guidance
 

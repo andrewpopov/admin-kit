@@ -168,9 +168,11 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
             setMenuFor(undefined);
             return;
         }
-        if (event.key === "ArrowRight" || event.key === "ArrowUp")
+        const growKey = getComputedStyle(event.currentTarget).direction === "rtl" ? "ArrowLeft" : "ArrowRight";
+        const shrinkKey = growKey === "ArrowLeft" ? "ArrowRight" : "ArrowLeft";
+        if (event.key === growKey || event.key === "ArrowUp")
             next = current + step;
-        else if (event.key === "ArrowLeft" || event.key === "ArrowDown")
+        else if (event.key === shrinkKey || event.key === "ArrowDown")
             next = current - step;
         else if (event.key === "PageUp")
             next = current + KEYBOARD_LARGE_STEP;
