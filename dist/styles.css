@@ -998,13 +998,13 @@
   .admin-kit__filter-chip { border: 1px solid CanvasText; }
   .admin-kit__filter-chip button:hover { background: Highlight; color: HighlightText; }
   .admin-kit__status { border-inline-start-color: CanvasText; }
+  .admin-kit__status--neutral { border-inline-start-style: dotted; }
   .admin-kit__status--healthy { border-inline-start-style: solid; }
   .admin-kit__status--warning { border-inline-start-style: dashed; }
   .admin-kit__status--critical { border-inline-start-style: double; }
   .admin-kit__state-pill { border: 1px solid currentColor; }
   .admin-kit__column-resizer::after { background: CanvasText; }
   .admin-kit__column-resizer:hover::after, .admin-kit__column-resizer:focus-visible::after { background: Highlight; }
-  .admin-kit :where(a, button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible { outline-color: Highlight; }
   .admin-kit__tab[aria-selected="true"] { border-bottom-color: Highlight; text-decoration: underline; }
   .admin-kit__portal-link[aria-current="page"] { color: Highlight; text-decoration: underline; }
   .admin-kit__scope-option[data-selected] { outline: 2px solid Highlight; outline-offset: -2px; }

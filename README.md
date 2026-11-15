@@ -37,7 +37,7 @@ authorization, and product-specific pages.
 ## Install
 
 ```sh
-npm install @andrewpopov/admin-kit@0.48.2
+npm install --save-exact @andrewpopov/admin-kit@0.48.2
 ```
 
 This package is published to the fleet registry. Point the `@andrewpopov` scope

@@ -10,12 +10,20 @@ const controls = mount(
     React.createElement(Kit.AdminPanelStateView, { state: { kind: "loading", skeletonRows: 3 } }),
     React.createElement(Kit.AdminFilterChip, { label: "Severity: Error", onRemove: () => {} }),
     React.createElement(Kit.AdminStatusSummary, { items: [
+      { label: "Plain", value: "Idle" },
       { label: "API", value: "Healthy", tone: "healthy" },
       { label: "Queue", value: "Slow", tone: "warning" },
       { label: "Jobs", value: "Failing", tone: "critical" },
     ] }),
   )`,
 );
+
+const peopleTable = `
+const rows = [{ id: "a", name: "Avery" }];
+const columns = [{ id: "name", header: "Name", defaultWidth: 200, cell: (row) => row.name }];
+ReactDOM.createRoot(document.getElementById("root")).render(
+  React.createElement(AdminDataTable, { columns, rows, rowKey: (row) => row.id, label: "People" }),
+);`;
 
 const style = (locator: Locator, props: string[]) =>
   locator.evaluate(
@@ -35,6 +43,16 @@ const canvasColor = (page: Page) =>
     probe.remove();
     return color;
   });
+
+const systemColor = (page: Page, keyword: string) =>
+  page.evaluate((name) => {
+    const probe = document.createElement("div");
+    probe.style.color = name;
+    document.body.append(probe);
+    const color = getComputedStyle(probe).color;
+    probe.remove();
+    return color;
+  }, keyword);
 
 const hasBorder = async (locator: Locator, side = "top") => {
   const { width, style: borderStyle } = await locator.evaluate((element, edge) => {
@@ -83,11 +101,11 @@ test.describe("forced colors", () => {
 
   test("status tones stay distinguishable without colour", async ({ page }) => {
     const styles = await Promise.all(
-      ["healthy", "warning", "critical"].map((tone) =>
+      ["neutral", "healthy", "warning", "critical"].map((tone) =>
         style(page.locator(`.admin-kit__status--${tone}`), ["border-inline-start-style"]),
       ),
     );
-    expect(new Set(styles.map((entry) => entry["border-inline-start-style"])).size).toBe(3);
+    expect(new Set(styles.map((entry) => entry["border-inline-start-style"])).size).toBe(4);
   });
 
   test("focus rings are still drawn", async ({ page }) => {
@@ -95,8 +113,9 @@ test.describe("forced colors", () => {
     await page.keyboard.press("Tab");
     await chipButton.focus();
     await expect(chipButton).toBeFocused();
-    const ring = await style(chipButton, ["outline-style", "outline-width"]);
+    const ring = await style(chipButton, ["outline-style", "outline-width", "outline-color"]);
     expect(ring["outline-style"]).not.toBe("none");
+    expect(ring["outline-color"]).toBe(await systemColor(page, "Highlight"));
     expect(Number.parseFloat(ring["outline-width"])).toBeGreaterThan(0);
   });
 
@@ -156,17 +175,29 @@ test.describe("rtl", () => {
     expect(align["text-align"]).toBe("start");
   });
 
+  test("table cells align to the start edge", async ({ page }) => {
+    await serveDataTable(page, { script: rtl + peopleTable });
+    for (const selector of ["th", "td"]) {
+      const align = await style(page.locator(`.admin-kit__data-table ${selector}`).first(), ["text-align"]);
+      expect(align["text-align"], selector).toBe("start");
+    }
+  });
+
+  test("dragging the divider outward grows the column", async ({ page }) => {
+    await serveDataTable(page, { script: rtl + peopleTable });
+    const handle = page.getByRole("separator", { name: "Resize Name column" });
+    const box = (await handle.boundingBox())!;
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x - 60, y, { steps: 6 });
+    await page.mouse.up();
+    expect(Number(await handle.getAttribute("aria-valuenow"))).toBeGreaterThan(200);
+  });
+
   test("ArrowLeft grows and ArrowRight shrinks a resized column", async ({ page }) => {
-    await serveDataTable(page, {
-      script:
-        rtl +
-        `
-const rows = [{ id: "a", name: "Avery" }];
-const columns = [{ id: "name", header: "Name", defaultWidth: 200, cell: (row) => row.name }];
-ReactDOM.createRoot(document.getElementById("root")).render(
-  React.createElement(AdminDataTable, { columns, rows, rowKey: (row) => row.id, label: "People" }),
-);`,
-    });
+    await serveDataTable(page, { script: rtl + peopleTable });
     const handle = page.getByRole("separator", { name: "Resize Name column" });
     await handle.focus();
     await expect(handle).toHaveAttribute("aria-valuenow", "200");
