@@ -442,6 +442,7 @@
   display: grid;
   font: inherit;
   gap: 0.125rem;
+  justify-content: stretch;
   padding: 0.75rem;
   text-align: start;
   text-decoration: none;

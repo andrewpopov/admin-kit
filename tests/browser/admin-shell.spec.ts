@@ -98,6 +98,32 @@ test("fits a 15-item portal navigation without clipping at desktop size", async 
   ).toBe(true);
 });
 
+test("starts section labels and descriptions at the link's inline start, weighted only when current", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(fixture);
+  const links = page.locator(".admin-kit__portal-navigation .admin-kit__portal-link");
+  const layout = await links.evaluateAll((nodes) =>
+    nodes.map((link) => {
+      const style = getComputedStyle(link);
+      const contentStart = link.getBoundingClientRect().left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+      return {
+        current: link.getAttribute("aria-current") === "page",
+        weight: Number(style.fontWeight),
+        offsets: Array.from(link.children, (child) => Math.round(child.getBoundingClientRect().left - contentStart)),
+      };
+    }),
+  );
+  expect(layout.find((link) => link.current)?.offsets, "current link has a label and a description").toHaveLength(2);
+  for (const link of layout) {
+    expect(link.offsets, "every label and description starts at the content edge").toEqual(link.offsets.map(() => 0));
+  }
+  const [current] = layout.filter((link) => link.current);
+  const others = layout.filter((link) => !link.current);
+  expect(others.every((link) => link.weight < current.weight), "only the current link is strong").toBe(true);
+});
+
 test("keeps the phone app header compact so content starts near the top", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto(fixture);
