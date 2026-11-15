@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.48.3
+
+### Changed
+
+- verify audits production dependencies at moderate and the whole tree at high; release docs describe the local gate and registry pins
+  npm run verify now audits production dependencies at moderate and the whole dependency tree at high. RELEASING.md and the README describe the local pre-push gate and exact registry pins instead of CI and git-dependency pins.
+
+### Fixed
+
+- Switches, skeleton bars, filter chips, status tones, the column divider and selected states stay distinguishable in forced-colors (Windows High Contrast) mode
+  In forced-colors mode the switch thumb is ButtonText on a Canvas track, and an on switch is a Highlight track with a HighlightText thumb. Skeleton bars, filter chips, state pills and the column divider are drawn with system colours and borders. Status tones are told apart by border style (solid, dashed, double, dotted for neutral) and selected tabs, current portal links and selected scope options carry a Highlight underline or outline.
+- Right-to-left: the switch thumb stays inside its track, the status accent sits on the start edge, text aligns to start, and column resizer arrow keys follow direction
+  Under dir="rtl", tables, switches and status cards now align and place their accent on the right. The switch thumb stays inside its track, and the column resizer's arrow keys and pointer drag follow the reading direction: ArrowLeft and an outward drag grow the column.
+
 ## 0.48.2
 
 ### Changed
