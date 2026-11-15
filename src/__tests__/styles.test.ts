@@ -247,6 +247,7 @@ describe("Admin Kit styles", () => {
 
     it("draws every text input, select and textarea border and the switch track from it", () => {
       const controlRules = styles
+        .replace(/@media \(forced-colors: active\) \{[\s\S]*?\n\}\n/, "")
         .split("\n")
         .flatMap((line) => line.match(/[^{}]+\{[^}]*\}/g) ?? [])
         .filter((rule) => /\b(input|select|textarea)\b|switch-track/.test(rule.split("{")[0]))

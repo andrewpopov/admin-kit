@@ -157,6 +157,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
         if (save)
             persist(next);
     };
+    const inlineSignOf = (element) => getComputedStyle(element).direction === "rtl" ? -1 : 1;
     const onHandleKeyDown = (column, event) => {
         const current = widthOf(column);
         if (current === undefined)
@@ -168,9 +169,11 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
             setMenuFor(undefined);
             return;
         }
-        if (event.key === "ArrowRight" || event.key === "ArrowUp")
+        const growKey = inlineSignOf(event.currentTarget) < 0 ? "ArrowLeft" : "ArrowRight";
+        const shrinkKey = growKey === "ArrowLeft" ? "ArrowRight" : "ArrowLeft";
+        if (event.key === growKey || event.key === "ArrowUp")
             next = current + step;
-        else if (event.key === "ArrowLeft" || event.key === "ArrowDown")
+        else if (event.key === shrinkKey || event.key === "ArrowDown")
             next = current - step;
         else if (event.key === "PageUp")
             next = current + KEYBOARD_LARGE_STEP;
@@ -191,7 +194,12 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
             return;
         event.preventDefault();
         event.currentTarget.setPointerCapture?.(event.pointerId);
-        drag.current = { id: column.id, startX: event.clientX, startWidth };
+        drag.current = {
+            id: column.id,
+            startX: event.clientX,
+            startWidth,
+            inlineSign: inlineSignOf(event.currentTarget),
+        };
         dragged.current = false;
     };
     const onPointerMove = (column, event) => {
@@ -203,7 +211,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
             return;
         dragged.current = true;
         setMenuFor(undefined);
-        setWidth(column, active.startWidth + travelled, { save: false });
+        setWidth(column, active.startWidth + active.inlineSign * travelled, { save: false });
     };
     const endDrag = () => {
         if (!drag.current)

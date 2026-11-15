@@ -15,6 +15,7 @@ npm run test
 npm run test:browser
 npm run compile
 npm run verify:pack
+npm audit --omit=dev --audit-level=moderate
 npm audit --audit-level=high
 ```
 

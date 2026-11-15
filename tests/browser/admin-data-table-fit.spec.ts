@@ -42,12 +42,23 @@ for (const containerWidth of [320, 375]) {
 
 test("hides tertiary, then secondary, columns as the container narrows", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await serveDataTable(page, { script, containerWidth: 740 });
-  await expect(page.getByRole("columnheader", { name: "Created" })).toHaveCount(0);
-  await expect(page.getByRole("columnheader", { name: "Last used" })).toHaveCount(1);
-  await page.locator("#root").evaluate((root) => (root.style.width = "650px"));
-  await expect(page.getByRole("columnheader", { name: "Last used" })).toHaveCount(0);
-  await expect(page.getByRole("columnheader", { name: "Scope" })).toHaveCount(1);
+  await serveDataTable(page, { script, containerWidth: 900 });
+  const states = await page.evaluate(async () => {
+    const root = document.querySelector<HTMLElement>("#root")!;
+    const shown = (name: string) =>
+      [...document.querySelectorAll("thead th")].some((th) => th.textContent?.trim() === name);
+    const frame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const seen: Array<{ width: number; created: boolean; lastUsed: boolean; scope: boolean }> = [];
+    for (let width = 900; width >= 600; width -= 1) {
+      root.style.width = `${width}px`;
+      await frame();
+      seen.push({ width, created: shown("Created"), lastUsed: shown("Last used"), scope: shown("Scope") });
+    }
+    return seen;
+  });
+  expect(states.some((state) => !state.created && state.lastUsed), "Created hides while Last used still shows").toBe(true);
+  expect(states.filter((state) => state.created && !state.lastUsed), "Last used never hides before Created").toEqual([]);
+  expect(states.some((state) => !state.lastUsed && state.scope), "Last used hides while Scope still shows").toBe(true);
 });
 
 test("a fragment cell's second node starts right of its label when stacked", async ({ page }) => {

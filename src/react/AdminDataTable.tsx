@@ -161,7 +161,7 @@ export function AdminDataTable<Row>({
   const expanded = expandedKeys ?? expandedState;
   const wrapRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState<number>();
-  const drag = useRef<{ id: string; startX: number; startWidth: number }>();
+  const drag = useRef<{ id: string; startX: number; startWidth: number; inlineSign: number }>();
   const dragged = useRef(false);
   const handles = useRef(new Map<string, HTMLElement>());
   const [menuFor, setMenuFor] = useState<string>();
@@ -261,6 +261,9 @@ export function AdminDataTable<Row>({
     if (save) persist(next);
   };
 
+  const inlineSignOf = (element: Element) =>
+    getComputedStyle(element).direction === "rtl" ? -1 : 1;
+
   const onHandleKeyDown = (column: AdminDataTableColumn<Row>, event: KeyboardEvent) => {
     const current = widthOf(column);
     if (current === undefined) return;
@@ -271,8 +274,10 @@ export function AdminDataTable<Row>({
       setMenuFor(undefined);
       return;
     }
-    if (event.key === "ArrowRight" || event.key === "ArrowUp") next = current + step;
-    else if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = current - step;
+    const growKey = inlineSignOf(event.currentTarget) < 0 ? "ArrowLeft" : "ArrowRight";
+    const shrinkKey = growKey === "ArrowLeft" ? "ArrowRight" : "ArrowLeft";
+    if (event.key === growKey || event.key === "ArrowUp") next = current + step;
+    else if (event.key === shrinkKey || event.key === "ArrowDown") next = current - step;
     else if (event.key === "PageUp") next = current + KEYBOARD_LARGE_STEP;
     else if (event.key === "PageDown") next = current - KEYBOARD_LARGE_STEP;
     else if (event.key === "Home") next = undefined;
@@ -287,7 +292,12 @@ export function AdminDataTable<Row>({
     if (startWidth === undefined || event.button !== 0) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
-    drag.current = { id: column.id, startX: event.clientX, startWidth };
+    drag.current = {
+      id: column.id,
+      startX: event.clientX,
+      startWidth,
+      inlineSign: inlineSignOf(event.currentTarget),
+    };
     dragged.current = false;
   };
   const onPointerMove = (column: AdminDataTableColumn<Row>, event: PointerEvent<HTMLElement>) => {
@@ -297,7 +307,7 @@ export function AdminDataTable<Row>({
     if (!dragged.current && Math.abs(travelled) < DRAG_THRESHOLD) return;
     dragged.current = true;
     setMenuFor(undefined);
-    setWidth(column, active.startWidth + travelled, { save: false });
+    setWidth(column, active.startWidth + active.inlineSign * travelled, { save: false });
   };
   const endDrag = () => {
     if (!drag.current) return;
