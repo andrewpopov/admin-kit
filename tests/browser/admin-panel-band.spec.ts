@@ -385,6 +385,31 @@ const usersWithSearch = mount(
   `const usersAdapter = { async list() { return { items: [{ id: "usr_1", label: "Avery", role: { value: "owner", label: "Owner" }, status: { value: "active", label: "Active" } }], total: 1, page: 1, pageSize: 25 }; } };`,
 );
 
+test.describe("search and filters at 200% text on a phone", () => {
+  const zoom = `html { font-size: 200% !important; } * { font-family: Verdana, "DejaVu Sans", sans-serif !important; }`;
+  for (const width of [375, 320]) {
+    for (const [name, script, selector] of [
+      ["events", eventsPlain, ".admin-kit__events-search"],
+      ["users", usersWithSearch, ".admin-kit__users-search"],
+    ] as const) {
+      test(`${name} search and filters stay inside a ${width}px viewport`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 844 });
+        await serveDataTable(page, { script, headStyle: zoom });
+        await expect(page.locator(selector)).toBeVisible();
+        const overflow = await page
+          .locator(".admin-kit__panel-toolbar :is(label, input, select)")
+          .evaluateAll((fields) =>
+            fields.map((field) =>
+              Math.ceil(field.getBoundingClientRect().right - document.documentElement.clientWidth),
+            ),
+          );
+        expect(overflow.length).toBeGreaterThan(0);
+        expect(Math.max(...overflow)).toBeLessThanOrEqual(0);
+      });
+    }
+  }
+});
+
 async function placeholderOverflow(page: Page, selector: string) {
   return page.locator(selector).evaluate((input) => {
     const field = input as HTMLInputElement;

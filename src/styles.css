@@ -580,7 +580,7 @@
 .admin-kit__events-header > button, .admin-kit__keys > button, .admin-kit__state button { background: var(--admin-kit-accent); border-color: var(--admin-kit-accent); color: var(--admin-kit-on-accent); }
 .admin-kit__events-header > button:hover:not(:disabled), .admin-kit__keys > button:hover:not(:disabled), .admin-kit__state button:hover:not(:disabled) { background: var(--admin-kit-accent-strong); border-color: var(--admin-kit-accent-strong); }
 .admin-kit__events-filters { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.25rem 0; }
-.admin-kit__events-filters label, .admin-kit__events-search, .admin-kit__users-search, .admin-kit__user-controls label { display: grid; font-size: var(--admin-kit-text-body-sm-size); line-height: var(--admin-kit-text-body-sm-leading); gap: 0.375rem; }
+.admin-kit__events-filters label, .admin-kit__events-search, .admin-kit__users-search, .admin-kit__user-controls label { display: grid; grid-template-columns: minmax(0, 1fr); font-size: var(--admin-kit-text-body-sm-size); line-height: var(--admin-kit-text-body-sm-leading); gap: 0.375rem; }
 .admin-kit__events-filters input, .admin-kit__events-filters select, .admin-kit__events-search input, .admin-kit__users-search input, .admin-kit__user-controls select {
   background: var(--admin-kit-surface);
   border: 1px solid var(--admin-kit-control-border);
