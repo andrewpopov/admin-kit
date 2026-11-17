@@ -1,0 +1,48 @@
+{
+ "chromium": {
+  "admin-kit__dialog-backdrop:nth-of-type(1)": {
+   "left": 0,
+   "top": 0,
+   "width": 1280,
+   "height": 800,
+   "display": "flex",
+   "justify-content": "center",
+   "align-items": "center",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__dialog:nth-of-type(1)": {
+   "left": 368,
+   "top": 305,
+   "width": 544,
+   "height": 191,
+   "display": "flex",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__dialog-body:nth-of-type(1)": {
+   "left": 389,
+   "top": 373,
+   "width": 502,
+   "height": 26,
+   "display": "block",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__dialog-actions:nth-of-type(1)": {
+   "left": 393,
+   "top": 427,
+   "width": 494,
+   "height": 44,
+   "display": "flex",
+   "justify-content": "flex-end",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  }
+ }
+}

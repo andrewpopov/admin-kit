@@ -1,0 +1,37 @@
+{
+ "chromium": {
+  "admin-kit__release-notes:nth-of-type(1)": {
+   "left": 16,
+   "top": 97,
+   "width": 343,
+   "height": 200,
+   "display": "block",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__release-list:nth-of-type(1)": {
+   "left": 16,
+   "top": 97,
+   "width": 343,
+   "height": 200,
+   "display": "block",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__release-date:nth-of-type(1)": {
+   "left": 244,
+   "top": 101,
+   "width": 115,
+   "height": 17,
+   "display": "inline",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  }
+ }
+}

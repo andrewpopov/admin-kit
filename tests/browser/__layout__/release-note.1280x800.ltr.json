@@ -1,0 +1,59 @@
+{
+ "chromium": {
+  "admin-kit__release-notes:nth-of-type(1)": {
+   "left": 256,
+   "top": 97,
+   "width": 768,
+   "height": 246,
+   "display": "block",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__release-back:nth-of-type(1)": {
+   "left": 256,
+   "top": 97,
+   "width": 768,
+   "height": 44,
+   "display": "block",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__release-date:nth-of-type(1)": {
+   "left": 256,
+   "top": 161,
+   "width": 115,
+   "height": 17,
+   "display": "inline",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__release-summary:nth-of-type(1)": {
+   "left": 256,
+   "top": 225,
+   "width": 705,
+   "height": 26,
+   "display": "block",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "500"
+  },
+  "admin-kit__release-body:nth-of-type(1)": {
+   "left": 256,
+   "top": 263,
+   "width": 705,
+   "height": 80,
+   "display": "block",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  }
+ }
+}
