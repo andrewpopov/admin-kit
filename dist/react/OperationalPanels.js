@@ -8,10 +8,10 @@ exports.SettingsPanel = SettingsPanel;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const core_1 = require("../core");
-const AdminLabels_1 = require("./AdminLabels");
 const AdminConfirmationDialog_1 = require("./AdminConfirmationDialog");
 const AdminDataTable_1 = require("./AdminDataTable");
 const AdminPanelHeader_1 = require("./AdminPanelHeader");
+const AdminPagination_1 = require("./AdminPagination");
 const AdminPanelState_1 = require("./AdminPanelState");
 const AdminPrimitives_1 = require("./AdminPrimitives");
 function AdminStatusSummary({ items }) {
@@ -19,7 +19,6 @@ function AdminStatusSummary({ items }) {
 }
 /** Displays host-owned scheduled, import, and retention runs without mislabeling them as backups. */
 function OperationalJobsPanel({ adapter, title = "Operational jobs", runLabel = "Run now", pageSize = 25, className, formatTimestamp, emptyState = { title: "No operational runs yet." }, storageKey, tableFill, headerPresentation = "section", headerCollapsible, headerSummary, }) {
-    const labels = (0, AdminLabels_1.useAdminLabels)();
     const [result, setResult] = (0, react_1.useState)();
     const [page, setPage] = (0, react_1.useState)(1);
     const [error, setError] = (0, react_1.useState)();
@@ -108,10 +107,9 @@ function OperationalJobsPanel({ adapter, title = "Operational jobs", runLabel = 
                         finally {
                             setBusy(false);
                         }
-                    })(), children: runLabel })) : null, collapsible: (0, AdminPanelHeader_1.panelHeaderCollapsible)(headerCollapsible, { total: result.total }, { summary: (0, jsx_runtime_1.jsxs)("span", { children: [result.total.toLocaleString(), " recent runs"] }) }), detail: (0, jsx_runtime_1.jsxs)("p", { children: [result.total, " recent runs"] }), presentation: headerPresentation, summary: headerSummary, title: title }), error ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: error, onRetry: () => void load() } })) : null, result.items.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: emptyState.title, detail: emptyState.detail } })) : ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { busy: busy || isLoading, className: "admin-kit__operations-table", columns: jobColumns, rowKey: (item) => item.id, rows: result.items, storageKey: storageKey, fill: tableFill, wrapClassName: "admin-kit__operations-table-wrap" })), totalPages > 1 ? ((0, jsx_runtime_1.jsxs)("nav", { className: "admin-kit__pagination", "aria-label": "Operational jobs pagination", children: [(0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page <= 1, onClick: () => setPage(page - 1), children: labels.previousPage }), (0, jsx_runtime_1.jsx)("span", { children: labels.pageStatus(page, totalPages) }), (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page >= totalPages, onClick: () => setPage(page + 1), children: labels.nextPage })] })) : null] }));
+                    })(), children: runLabel })) : null, collapsible: (0, AdminPanelHeader_1.panelHeaderCollapsible)(headerCollapsible, { total: result.total }, { summary: (0, jsx_runtime_1.jsxs)("span", { children: [result.total.toLocaleString(), " recent runs"] }) }), detail: (0, jsx_runtime_1.jsxs)("p", { children: [result.total, " recent runs"] }), presentation: headerPresentation, summary: headerSummary, title: title }), error ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: error, onRetry: () => void load() } })) : null, result.items.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: emptyState.title, detail: emptyState.detail } })) : ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { busy: busy || isLoading, className: "admin-kit__operations-table", columns: jobColumns, rowKey: (item) => item.id, rows: result.items, storageKey: storageKey, fill: tableFill, wrapClassName: "admin-kit__operations-table-wrap" })), (0, jsx_runtime_1.jsx)(AdminPagination_1.AdminPagination, { label: "Operational jobs pagination", page: page, pageCount: totalPages, onPageChange: setPage })] }));
 }
 function BackupsPanel({ adapter, title = "Backups", runLabel = "Run backup", pageSize = 25, className, formatTimestamp, storageKey, tableFill, }) {
-    const labels = (0, AdminLabels_1.useAdminLabels)();
     const [result, setResult] = (0, react_1.useState)();
     const [page, setPage] = (0, react_1.useState)(1);
     const [error, setError] = (0, react_1.useState)();
@@ -236,7 +234,7 @@ function BackupsPanel({ adapter, title = "Backups", runLabel = "Run backup", pag
                     kind: "empty",
                     title: "No backups yet",
                     detail: "Run a backup to create your first recovery point.",
-                } })) : ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { busy: busy || isLoading, className: "admin-kit__operations-table admin-kit__backups-table", columns: backupColumns, rowKey: (item) => item.id, rows: result.items, storageKey: storageKey, fill: tableFill, wrapClassName: "admin-kit__operations-table-wrap admin-kit__backups-table-wrap" })), totalPages > 1 ? ((0, jsx_runtime_1.jsxs)("nav", { className: "admin-kit__pagination", "aria-label": "Backups pagination", children: [(0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page <= 1, onClick: () => setPage(page - 1), children: labels.previousPage }), (0, jsx_runtime_1.jsx)("span", { children: labels.pageStatus(page, totalPages) }), (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page >= totalPages, onClick: () => setPage(page + 1), children: labels.nextPage })] })) : null, adapter.restore ? ((0, jsx_runtime_1.jsx)(AdminConfirmationDialog_1.AdminConfirmationDialog, { open: Boolean(restoreTarget), title: "Restore backup", description: restoreTarget
+                } })) : ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { busy: busy || isLoading, className: "admin-kit__operations-table admin-kit__backups-table", columns: backupColumns, rowKey: (item) => item.id, rows: result.items, storageKey: storageKey, fill: tableFill, wrapClassName: "admin-kit__operations-table-wrap admin-kit__backups-table-wrap" })), (0, jsx_runtime_1.jsx)(AdminPagination_1.AdminPagination, { label: "Backups pagination", page: page, pageCount: totalPages, onPageChange: setPage }), adapter.restore ? ((0, jsx_runtime_1.jsx)(AdminConfirmationDialog_1.AdminConfirmationDialog, { open: Boolean(restoreTarget), title: "Restore backup", description: restoreTarget
                     ? `This will overwrite the current database with the recovery point "${restoreTarget.label}". This action is destructive and cannot be reversed.`
                     : "", confirmLabel: "Restore backup", danger: true, pending: busy, onCancel: () => setRestoreTarget(undefined), onConfirm: () => restoreTarget && void restore(restoreTarget.id) })) : null] }));
 }

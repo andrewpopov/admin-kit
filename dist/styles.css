@@ -727,6 +727,11 @@
 .admin-kit__user-controls { align-items: center; }
 .admin-kit__user-empty { color: var(--admin-kit-muted); }
 .admin-kit__pagination { align-items: center; color: var(--admin-kit-muted); display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
+.admin-kit__pagination-previous::before { content: "\2039" / ""; }
+.admin-kit__pagination-next::after { content: "\203A" / ""; }
+.admin-kit__pagination-previous:dir(rtl)::before { content: "\203A" / ""; }
+.admin-kit__pagination-next:dir(rtl)::after { content: "\2039" / ""; }
+@media (pointer: coarse) { .admin-kit__pagination .admin-kit__button { min-block-size: 2.75rem; min-inline-size: 2.75rem; } }
 
 .admin-kit__memberships-header { align-items: baseline; display: flex; gap: 0.75rem; justify-content: space-between; }
 .admin-kit__memberships-header h2 { margin: 0; }

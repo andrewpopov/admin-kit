@@ -7,8 +7,8 @@ import {
   type AdminUserSummary,
   type AdminUsersAdapter,
 } from "../core";
-import { useAdminLabels } from "./AdminLabels";
 import { AdminFilterChip } from "./AdminFilterChip";
+import { AdminPagination } from "./AdminPagination";
 import {
   AdminPanelHeader,
   panelHeaderCollapsible,
@@ -118,7 +118,6 @@ export function UsersPanel<User extends AdminUserSummary>({
   headerCollapsible,
   headerSummary,
 }: UsersPanelProps<User>) {
-  const labels = useAdminLabels();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState(query?.search ?? "");
   const [result, setResult] = useState<AdminPage<User>>();
@@ -482,23 +481,12 @@ export function UsersPanel<User extends AdminUserSummary>({
               wrapClassName="admin-kit__users-table-wrap"
             />
           ) : null}
-          {Math.max(1, Math.ceil(result.total / result.pageSize)) > 1 ? (
-            <nav className="admin-kit__pagination" aria-label="User pagination">
-              <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-                {labels.previousPage}
-              </button>
-              <span>
-                {labels.pageStatus(page, Math.max(1, Math.ceil(result.total / result.pageSize)))}
-              </span>
-              <button
-                type="button"
-                disabled={page >= Math.max(1, Math.ceil(result.total / result.pageSize))}
-                onClick={() => setPage(page + 1)}
-              >
-                {labels.nextPage}
-              </button>
-            </nav>
-          ) : null}
+          <AdminPagination
+            label="User pagination"
+            page={page}
+            pageCount={Math.max(1, Math.ceil(result.total / result.pageSize))}
+            onPageChange={setPage}
+          />
         </>
       )}
     </section>

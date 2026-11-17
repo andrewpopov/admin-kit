@@ -10,7 +10,6 @@ import {
   type AdminSettingField,
   type AdminSettingsAdapter,
 } from "../core";
-import { useAdminLabels } from "./AdminLabels";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
 import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
 import {
@@ -19,6 +18,7 @@ import {
   type AdminPanelBandOptions,
   type AdminPanelHeaderPresentation,
 } from "./AdminPanelHeader";
+import { AdminPagination } from "./AdminPagination";
 import { AdminPanelStateView } from "./AdminPanelState";
 import { AdminSwitch } from "./AdminPrimitives";
 
@@ -81,7 +81,6 @@ export function OperationalJobsPanel({
   headerCollapsible,
   headerSummary,
 }: OperationalJobsPanelProps) {
-  const labels = useAdminLabels();
   const [result, setResult] = useState<{ items: readonly AdminOperationalJob[]; total: number }>();
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string>();
@@ -237,17 +236,12 @@ export function OperationalJobsPanel({
           wrapClassName="admin-kit__operations-table-wrap"
         />
       )}
-      {totalPages > 1 ? (
-        <nav className="admin-kit__pagination" aria-label="Operational jobs pagination">
-          <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-            {labels.previousPage}
-          </button>
-          <span>{labels.pageStatus(page, totalPages)}</span>
-          <button type="button" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-            {labels.nextPage}
-          </button>
-        </nav>
-      ) : null}
+      <AdminPagination
+        label="Operational jobs pagination"
+        page={page}
+        pageCount={totalPages}
+        onPageChange={setPage}
+      />
     </section>
   );
 }
@@ -277,7 +271,6 @@ export function BackupsPanel({
   storageKey,
   tableFill,
 }: BackupsPanelProps) {
-  const labels = useAdminLabels();
   const [result, setResult] = useState<{ items: readonly AdminBackupSummary[]; total: number }>();
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string>();
@@ -459,17 +452,12 @@ export function BackupsPanel({
           wrapClassName="admin-kit__operations-table-wrap admin-kit__backups-table-wrap"
         />
       )}
-      {totalPages > 1 ? (
-        <nav className="admin-kit__pagination" aria-label="Backups pagination">
-          <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-            {labels.previousPage}
-          </button>
-          <span>{labels.pageStatus(page, totalPages)}</span>
-          <button type="button" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-            {labels.nextPage}
-          </button>
-        </nav>
-      ) : null}
+      <AdminPagination
+        label="Backups pagination"
+        page={page}
+        pageCount={totalPages}
+        onPageChange={setPage}
+      />
       {adapter.restore ? (
         <AdminConfirmationDialog
           open={Boolean(restoreTarget)}
