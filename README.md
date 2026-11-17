@@ -1257,6 +1257,28 @@ npm run verify:pack
 npm run test:browser
 ```
 
+### Layout snapshots
+
+`tests/browser/layout-snapshots.spec.ts` snapshots geometry, not pixels, so it holds across
+lane runners with different OSes and fonts. For every `tests/browser/*.html` fixture, at
+1280x800 and 375x812, in LTR and RTL, it records each `.admin-kit__*` element's rect
+relative to its offset parent plus computed `display`, `justify-content`, `align-items`,
+`text-align` and `font-weight`, and compares them with
+`tests/browser/__layout__/<fixture>.<viewport>.<dir>.json` (2px tolerance on numbers,
+exact match on strings). A failure names the element path, the property, and the
+expected and actual values. Baselines are keyed by `browserName`, so another engine adds
+its own entry beside `chromium`.
+
+When a layout change is intended, regenerate and review the JSON diff in the same change:
+
+```sh
+npm run compile && node scripts/render-browser-fixture.mjs
+UPDATE_LAYOUT=1 npx playwright test tests/browser/layout-snapshots.spec.ts
+```
+
+`tests/browser/gallery.html` shows every fixture with theme, palette and direction
+toggles for manual review; serve the repository over HTTP to use it (see the page).
+
 GitHub Actions is disabled for this repository; the local `.githooks/pre-push`
 gate runs `npm run verify` (lint, typecheck, unit, Chromium, compile, dist
 freshness, pack, bins, and the production and full-tree audits). A release tag

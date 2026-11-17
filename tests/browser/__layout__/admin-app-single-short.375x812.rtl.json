@@ -1,0 +1,136 @@
+{
+ "chromium": {
+  "admin-kit__app:nth-of-type(1)": {
+   "left": 0,
+   "top": 0,
+   "width": 375,
+   "height": 812,
+   "display": "grid",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__skip-link:nth-of-type(1)": {
+   "left": 358,
+   "top": 16,
+   "width": 1,
+   "height": 1,
+   "display": "block",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__app-header:nth-of-type(1)": {
+   "left": 16,
+   "top": 16,
+   "width": 343,
+   "height": 23,
+   "display": "flex",
+   "justify-content": "flex-start",
+   "align-items": "baseline",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__app-actions:nth-of-type(1)": {
+   "left": 168,
+   "top": 18,
+   "width": 60,
+   "height": 21,
+   "display": "flex",
+   "justify-content": "flex-start",
+   "align-items": "baseline",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__portal:nth-of-type(1)": {
+   "left": 16,
+   "top": 47,
+   "width": 343,
+   "height": 264,
+   "display": "grid",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__portal-content:nth-of-type(1)": {
+   "left": 16,
+   "top": 47,
+   "width": 343,
+   "height": 264,
+   "display": "block",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__workspace:nth-of-type(1)": {
+   "left": 16,
+   "top": 47,
+   "width": 343,
+   "height": 264,
+   "display": "grid",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__workspace-header:nth-of-type(1)": {
+   "left": 16,
+   "top": 63,
+   "width": 343,
+   "height": 64,
+   "display": "flex",
+   "justify-content": "space-between",
+   "align-items": "stretch",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__workspace-content:nth-of-type(1)": {
+   "left": 16,
+   "top": 143,
+   "width": 343,
+   "height": 152,
+   "display": "block",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__card:nth-of-type(1)": {
+   "left": 33,
+   "top": 160,
+   "width": 309,
+   "height": 118,
+   "display": "block",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__card-header:nth-of-type(1)": {
+   "left": 34,
+   "top": 161,
+   "width": 307,
+   "height": 60,
+   "display": "flex",
+   "justify-content": "space-between",
+   "align-items": "start",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__card-content:nth-of-type(1)": {
+   "left": 34,
+   "top": 221,
+   "width": 307,
+   "height": 56,
+   "display": "block",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  }
+ }
+}

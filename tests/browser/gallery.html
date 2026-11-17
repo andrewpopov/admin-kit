@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Kit fixture gallery</title>
+    <style>
+      body { margin: 0; font: 14px system-ui; background: #f4f5f7; color: #172033; }
+      header { position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; padding: 0.75rem 1rem; background: #fff; border-bottom: 1px solid #c8ccd4; }
+      header p { margin: 0; flex-basis: 100%; color: #4a5568; }
+      main { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 1rem; padding: 1rem; }
+      figure { margin: 0; }
+      figcaption { font-weight: 600; margin-bottom: 0.25rem; }
+      iframe { width: 100%; height: 420px; border: 1px solid #c8ccd4; background: #fff; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <label>Theme <select id="theme"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+      <label>Palette <select id="palette"><option value="core">Core</option><option value="graphite">Graphite</option></select></label>
+      <label>Direction <select id="dir"><option value="ltr">LTR</option><option value="rtl">RTL</option></select></label>
+      <p>
+        Forced colors cannot be toggled from a page: turn it on with OS high-contrast mode or devtools
+        (Rendering, Emulate CSS media feature forced-colors). Serve the repository over HTTP
+        (for example <code>python3 -m http.server</code>) and open <code>/tests/browser/gallery.html</code>;
+        file:// frames are cross-origin and cannot be toggled.
+      </p>
+    </header>
+    <main id="gallery"></main>
+    <script>
+      const fixtures = [
+        "admin-app-shell-short.html",
+        "admin-app-short.html",
+        "admin-app-single-short.html",
+        "admin-confirmation-dialog.html",
+        "admin-controls-layered.html",
+        "admin-controls.html",
+        "admin-dialog.html",
+        "admin-shell.html",
+        "release-note.html",
+        "release-notes.html",
+      ];
+      const gallery = document.getElementById("gallery");
+      const controls = { theme: theme, palette: palette, dir: dir };
+
+      function apply(frame) {
+        const doc = frame.contentDocument;
+        if (!doc || !doc.documentElement) return;
+        doc.documentElement.classList.toggle("dark", controls.theme.value === "dark");
+        doc.documentElement.dir = controls.dir.value;
+        for (const root of doc.querySelectorAll(".admin-kit")) {
+          root.classList.toggle("admin-kit--palette-graphite", controls.palette.value === "graphite");
+        }
+      }
+
+      for (const fixture of fixtures) {
+        const figure = document.createElement("figure");
+        const caption = document.createElement("figcaption");
+        caption.textContent = fixture;
+        const frame = document.createElement("iframe");
+        frame.src = fixture;
+        frame.title = fixture;
+        frame.dataset.fixture = fixture;
+        frame.addEventListener("load", () => apply(frame));
+        figure.append(caption, frame);
+        gallery.append(figure);
+      }
+      for (const control of Object.values(controls)) {
+        control.addEventListener("change", () => gallery.querySelectorAll("iframe").forEach(apply));
+      }
+    </script>
+  </body>
+</html>

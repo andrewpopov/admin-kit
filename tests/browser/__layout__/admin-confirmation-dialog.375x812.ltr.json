@@ -1,0 +1,48 @@
+{
+ "chromium": {
+  "admin-kit__dialog-backdrop:nth-of-type(1)": {
+   "left": 0,
+   "top": 0,
+   "width": 375,
+   "height": 812,
+   "display": "flex",
+   "justify-content": "center",
+   "align-items": "center",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__dialog:nth-of-type(1)": {
+   "left": 16,
+   "top": 274,
+   "width": 343,
+   "height": 265,
+   "display": "flex",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__dialog-body:nth-of-type(1)": {
+   "left": 37,
+   "top": 342,
+   "width": 301,
+   "height": 44,
+   "display": "block",
+   "justify-content": "normal",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  },
+  "admin-kit__dialog-actions:nth-of-type(1)": {
+   "left": 41,
+   "top": 414,
+   "width": 293,
+   "height": 100,
+   "display": "flex",
+   "justify-content": "flex-end",
+   "align-items": "normal",
+   "text-align": "start",
+   "font-weight": "400"
+  }
+ }
+}
