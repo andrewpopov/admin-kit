@@ -441,3 +441,113 @@ describe("admin-kit-conformance", () => {
     expect(isEntry(input)).toBe(expected);
   });
 });
+
+describe("admin-kit-conformance theme contrast", () => {
+  function runWithHostCss(css: string) {
+    const root = createConsumerFixture();
+    writeFileSync(join(root, "src", "theme.css"), css);
+    return runConformance(root);
+  }
+
+  it("fails a pale accent with a white on-accent, naming the pair, ratio, threshold and file:line", () => {
+    const result = runWithHostCss(
+      ":root {\n  --admin-kit-accent: #ffd5b0;\n  --admin-kit-on-accent: #ffffff;\n}\n",
+    );
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("light accent/on-accent");
+    expect(result.stderr).toContain("--admin-kit-accent #ffd5b0 (src/theme.css:2)");
+    expect(result.stderr).toContain("--admin-kit-on-accent #ffffff (src/theme.css:3)");
+    expect(result.stderr).toContain("below the required 4.5:1");
+    expect(result.stderr).toContain("light accent/surface");
+    expect(result.stderr).toContain("below the required 3:1");
+  });
+
+  it("falls back to the kit default on-accent when the host leaves it unset", () => {
+    const result = runWithHostCss(":root { --admin-kit-accent: #ffd5b0; }");
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("--admin-kit-on-accent #ffffff (kit default)");
+  });
+
+  it("passes a compliant rebrand across light, .dark and auto scopes", () => {
+    const result = runWithHostCss(`
+      .admin-kit.admin-kit--theme-core { --admin-kit-accent: #4f46e5; --admin-kit-on-accent: #fff; }
+      .dark .admin-kit.admin-kit--theme-core { --admin-kit-dark-accent: #a5b4fc; }
+      @media (prefers-color-scheme: dark) {
+        [data-admin-kit-theme="auto"] .admin-kit { --admin-kit-accent: #a5b4fc; }
+      }
+    `);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("[admin-kit-conformance] PASS");
+  });
+
+  it("fails a dark accent that is too dark against the dark surface", () => {
+    const result = runWithHostCss(".dark { --admin-kit-dark-accent: #1f2a44; }");
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(".dark accent/surface");
+    expect(result.stderr).toContain("--admin-kit-dark-accent #1f2a44 (src/theme.css:1)");
+  });
+
+  it("fails a bad auto-scope accent inside prefers-color-scheme", () => {
+    const result = runWithHostCss(
+      '@media (prefers-color-scheme: dark) {\n  [data-admin-kit-theme="auto"] { --admin-kit-accent: #10182b; }\n}',
+    );
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('data-admin-kit-theme="auto" accent/surface');
+    expect(result.stderr).toContain("src/theme.css:2");
+  });
+
+  it.each([
+    ["rgb", "rgb(255 213 176)"],
+    ["rgba legacy", "rgba(255, 213, 176, 1)"],
+    ["hsl", "hsl(28 100% 85%)"],
+    ["oklch", "oklch(90% 0.07 60)"],
+    ["color-mix in srgb", "color-mix(in srgb, #ffd5b0 50%, #ffffff)"],
+    ["alpha over the surface", "#ff8c0020"],
+  ])("resolves %s and fails the pale accent", (_label, value) => {
+    const result = runWithHostCss(`:root { --admin-kit-accent: ${value}; }`);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("light accent/on-accent");
+  });
+
+  it.each([
+    ["rgb", "rgb(49 86 199)"],
+    ["hsl", "hsl(225 61% 47%)"],
+    ["oklch", "oklch(0.48 0.17 265)"],
+    ["color-mix in srgb", "color-mix(in srgb, #3156c7 80%, #000000)"],
+  ])("passes a dark enough %s accent", (_label, value) => {
+    const result = runWithHostCss(`:root { --admin-kit-accent: ${value}; }`);
+
+    expect(result.status).toBe(0);
+    expect(result.stderr).not.toContain("WARN");
+  });
+
+  it("warns and skips a value it cannot resolve instead of failing", () => {
+    const result = runWithHostCss(":root { --admin-kit-accent: var(--brand-from-elsewhere); }");
+
+    expect(result.status).toBe(0);
+    expect(result.stderr).toContain("[admin-kit-conformance] WARN");
+    expect(result.stderr).toContain("--admin-kit-accent: var(--brand-from-elsewhere) (src/theme.css:1)");
+  });
+
+  it("resolves a host variable reference and a var() fallback", () => {
+    const result = runWithHostCss(
+      ":root { --brand: #ffd5b0; --admin-kit-accent: var(--brand); --admin-kit-on-accent: var(--nope, #fff); }",
+    );
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("light accent/on-accent");
+  });
+
+  it("skips color-mix in a color space it cannot compute", () => {
+    const result = runWithHostCss(":root { --admin-kit-accent: color-mix(in oklab, #ffd5b0, #fff); }");
+
+    expect(result.status).toBe(0);
+    expect(result.stderr).toContain("WARN");
+  });
+});

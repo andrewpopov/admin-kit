@@ -217,6 +217,18 @@ stylesheet or override an internal `--admin-kit-*` token from host CSS;
 overriding one of the public theme tokens (see [Theming](#theming) below) is
 allowed. Both framed and frameless `AdminApp` layouts are supported.
 
+It also checks the contrast of the rebrand tokens. For the light, `.dark` and
+`[data-admin-kit-theme="auto"]` scopes (the last under
+`prefers-color-scheme: dark`) it resolves the literal colors your CSS declares
+for `--admin-kit-accent`, `--admin-kit-on-accent` and `--admin-kit-dark-accent`,
+falls back to the kit default for any token you leave unset, and fails on
+WCAG 2.x ratios of accent/on-accent below 4.5:1, accent/surface below 3:1, or
+text/surface below 4.5:1. Hex, `rgb()`, `hsl()`, `oklch()` and `color-mix(in
+srgb, ...)` values are computed, with alpha composited over the surface. Each
+failure prints the pair, its ratio, the threshold and `file:line`. A value it
+cannot compute (a `var()` from outside your CSS, another `color-mix` space) is
+skipped with a `WARN` line, not failed.
+
 ### Theming
 
 Admin Kit is opinionated by default — it ships its own blue accent, corner
