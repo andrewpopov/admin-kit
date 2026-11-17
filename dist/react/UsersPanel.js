@@ -4,8 +4,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersPanel = UsersPanel;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
-const AdminLabels_1 = require("./AdminLabels");
 const AdminFilterChip_1 = require("./AdminFilterChip");
+const AdminPagination_1 = require("./AdminPagination");
 const AdminPanelHeader_1 = require("./AdminPanelHeader");
 const AdminPanelState_1 = require("./AdminPanelState");
 const AdminDataTable_1 = require("./AdminDataTable");
@@ -15,7 +15,6 @@ const CUSTOM_COLUMN_WIDTH = 160;
  * status changes; hosts keep product-specific fields and destructive flows.
  */
 function UsersPanel({ adapter, title = "Users", headerPresentation = "section", pageSize = 25, query, search: searchOptions = false, presentation = "table", columns, defaultSort, renderHeaderActions, renderHeaderPrimaryActions, renderUserActions, className, storageKey, tableFill, headerCollapsible, headerSummary, }) {
-    const labels = (0, AdminLabels_1.useAdminLabels)();
     const [page, setPage] = (0, react_1.useState)(1);
     const [search, setSearch] = (0, react_1.useState)(query?.search ?? "");
     const [result, setResult] = (0, react_1.useState)();
@@ -222,5 +221,5 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
                     activeCount: search ? 1 : 0,
                 }), detail: result ? ((0, jsx_runtime_1.jsxs)("p", { children: [result.total, " ", result.total === 1 ? "user" : "users"] })) : null, presentation: headerPresentation, summary: headerSummary, title: title, toolbar: toolbar }), headerPresentation === "section" && !collapsible ? searchControl : null, loadError && !result ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : !result ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "loading", label: "Loading users…" } })) : result.items.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: "No users found." } })) : ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? ((0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError })) : null, presentation === "table" ? ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { busy: isLoading, className: columns?.length
                             ? "admin-kit__users-table admin-kit__users-table--custom"
-                            : `admin-kit__users-table${hasDetails ? " admin-kit__users-table--with-details" : ""}`, columns: tableColumns, rowBusy: (user) => pendingUserId === user.id, rowKey: (user) => user.id, rows: result.items, storageKey: storageKey, fill: tableFill, wrapClassName: "admin-kit__users-table-wrap" })) : null, Math.max(1, Math.ceil(result.total / result.pageSize)) > 1 ? ((0, jsx_runtime_1.jsxs)("nav", { className: "admin-kit__pagination", "aria-label": "User pagination", children: [(0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page <= 1, onClick: () => setPage(page - 1), children: labels.previousPage }), (0, jsx_runtime_1.jsx)("span", { children: labels.pageStatus(page, Math.max(1, Math.ceil(result.total / result.pageSize))) }), (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: page >= Math.max(1, Math.ceil(result.total / result.pageSize)), onClick: () => setPage(page + 1), children: labels.nextPage })] })) : null] }))] }));
+                            : `admin-kit__users-table${hasDetails ? " admin-kit__users-table--with-details" : ""}`, columns: tableColumns, rowBusy: (user) => pendingUserId === user.id, rowKey: (user) => user.id, rows: result.items, storageKey: storageKey, fill: tableFill, wrapClassName: "admin-kit__users-table-wrap" })) : null, (0, jsx_runtime_1.jsx)(AdminPagination_1.AdminPagination, { label: "User pagination", page: page, pageCount: Math.max(1, Math.ceil(result.total / result.pageSize)), onPageChange: setPage })] }))] }));
 }

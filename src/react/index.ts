@@ -49,6 +49,7 @@ export {
   type AdminPanelHeaderProps,
 } from "./AdminPanelHeader";
 export { AdminFilterChip, type AdminFilterChipProps } from "./AdminFilterChip";
+export { AdminPagination, type AdminPaginationProps } from "./AdminPagination";
 export { AdminWorkspace, type AdminWorkspaceProps } from "./AdminWorkspace";
 export {
   AdminTheme,

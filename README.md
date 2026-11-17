@@ -11,6 +11,7 @@ authorization, and product-specific pages.
 - Shared loading, error, empty, and confirmation interactions.
 - Serializable adapter contracts and consumer-shaped test fixtures.
 - User-management, scoped-membership, feature-flag, and API-key modules. User management, memberships, backups, and operational jobs render through the same responsive semantic-table contract, with horizontal scrolling on narrow screens.
+- `AdminPagination`, the one previous/next pager (`page`, `pageCount`, `onPageChange`, `label`) with a polite "Page X of Y" status, 44px coarse-pointer targets and RTL-mirrored arrows; it renders nothing for a single page, and `UsersPanel` and the operational panels use it.
 - `AdminWorkspace`, the default header, summary, toolbar, and content framing for operational pages.
 - Typed operational status, backup, and settings panels for consistent recovery and configuration surfaces.
 - An operational-jobs panel for scheduled work where backup/restore semantics do not apply.
