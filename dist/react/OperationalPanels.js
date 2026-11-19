@@ -15,7 +15,7 @@ const AdminPagination_1 = require("./AdminPagination");
 const AdminPanelState_1 = require("./AdminPanelState");
 const AdminPrimitives_1 = require("./AdminPrimitives");
 function AdminStatusSummary({ items }) {
-    return ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__status-summary", children: items.map((item) => ((0, jsx_runtime_1.jsxs)("div", { className: `admin-kit__status admin-kit__status--${item.tone ?? "neutral"}`, children: [(0, jsx_runtime_1.jsx)("dt", { children: item.label }), (0, jsx_runtime_1.jsx)("dd", { children: item.value }), item.detail ? (0, jsx_runtime_1.jsx)("small", { children: item.detail }) : null] }, item.label))) }));
+    return ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__status-summary", children: items.map((item) => ((0, jsx_runtime_1.jsxs)("div", { className: `admin-kit__status admin-kit__status--${item.tone ?? "neutral"}`, "data-admin-kit-part": "status", "data-admin-kit-tone": item.tone ?? "neutral", children: [(0, jsx_runtime_1.jsx)("dt", { children: item.label }), (0, jsx_runtime_1.jsx)("dd", { children: item.value }), item.detail ? (0, jsx_runtime_1.jsx)("small", { children: item.detail }) : null] }, item.label))) }));
 }
 /** Displays host-owned scheduled, import, and retention runs without mislabeling them as backups. */
 function OperationalJobsPanel({ adapter, title = "Operational jobs", runLabel = "Run now", pageSize = 25, className, formatTimestamp, emptyState = { title: "No operational runs yet." }, storageKey, tableFill, headerPresentation = "section", headerCollapsible, headerSummary, }) {

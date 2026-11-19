@@ -230,6 +230,13 @@ failure prints the pair, its ratio, the threshold and `file:line`. A value it
 cannot compute (a `var()` from outside your CSS, another `color-mix` space) is
 skipped with a `WARN` line, not failed.
 
+### Private classes and parts
+
+`.admin-kit__*` classes are private. Hosts use public tokens, `data-admin-kit-part`
+hooks and props, listed with the migration table in
+[`docs/styling-surface.md`](docs/styling-surface.md). Conformance warns on a
+host selector that targets a private class and fails on it with `--strict`.
+
 ### Theming
 
 Admin Kit is opinionated by default — it ships its own blue accent, corner
@@ -242,7 +249,8 @@ Public theme tokens (safe to override): `--admin-kit-accent`,
 `--admin-kit-accent-strong`, `--admin-kit-accent-soft`,
 `--admin-kit-on-accent`, `--admin-kit-radius`, `--admin-kit-radius-sm`,
 `--admin-kit-dark-accent`, `--admin-kit-dark-accent-strong`,
-`--admin-kit-dark-accent-soft`.
+`--admin-kit-dark-accent-soft`, `--admin-kit-muted`, `--admin-kit-dark-muted`
+(secondary copy; conformance fails a value below 4.5:1 against the surface).
 
 Public type tokens (safe to override, on `:root` or any `.admin-kit` wrapper):
 
@@ -290,9 +298,9 @@ override wins on specificity regardless of load order, and
 ```
 
 Locked (internal) tokens — surfaces (`surface`, `surface-subtle`), borders
-(`border`, `border-strong`, `control-border`), text (`text`, `muted`), and the semantic
+(`border`, `border-strong`, `control-border`), text (`text`), and the semantic
 palettes (`danger*`, `success*`, `warning*`), plus their `dark-*`
-counterparts and `dark-text`/`dark-muted` — stay fixed. They carry the admin
+counterparts and `dark-text` — stay fixed. They carry the admin
 surface's legibility and contrast contract, so `admin-kit-conformance` fails
 any consumer CSS that redeclares them.
 

@@ -251,7 +251,7 @@ function AdminDataTable({ columns, rows, rowKey, label, storageKey, busy = false
     };
     return ((0, jsx_runtime_1.jsx)("div", { className: ["admin-kit__table-wrap admin-kit__data-table-wrap", wrapClassName]
             .filter(Boolean)
-            .join(" "), "data-narrow": (fit.stacked && containerWidth !== undefined && containerWidth < adminDataTableFit_1.NARROW_CARD_WIDTH) ||
+            .join(" "), "data-admin-kit-part": "table-scroll", "data-narrow": (fit.stacked && containerWidth !== undefined && containerWidth < adminDataTableFit_1.NARROW_CARD_WIDTH) ||
             undefined, "data-fill": (fill && fillBox !== undefined) || undefined, "data-scrolls": fit.scrolls || undefined, "data-stacked": fit.stacked || undefined, ref: wrapRef, style: {
             scrollPaddingBlockStart: fit.stacked || !headHeight ? undefined : `${headHeight}px`,
             ...(fill && fillBox

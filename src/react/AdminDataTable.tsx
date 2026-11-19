@@ -349,6 +349,7 @@ export function AdminDataTable<Row>({
       className={["admin-kit__table-wrap admin-kit__data-table-wrap", wrapClassName]
         .filter(Boolean)
         .join(" ")}
+      data-admin-kit-part="table-scroll"
       data-narrow={
         (fit.stacked && containerWidth !== undefined && containerWidth < NARROW_CARD_WIDTH) ||
         undefined

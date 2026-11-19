@@ -481,7 +481,7 @@ function ApiKeysPanelImpl({
         key.scopes.length ? (
           <ul className="admin-kit__scope-chips">
             {key.scopes.map((scope) => (
-              <li className="admin-kit__scope-chip" key={scope}>
+              <li className="admin-kit__scope-chip" data-admin-kit-part="scope-chip" key={scope}>
                 {scope}
               </li>
             ))}
@@ -588,7 +588,7 @@ function ApiKeysPanelImpl({
         </p>
       ) : null}
       {secret ? (
-        <div className="admin-kit__secret" role="alert">
+        <div className="admin-kit__secret" data-admin-kit-part="api-key-secret" role="alert">
           <strong>Copy this secret now. It will not be shown again.</strong>
           <code>{secret}</code>
           <div className="admin-kit__secret-actions">
@@ -624,6 +624,7 @@ function ApiKeysPanelImpl({
       ) : scopeGroups ? (
         <details
           className="admin-kit__key-create"
+          data-admin-kit-part="api-key-create"
           open={createOpen}
           onToggle={(event) => setCreateOpen(event.currentTarget.open)}
         >
@@ -685,7 +686,12 @@ function ApiKeysPanelImpl({
             const isEditing = builtInEditEnabled && editingKeyId === key.id;
             const isPending = pending === key.id;
             return (
-              <li aria-busy={isPending} className="admin-kit__key-card" key={key.id}>
+              <li
+                aria-busy={isPending}
+                className="admin-kit__key-card"
+                data-admin-kit-part="api-key-card"
+                key={key.id}
+              >
                 <div className="admin-kit__key-card-header">
                   <div className="admin-kit__key-identity">
                     <strong>{key.name}</strong>
@@ -724,7 +730,7 @@ function ApiKeysPanelImpl({
                   {key.scopes.length ? (
                     <ul className="admin-kit__scope-chips">
                       {key.scopes.map((scope) => (
-                        <li className="admin-kit__scope-chip" key={scope}>
+                        <li className="admin-kit__scope-chip" data-admin-kit-part="scope-chip" key={scope}>
                           {scope}
                         </li>
                       ))}
