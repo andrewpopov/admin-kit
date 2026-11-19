@@ -599,3 +599,80 @@ test("renders kit buttons styled under a host reset in @layer base declared befo
   const host = await controlStyle(page.locator("#host-button"));
   expect(host.borderTop, "the host reset still applies to host buttons").toBe("0px");
 });
+
+type Rgba = readonly [number, number, number, number];
+
+function parseColor(value: string): Rgba {
+  const channels = value.match(/-?\d*\.?\d+/g)?.map(Number);
+  if (value.startsWith("color(") || !channels || channels.length < 3) {
+    throw new Error(`Unexpected computed colour: ${value}`);
+  }
+  return [channels[0], channels[1], channels[2], channels[3] ?? 1];
+}
+
+function composite(top: Rgba, bottom: Rgba): Rgba {
+  const alpha = top[3] + bottom[3] * (1 - top[3]);
+  const mix = (index: 0 | 1 | 2): number =>
+    (top[index] * top[3] + bottom[index] * bottom[3] * (1 - top[3])) / alpha;
+  return [mix(0), mix(1), mix(2), alpha];
+}
+
+function luminance(color: Rgba): number {
+  const [r, g, b] = color.slice(0, 3).map((channel) => {
+    const unit = channel / 255;
+    return unit <= 0.03928 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function contrast(foreground: Rgba, background: Rgba): number {
+  const [lighter, darker] = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+const schemeCombinations = [
+  { host: "dark", os: "light" },
+  { host: "light", os: "dark" },
+  { host: "dark", os: "dark" },
+  { host: "light", os: "light" },
+] as const;
+
+for (const { host, os } of schemeCombinations) {
+  test(`current section link keeps its label and description readable when the host forces ${host} and the OS is ${os}`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: os });
+    await page.goto(fixture);
+    await page.evaluate((forced) => {
+      document.documentElement.style.colorScheme = forced;
+      document.body.classList.toggle("dark", forced === "dark");
+    }, host);
+    await page.addStyleTag({
+      content:
+        "*, *::before, *::after { transition: none !important; } .admin-kit.admin-kit--theme-core { --admin-kit-dark-accent: #d7783d; --admin-kit-dark-accent-strong: #ed9a5a; --admin-kit-dark-accent-soft: #402116; }",
+    });
+    const current = page.locator('.admin-kit__portal-link[aria-current="page"]').first();
+    await current.scrollIntoViewIfNeeded();
+    const colors = await current.evaluate((link) => {
+      const read = (element: Element): string => getComputedStyle(element).color;
+      const chain: string[] = [];
+      for (let node: Element | null = link; node; node = node.parentElement) {
+        chain.push(getComputedStyle(node).backgroundColor);
+      }
+      return {
+        label: read(link.querySelector("span") as Element),
+        description: read(link.querySelector("small") as Element),
+        backgrounds: chain,
+        page: getComputedStyle(document.body).backgroundColor,
+      };
+    });
+    const canvas: Rgba = host === "dark" ? [13, 12, 11, 1] : [255, 255, 255, 1];
+    const background = colors.backgrounds
+      .reverse()
+      .reduce((under, layer) => composite(parseColor(layer), under), canvas);
+    const description = contrast(composite(parseColor(colors.description), background), background);
+    const label = contrast(composite(parseColor(colors.label), background), background);
+    expect(label, `label ${colors.label} on ${background.map(Math.round)}`).toBeGreaterThanOrEqual(4.5);
+    expect(description, `description ${colors.description} on ${background.map(Math.round)}`).toBeGreaterThanOrEqual(4.5);
+  });
+}
