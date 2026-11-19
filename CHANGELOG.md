@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.49.0
+
+### Added
+
+- The browser suite now runs the cross-engine specs on WebKit, scans every fixture with axe for WCAG A/AA, and stresses text spacing, 200% text and longer text
+  Playwright gains a `webkit` project beside `chromium`, limited to the layout, panel band, shell, accessibility and text-resilience specs, and `npm run test:browser` installs WebKit first. `tests/browser/a11y.spec.ts` runs `@axe-core/playwright` over every fixture in light, dark, RTL, graphite and graphite dark. `tests/browser/text-resilience.spec.ts` renders the shell, dialog, panel band, collapsed band chips and data and panel scenarios with WCAG text spacing, 200% root font size in a wide font and 1.3x longer text at 1280, 768 and 375px. Firefox is not yet automated.
+- Browser layout-geometry snapshots for every fixture, plus a fixture gallery for manual review
+  `tests/browser/layout-snapshots.spec.ts` records each `.admin-kit__*` element's rounded rect (relative to its offset parent) and key computed layout properties at 1280x800 and 375x812, in LTR and RTL, and compares them with committed baselines in `tests/browser/__layout__/` (2px tolerance, exact strings). A drift names the element, the property, and the expected and actual values. `tests/browser/gallery.html` shows every fixture with theme, palette and direction toggles.
+- A typed message catalog covers every user-visible string in the React surface, overridable per group through AdminLabelsProvider, with locale-aware plurals and counts
+  `AdminLabels` grows into `AdminMessages`, grouped per component or panel, with frozen English defaults in `defaultAdminMessages`. `AdminLabelsProvider` and `AdminApp` accept a deep partial of the catalog plus a `locale`; the original flat label keys keep working as aliases, and `useAdminLabels()` and the `AdminLabels` type are unchanged. Plural and count entries are `(count, locale)` functions built on `Intl.PluralRules` and `Intl.NumberFormat` (`adminCountMessage`, `formatAdminCount`), so counts such as the events total are now formatted. A pseudo-locale test renders every panel and component with each message wrapped in `⟦…⟧` and fails on any unwrapped text, `aria-label`, `title` or `placeholder`.
+  
+  `AdminSwitch` is now a client component because it reads the catalog. `AdminWorkspace` stays a Server Component and takes a localized `summaryLabel` prop instead.
+- Internal spacing, motion and z-index tokens replace the raw literals in styles.css, plus an opt-in compact density mode
+  `src/styles.css` now reads `--admin-kit-space-*` (a 0.25rem scale with named half and fractional steps), `--admin-kit-target-size`, `--admin-kit-duration-fast` / `-base`, `--admin-kit-ease-standard` and `--admin-kit-z-*`. The tokens are internal, so the conformance check still rejects host overrides. `data-admin-kit-density="compact"` on the root or a `.admin-kit` wrapper tightens the space steps used by tables, lists and controls. A styles test fails on any raw rem, ms or z-index literal outside the token block. Rendered layout is unchanged.
+- admin-kit-conformance fails host rebrand tokens whose accent, on-accent or text contrast falls below WCAG AA
+  The conformance command now resolves the colors a host declares for the public accent tokens in light, `.dark` and auto scopes, falls back to the kit defaults for unset tokens, and fails when accent/on-accent is below 4.5:1, accent/surface below 3:1 or text/surface below 4.5:1. Values it cannot compute are skipped with a warning.
+- AdminPagination, one previous/next pager with a polite page status, replaces the three hand-rolled copies in UsersPanel and OperationalPanels
+  `AdminPagination` renders a labelled `nav` with Previous and Next buttons that disable at the ends and a "Page X of Y" status in an `aria-live="polite"` region. It keeps 44px targets on coarse pointers and mirrors its arrows under right-to-left text. `UsersPanel`, `OperationalJobsPanel` and the backups panel now use it.
+- public data-admin-kit-part hooks and muted tokens replace private .admin-kit__ class styling, and conformance warns on host selectors that target private classes
+  Eight parts (`portal-navigation`, `table-scroll`, `mobile-cell-label`, `status`, `api-key-create`, `api-key-card`, `api-key-secret`, `scope-chip`) and a `data-admin-kit-tone` on status items give hosts stable hooks. `--admin-kit-muted` and `--admin-kit-dark-muted` become public rebrand tokens, contrast-checked at 4.5:1. `admin-kit-conformance` warns with `file:line` on host selectors that target `.admin-kit__*` classes and fails on them under `--strict`. Long event values no longer widen the events list. See `docs/styling-surface.md`.
+
+### Fixed
+
+- Details labels such as "Created" no longer break mid-word in narrow columns
+  Inside a data table cell the labels of the user, API key, session, event, hidden-value and status detail lists inherited `overflow-wrap: anywhere` from the cell, so a label column squeezed by a long value split a word across lines ("Crea" / "ted"). Labels now keep `overflow-wrap: normal` and wrap only at word boundaries; values keep `anywhere`, so they still stay inside the page at 375px and at 200% text.
+- Logs search, the API key summary and the scope-count disclosure hold up at 200% text on a phone and for screen-reader voice control
+  At 200% text on a 375px screen the logs search field and the API key summary grid kept their intrinsic minimum width and pushed the page sideways; both now shrink to the available width. The "N scopes" disclosure on an API key row had an accessible name that did not contain its visible text (WCAG 2.5.3), so voice control could not target it; the name now starts with the visible count ("2 scopes: Scopes and details for ...").
+  
+  In Safari, a focused field in a tall dialog could stay partly clipped at the edge of the dialog body (the body now keeps a 1rem scroll margin), and native selects in the field, events, users, memberships and logs controls rendered 1.5px under the 44px target because WebKit ignores `min-block-size` on a native select (they now set the target size as their block size).
+- The current section link's description keeps at least 4.5:1 contrast on the highlight
+  The description under the selected section navigation link used the muted text colour on the accent-soft highlight, which measured 4.33:1 in the light scheme. In the current state it now uses the main text colour, so it stays readable in every scheme.
+
 ## 0.48.5
 
 ### Fixed
