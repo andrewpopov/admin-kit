@@ -39,7 +39,11 @@ export function AdminStatusSummary({ items }: AdminStatusSummaryProps) {
         >
           <dt>{item.label}</dt>
           <dd>{item.value}</dd>
-          {item.detail ? <small>{item.detail}</small> : null}
+          {item.detail ? (
+            <dd>
+              <small>{item.detail}</small>
+            </dd>
+          ) : null}
         </div>
       ))}
     </dl>
@@ -148,7 +152,11 @@ export function OperationalJobsPanel({
       cell: (item) => (
         <span>
           <strong>{item.label}</strong>
-          {item.detail ? <small>{item.detail}</small> : null}
+          {item.detail ? (
+            <dd>
+              <small>{item.detail}</small>
+            </dd>
+          ) : null}
         </span>
       ),
     },
@@ -383,7 +391,11 @@ export function BackupsPanel({
       cell: (item) => (
         <span>
           <strong>{item.label}</strong>
-          {item.detail ? <small>{item.detail}</small> : null}
+          {item.detail ? (
+            <dd>
+              <small>{item.detail}</small>
+            </dd>
+          ) : null}
         </span>
       ),
     },

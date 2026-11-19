@@ -6,6 +6,15 @@ import { AdminStatusSummary, BackupsPanel, OperationalJobsPanel, SettingsPanel }
 afterEach(cleanup);
 
 describe("operational panels", () => {
+  it("keeps a status detail inside the definition list's term/value groups", () => {
+    const { container } = render(
+      <AdminStatusSummary items={[{ label: "Recovery", value: "Healthy", detail: "Checked 5 minutes ago", tone: "healthy" }]} />,
+    );
+    const group = container.querySelector("[data-admin-kit-part=status]");
+    expect(Array.from(group?.children ?? [], (child) => child.tagName)).toEqual(["DT", "DD", "DD"]);
+    expect(group?.textContent).toContain("Checked 5 minutes ago");
+  });
+
   it("renders status and backup rows through the shared semantic table contract", async () => {
     render(
       <>

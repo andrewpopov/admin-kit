@@ -16,7 +16,7 @@ const AdminPagination_1 = require("./AdminPagination");
 const AdminPanelState_1 = require("./AdminPanelState");
 const AdminPrimitives_1 = require("./AdminPrimitives");
 function AdminStatusSummary({ items }) {
-    return ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__status-summary", children: items.map((item) => ((0, jsx_runtime_1.jsxs)("div", { className: `admin-kit__status admin-kit__status--${item.tone ?? "neutral"}`, "data-admin-kit-part": "status", "data-admin-kit-tone": item.tone ?? "neutral", children: [(0, jsx_runtime_1.jsx)("dt", { children: item.label }), (0, jsx_runtime_1.jsx)("dd", { children: item.value }), item.detail ? (0, jsx_runtime_1.jsx)("small", { children: item.detail }) : null] }, item.label))) }));
+    return ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__status-summary", children: items.map((item) => ((0, jsx_runtime_1.jsxs)("div", { className: `admin-kit__status admin-kit__status--${item.tone ?? "neutral"}`, "data-admin-kit-part": "status", "data-admin-kit-tone": item.tone ?? "neutral", children: [(0, jsx_runtime_1.jsx)("dt", { children: item.label }), (0, jsx_runtime_1.jsx)("dd", { children: item.value }), item.detail ? ((0, jsx_runtime_1.jsx)("dd", { children: (0, jsx_runtime_1.jsx)("small", { children: item.detail }) })) : null] }, item.label))) }));
 }
 /** Displays host-owned scheduled, import, and retention runs without mislabeling them as backups. */
 function OperationalJobsPanel({ adapter, title: titleProp, runLabel: runLabelProp, pageSize = 25, className, formatTimestamp, emptyState: emptyStateProp, storageKey, tableFill, headerPresentation = "section", headerCollapsible, headerSummary, }) {
@@ -75,7 +75,7 @@ function OperationalJobsPanel({ adapter, title: titleProp, runLabel: runLabelPro
             id: "job",
             header: messages.jobs.columns.job,
             minWidth: 224,
-            cell: (item) => ((0, jsx_runtime_1.jsxs)("span", { children: [(0, jsx_runtime_1.jsx)("strong", { children: item.label }), item.detail ? (0, jsx_runtime_1.jsx)("small", { children: item.detail }) : null] })),
+            cell: (item) => ((0, jsx_runtime_1.jsxs)("span", { children: [(0, jsx_runtime_1.jsx)("strong", { children: item.label }), item.detail ? ((0, jsx_runtime_1.jsx)("dd", { children: (0, jsx_runtime_1.jsx)("small", { children: item.detail }) })) : null] })),
         },
         {
             id: "started",
@@ -211,7 +211,7 @@ function BackupsPanel({ adapter, title: titleProp, runLabel: runLabelProp, pageS
             id: "backup",
             header: messages.backups.columns.backup,
             minWidth: 224,
-            cell: (item) => ((0, jsx_runtime_1.jsxs)("span", { children: [(0, jsx_runtime_1.jsx)("strong", { children: item.label }), item.detail ? (0, jsx_runtime_1.jsx)("small", { children: item.detail }) : null] })),
+            cell: (item) => ((0, jsx_runtime_1.jsxs)("span", { children: [(0, jsx_runtime_1.jsx)("strong", { children: item.label }), item.detail ? ((0, jsx_runtime_1.jsx)("dd", { children: (0, jsx_runtime_1.jsx)("small", { children: item.detail }) })) : null] })),
         },
         {
             id: "created",
