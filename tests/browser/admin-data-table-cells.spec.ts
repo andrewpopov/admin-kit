@@ -312,3 +312,17 @@ for (const theme of ["light", "dark"]) {
     for (const [id, ratio] of Object.entries(ratios)) expect(ratio, id).toBeGreaterThanOrEqual(4.5);
   });
 }
+
+test("compact density tightens data-table cell padding", async ({ page }) => {
+  await serveDataTable(page, { script: usersPanel, containerWidth: 1200 });
+  const cell = page.locator("tbody td:not([data-empty])").first();
+  await expect(cell).toBeVisible();
+  const paddingBlock = () =>
+    cell.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    });
+  const roomy = await paddingBlock();
+  await page.evaluate(() => document.documentElement.setAttribute("data-admin-kit-density", "compact"));
+  expect(await paddingBlock()).toBeLessThan(roomy);
+});

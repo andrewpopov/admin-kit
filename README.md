@@ -413,6 +413,29 @@ in the host:
 </AdminDialog>
 ```
 
+### Spacing, motion, layering and density
+
+Spacing, motion and stacking come from internal tokens, so the conformance
+check rejects a host override of any of them:
+
+- `--admin-kit-space-*` is a spacing scale in multiples of 0.25rem
+  (`space-4` is 1rem, `space-1-5` is 0.375rem). Values between whole steps
+  sit on the 0.125rem grid and keep a named step, for example `space-2-5`
+  (0.625rem).
+- `--admin-kit-target-size` (2.75rem) is the minimum touch target.
+- `--admin-kit-duration-fast` (150ms) and `--admin-kit-ease-standard`.
+- `--admin-kit-z-raised`, `-pinned`, `-menu`, `-sticky`, `-dialog` and
+  `-skip-link`, from table cells up to dialogs and the focused skip link.
+
+Density is the one supported way to change spacing. Set
+`data-admin-kit-density="compact"` on the document root or on a `.admin-kit`
+wrapper to tighten the mid-range space steps (`space-1-5` through `space-4`)
+that tables, lists and controls use. The touch target size does not change.
+
+```html
+<div class="admin-kit" data-admin-kit-density="compact">...</div>
+```
+
 ### Dark mode
 
 `.dark` on any ancestor is the authoritative signal and is unchanged:
