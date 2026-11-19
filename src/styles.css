@@ -496,6 +496,7 @@
   border-color: color-mix(in srgb, var(--admin-kit-accent) 42%, var(--admin-kit-border));
 }
 .admin-kit__portal-link[aria-current="page"] { color: var(--admin-kit-accent); font-weight: var(--admin-kit-weight-strong); }
+.admin-kit__portal-link[aria-current="page"] small { color: var(--admin-kit-text); }
 .admin-kit__portal-link[aria-disabled="true"], .admin-kit__portal-link:disabled { cursor: not-allowed; opacity: 0.55; }
 /* The skip link focuses this region programmatically; it is not an interactive control, so no ring. */
 .admin-kit__portal-content { min-width: 0; }
