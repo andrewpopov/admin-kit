@@ -39,7 +39,11 @@ export function AdminStatusSummary({ items }: AdminStatusSummaryProps) {
         >
           <dt>{item.label}</dt>
           <dd>{item.value}</dd>
-          {item.detail ? <small>{item.detail}</small> : null}
+          {item.detail ? (
+            <dd>
+              <small>{item.detail}</small>
+            </dd>
+          ) : null}
         </div>
       ))}
     </dl>
