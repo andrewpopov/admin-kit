@@ -60,7 +60,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:browser": "npm run compile && node scripts/render-browser-fixture.mjs && playwright test",
+    "test:browser": "npm run compile && node scripts/render-browser-fixture.mjs && playwright install webkit && playwright test",
     "verify:pack": "node scripts/verify-pack.mjs",
     "verify:dist-fresh": "node scripts/verify-dist-fresh.mjs",
     "verify": "npm run lint && npm run typecheck && npm test && npm run test:browser && npm run compile && npm run verify:dist-fresh && npm run verify:pack && npm run verify:bins && npm audit --omit=dev --audit-level=moderate && npm audit --audit-level=high",
@@ -82,6 +82,7 @@
     "typescript": ">=5.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
     "@andrewpopov/deploy-kit": "0.37.1",
     "@andrewpopov/release-kit": "0.7.1",
     "@eslint/js": "^10.0.1",

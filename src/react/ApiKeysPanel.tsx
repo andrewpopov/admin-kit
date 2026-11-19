@@ -750,7 +750,9 @@ function ApiKeysPanelImpl({
                   </div>
                 </dl>
                 <details className="admin-kit__key-details-disclosure">
-                  <summary aria-label={messages.apiKeys.scopesAndDetailsFor(key.name)}>
+                  <summary
+                    aria-label={`${messages.common.scopeCount(key.scopes.length, locale)}: ${messages.apiKeys.scopesAndDetailsFor(key.name)}`}
+                  >
                     {messages.common.scopeCount(key.scopes.length, locale)}
                   </summary>
                   {key.scopes.length ? (

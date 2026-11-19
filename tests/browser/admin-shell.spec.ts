@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 
@@ -236,15 +236,23 @@ test("keeps a dialog taller than the viewport inside it, with only the body scro
   }
 });
 
+// Safari and Playwright's WebKit leave links and buttons out of plain Tab order; Alt+Tab reaches every control.
+const tabKeys = (browserName: string) =>
+  browserName === "webkit"
+    ? { forward: "Alt+Tab", backward: "Alt+Shift+Tab" }
+    : { forward: "Tab", backward: "Shift+Tab" };
+
 test("never leaves a keyboard-focused dialog field behind the header or footer", async ({
   page,
+  browserName,
 }) => {
+  const keys = tabKeys(browserName);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(dialogFixture);
   const fieldCount = await page.locator(".admin-kit__dialog-body input").count();
   expect(fieldCount).toBeGreaterThan(10);
-  const assertFocusedFieldIsClear = async () => {
-    const rects = await page.evaluate(() => {
+  const measureFocusedField = async () =>
+    page.evaluate(() => {
       const field = document.activeElement as HTMLElement;
       const rect = (selector: string) =>
         document.querySelector(selector)!.getBoundingClientRect();
@@ -259,18 +267,22 @@ test("never leaves a keyboard-focused dialog field behind the header or footer",
         actionsTop: rect(".admin-kit__dialog-actions").top,
       };
     });
-    expect(rects.tag).toBe("INPUT");
-    expect(rects.top).toBeGreaterThanOrEqual(Math.max(rects.bodyTop, rects.headerBottom));
-    expect(rects.bottom).toBeLessThanOrEqual(Math.min(rects.bodyBottom, rects.actionsTop));
-  };
+  // WebKit scrolls a focused field into view after the key press returns, so wait for the scroll to settle.
+  const assertFocusedFieldIsClear = () =>
+    expect(async () => {
+      const rects = await measureFocusedField();
+      expect(rects.tag).toBe("INPUT");
+      expect(rects.top).toBeGreaterThanOrEqual(Math.max(rects.bodyTop, rects.headerBottom));
+      expect(rects.bottom).toBeLessThanOrEqual(Math.min(rects.bodyBottom, rects.actionsTop));
+    }).toPass();
 
-  await page.keyboard.press("Tab"); // Close button
+  await page.keyboard.press(keys.forward); // Close button
   for (let index = 0; index < fieldCount; index += 1) {
-    await page.keyboard.press("Tab");
+    await page.keyboard.press(keys.forward);
     await assertFocusedFieldIsClear();
   }
   for (let index = 0; index < fieldCount - 1; index += 1) {
-    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press(keys.backward);
     await assertFocusedFieldIsClear();
   }
 });
@@ -334,6 +346,7 @@ test("draws form control borders at 3:1 or better against the surface behind the
 
 test("puts a skip link first in tab order and moves focus into the content region", async ({
   page,
+  browserName,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(fixture);
@@ -341,7 +354,7 @@ test("puts a skip link first in tab order and moves focus into the content regio
   const hidden = await link.boundingBox();
   expect(hidden?.width, "the skip link is visually hidden until focused").toBeLessThanOrEqual(1);
 
-  await page.keyboard.press("Tab");
+  await page.keyboard.press(tabKeys(browserName).forward);
   await expect(link).toBeFocused();
   const shown = await link.boundingBox();
   expect(shown?.width).toBeGreaterThan(40);
@@ -560,11 +573,18 @@ const controlStyle = (locator: import("@playwright/test").Locator) =>
 test("leaves a bare host button inside .admin-kit unstyled by the kit", async ({ page }) => {
   await page.goto(controlsFixture);
   const host = await controlStyle(page.locator("#host-button"));
-  expect(host.minHeight, "host button keeps the UA min-block-size").toBe("0px");
+  const userAgentMinHeight = await page.evaluate(() => {
+    const button = document.body.appendChild(document.createElement("button"));
+    return getComputedStyle(button).minHeight;
+  });
+  expect(host.minHeight, "host button keeps the UA min-block-size").toBe(userAgentMinHeight);
   expect(host.borderTop, "host button gets no kit border").not.toBe("1px");
 });
 
-test("keeps kit font, border and min height on bare controls in kit roots", async ({ page }) => {
+test("keeps kit font, border and min height on bare controls in kit roots", async ({
+  page,
+  browserName,
+}) => {
   await page.goto(controlsFixture);
   const kitFont = await page.evaluate(() => getComputedStyle(document.querySelector(".admin-kit")!).fontFamily);
 
@@ -581,7 +601,14 @@ test("keeps kit font, border and min height on bare controls in kit roots", asyn
     const control = await controlStyle(page.locator(selector));
     expect(control.fontFamily, `${selector} font`).toBe(kitFont);
     expect(control.fontSize, `${selector} size`).toBe("16px");
-    expect(control.minHeight, `${selector} min height`).toBe("44px");
+    const isSelect = selector.endsWith("select");
+    if (!(isSelect && browserName === "webkit")) {
+      expect(control.minHeight, `${selector} min height`).toBe("44px");
+    }
+    if (isSelect) {
+      const box = await page.locator(selector).boundingBox();
+      expect(box?.height, `${selector} rendered height`).toBeGreaterThanOrEqual(44);
+    }
     expect(control.borderTop, `${selector} border`).toBe("1px");
   }
 });

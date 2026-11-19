@@ -1312,6 +1312,20 @@ npm run verify:pack
 npm run test:browser
 ```
 
+### Supported browsers
+
+Chromium runs the full browser suite. WebKit (Safari's engine) runs the cross-engine
+specs: `admin-layout`, `admin-panel-band`, `admin-shell`, `a11y` and `text-resilience`
+(`crossEngineSpecs` in `playwright.config.ts`). `a11y.spec.ts` scans every
+`tests/browser/*.html` fixture with axe for WCAG 2.x A/AA in light, dark, RTL, graphite
+and graphite dark; `text-resilience.spec.ts` applies WCAG text spacing, 200% text with a
+wide font and 1.3x longer text at 1280, 768 and 375px, and fails on clipped text,
+untitled truncation, overlapping controls or sideways page scroll. `npm run test:browser`
+installs the WebKit browser before it runs.
+
+Firefox is not yet automated: it cannot launch on the current runner (a
+`sandbox_extension` error), so Firefox is tracked as PKG-391 until a runner can host it.
+
 ### Layout snapshots
 
 `tests/browser/layout-snapshots.spec.ts` snapshots geometry, not pixels, so it holds across
@@ -1335,7 +1349,7 @@ UPDATE_LAYOUT=1 npx playwright test tests/browser/layout-snapshots.spec.ts
 toggles for manual review; serve the repository over HTTP to use it (see the page).
 
 GitHub Actions is disabled for this repository; the local `.githooks/pre-push`
-gate runs `npm run verify` (lint, typecheck, unit, Chromium, compile, dist
+gate runs `npm run verify` (lint, typecheck, unit, Chromium and WebKit, compile, dist
 freshness, pack, bins, and the production and full-tree audits). A release tag
 must equal the package version and have a matching changelog heading. After a
 tag is published, consumers bump their exact registry pin, verify the installed
