@@ -75,7 +75,7 @@ function OperationalJobsPanel({ adapter, title: titleProp, runLabel: runLabelPro
             id: "job",
             header: messages.jobs.columns.job,
             minWidth: 224,
-            cell: (item) => ((0, jsx_runtime_1.jsxs)("span", { children: [(0, jsx_runtime_1.jsx)("strong", { children: item.label }), item.detail ? ((0, jsx_runtime_1.jsx)("dd", { children: (0, jsx_runtime_1.jsx)("small", { children: item.detail }) })) : null] })),
+            cell: (item) => ((0, jsx_runtime_1.jsxs)("span", { children: [(0, jsx_runtime_1.jsx)("strong", { children: item.label }), item.detail ? (0, jsx_runtime_1.jsx)("small", { children: item.detail }) : null] })),
         },
         {
             id: "started",
@@ -211,7 +211,7 @@ function BackupsPanel({ adapter, title: titleProp, runLabel: runLabelProp, pageS
             id: "backup",
             header: messages.backups.columns.backup,
             minWidth: 224,
-            cell: (item) => ((0, jsx_runtime_1.jsxs)("span", { children: [(0, jsx_runtime_1.jsx)("strong", { children: item.label }), item.detail ? ((0, jsx_runtime_1.jsx)("dd", { children: (0, jsx_runtime_1.jsx)("small", { children: item.detail }) })) : null] })),
+            cell: (item) => ((0, jsx_runtime_1.jsxs)("span", { children: [(0, jsx_runtime_1.jsx)("strong", { children: item.label }), item.detail ? (0, jsx_runtime_1.jsx)("small", { children: item.detail }) : null] })),
         },
         {
             id: "created",
