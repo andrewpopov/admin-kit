@@ -115,12 +115,12 @@ describe("Admin Kit styles", () => {
 
   it("keeps shared form and action controls at the 44px mobile comfort target", () => {
     expect(styles).toContain(".admin-kit__button {");
-    expect(styles).toMatch(/\.admin-kit__button \{[^}]*min-block-size: 2\.75rem;/);
-    expect(styles).toMatch(/\.admin-kit__users-table select \{[^}]*min-block-size: 2\.75rem;/);
+    expect(styles).toMatch(/\.admin-kit__button \{[^}]*min-block-size: var\(--admin-kit-target-size\);/);
+    expect(styles).toMatch(/\.admin-kit__users-table select \{[^}]*min-block-size: var\(--admin-kit-target-size\);/);
     expect(styles).toMatch(
-      /\.admin-kit__logs-filters input, \.admin-kit__logs-filters select \{[^}]*min-block-size: 2\.75rem;/,
+      /\.admin-kit__logs-filters input, \.admin-kit__logs-filters select \{[^}]*min-block-size: var\(--admin-kit-target-size\);/,
     );
-    expect(styles).toMatch(/\.admin-kit__scope-group-toggle \{[^}]*min-block-size: 2\.75rem;/);
+    expect(styles).toMatch(/\.admin-kit__scope-group-toggle \{[^}]*min-block-size: var\(--admin-kit-target-size\);/);
   });
 
   it("keeps routed portal navigation independently sized and sticky", () => {
@@ -297,8 +297,8 @@ describe("Admin Kit styles", () => {
 
   it("gives the dialog close button a 44px target", () => {
     const close = styles.match(/\.admin-kit__dialog-close \{([^}]*)\}/)?.[1] ?? "";
-    expect(close).toContain("min-block-size: 2.75rem;");
-    expect(close).toContain("min-inline-size: 2.75rem;");
+    expect(close).toContain("min-block-size: var(--admin-kit-target-size);");
+    expect(close).toContain("min-inline-size: var(--admin-kit-target-size);");
   });
 
   it("neutralises layout and type on the portaled theme layer", () => {
@@ -425,6 +425,44 @@ describe("app frame minimum height", () => {
     for (const frame of [".admin-kit__app", ".admin-kit__app-shell"]) {
       const rule = styles.match(new RegExp(`^${frame.replace(".", "\\.")} \\{([^}]*)\\}`, "m"))?.[1] ?? "";
       expect(rule, frame).toContain("min-block-size: var(--admin-kit-app-min-block-size);");
+    }
+  });
+});
+
+describe("design tokens (PKG-369)", () => {
+  const withoutComments = styles.replace(/\/\*[\s\S]*?\*\//g, "");
+  const tokenBlockProperty = /^--admin-kit-(space-|target-size$|duration-|ease-|z-|radius|sticky-top$|text-|app-min-block-size$)/;
+  // Component dimensions and decoration are sizes, not spacing; each entry says why it stays literal.
+  const literalAllowlist: Array<[RegExp, string]> = [
+    [/^(min-|max-)?(width|height|inline-size|block-size)$/, "component dimensions, not spacing"],
+    [/^(flex|grid-template-columns|table)$/, "column and basis sizes"],
+    [/^background$/, "gradient geometry"],
+    [/^border-radius$/, "radii are tokenised separately"],
+    [/^--admin-kit-data-table-max-height$/, "component size knob"],
+    [/^(animation|transition)-duration$/, "the reduced-motion override collapses motion to 0.01ms"],
+  ];
+
+  function rawLiterals(): string[] {
+    const found: string[] = [];
+    const css = withoutComments.replace(/@media[^{]*\{/g, "{");
+    for (const match of css.matchAll(/([a-z-]+)\s*:\s*([^;{}]+)/g)) {
+      const [, property, value] = match;
+      if (tokenBlockProperty.test(property)) continue;
+      if (literalAllowlist.some(([allowed]) => allowed.test(property))) continue;
+      const literal = value.match(/-?\d*\.?\d+(rem|ms)\b/)?.[0] ?? (property === "z-index" && /^\s*-?\d+\s*$/.test(value) ? value.trim() : undefined);
+      if (literal) found.push(`${property}: ${value.trim()}`);
+    }
+    return found;
+  }
+
+  it("declares no raw rem, ms or z-index literal outside the token block", () => {
+    expect(rawLiterals()).toEqual([]);
+  });
+
+  it("keeps the new tokens internal-only and defines compact density", () => {
+    expect(styles).toMatch(/\[data-admin-kit-density="compact"\] \{[^}]*--admin-kit-space-2:/);
+    for (const token of ["space-4", "duration-fast", "ease-standard", "z-sticky", "z-dialog", "z-skip-link"]) {
+      expect(styles, token).toContain(`--admin-kit-${token}:`);
     }
   });
 });
