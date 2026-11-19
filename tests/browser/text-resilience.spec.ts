@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { eventsPanel, mount, serveDataTable, sixColumnScript, usersPanel } from "./data-table-harness";

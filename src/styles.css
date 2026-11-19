@@ -580,6 +580,8 @@
 .admin-kit__card-content { min-width: 0; padding: var(--admin-kit-space-4); }
 .admin-kit__stack { display: grid; grid-template-columns: minmax(0, 1fr); }.admin-kit__stack--sm { gap: var(--admin-kit-space-2); }.admin-kit__stack--md { gap: var(--admin-kit-space-4); }.admin-kit__stack--lg { gap: var(--admin-kit-space-6); }
 .admin-kit__field { display: grid; gap: var(--admin-kit-space-1-5); max-width: 38rem; }.admin-kit__field-label { font-size: var(--admin-kit-text-body-sm-size); line-height: var(--admin-kit-text-body-sm-leading); font-weight: var(--admin-kit-weight-strong); }.admin-kit__field input, .admin-kit__field select, .admin-kit__field textarea { background: var(--admin-kit-surface); border: 1px solid var(--admin-kit-control-border); border-radius: var(--admin-kit-radius-sm); color: var(--admin-kit-text); min-block-size: var(--admin-kit-target-size); padding: var(--admin-kit-space-2) var(--admin-kit-space-3); }.admin-kit__field textarea { min-block-size: 6rem; resize: vertical; }.admin-kit__field-error { color: var(--admin-kit-danger); }
+/* WebKit sizes a native select by its own theme and ignores min-block-size, so the target size is set outright. */
+.admin-kit__field select, .admin-kit__events-filters select, .admin-kit__user-controls select, .admin-kit__users-table select, .admin-kit__memberships-table select, .admin-kit__logs-filters select { block-size: var(--admin-kit-target-size); }
 .admin-kit__switch { align-items: center; display: grid; gap: var(--admin-kit-space-3); grid-template-columns: auto minmax(0, 1fr) auto; min-block-size: 3.5rem; text-align: start; width: min(100%, 38rem); }
 .admin-kit__switch-track { background: var(--admin-kit-control-border); border-radius: 999px; display: flex; inline-size: 2.5rem; padding: var(--admin-kit-space-1); }
 .admin-kit__switch-track > span { background: var(--admin-kit-surface); border-radius: 50%; block-size: 1rem; inline-size: 1rem; }
@@ -724,7 +726,7 @@
 .admin-kit__dialog-close:hover:not(:disabled) { background: var(--admin-kit-surface-subtle); color: var(--admin-kit-text); }
 .admin-kit__dialog-description { color: var(--admin-kit-muted); flex: 0 0 auto; margin: var(--admin-kit-space-3) 0 0; }
 /* The 0.25rem padding (pulled back out by the negative inline margin and a smaller top margin, so spacing is unchanged) keeps a focus ring at the body edge from being clipped by its own scrollport. */
-.admin-kit__dialog-body { flex: 1 1 auto; margin: var(--admin-kit-space-4) calc(var(--admin-kit-space-1) * -1) 0; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--admin-kit-space-1); }
+.admin-kit__dialog-body { flex: 1 1 auto; margin: var(--admin-kit-space-4) calc(var(--admin-kit-space-1) * -1) 0; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--admin-kit-space-1); scroll-padding-block: var(--admin-kit-space-4); }
 .admin-kit__dialog-body--message > p { margin: 0; }
 .admin-kit__dialog-actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; gap: var(--admin-kit-space-3); justify-content: flex-end; margin-top: var(--admin-kit-space-7); }
 /* Portaled dialogs sit outside the host's themed wrapper, so they re-enter the theme through this element. It carries the theme classes (tokens, host overrides) but must not gain a box or change inherited type: the dialog already renders against the document's own font and color. */

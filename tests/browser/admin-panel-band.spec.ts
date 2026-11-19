@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { mount, serveDataTable, usersPanel } from "./data-table-harness";
 
 const REQUEST_PATH = "/api/projects/CAIRN/tickets/cmp9x3q0e0001abcdefghijkl/comments/cmp9x3q0e0002";
@@ -118,6 +119,8 @@ const eventsPlain = mount(
 );
 
 const toggle = (page: Page) => page.getByRole("button", { name: /controls/ });
+// WebKit reports a 44px target as 43.99997 after fractional layout.
+const LAYOUT_EPSILON = 0.01;
 const region = (page: Page) => page.locator(".admin-kit__panel-header-region");
 const tableTop = (page: Page) =>
   page.locator(".admin-kit__data-table-wrap").evaluate((wrap) => wrap.getBoundingClientRect().top);
@@ -615,8 +618,8 @@ test.describe("filter chip remove target", () => {
         .evaluateAll((buttons) => buttons.map((node) => node.getBoundingClientRect().toJSON()));
       expect(boxes).toHaveLength(4);
       for (const box of boxes) {
-        expect(box.height).toBeGreaterThanOrEqual(44);
-        expect(box.width).toBeGreaterThanOrEqual(44);
+        expect(box.height).toBeGreaterThanOrEqual(44 - LAYOUT_EPSILON);
+        expect(box.width).toBeGreaterThanOrEqual(44 - LAYOUT_EPSILON);
       }
     });
   });
