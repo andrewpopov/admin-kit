@@ -8,6 +8,7 @@ import {
   type ElementType,
   type ReactNode,
 } from "react";
+import { useAdminMessages } from "./AdminLabels";
 import { useBandCollapsed, type AdminBandDefault } from "./adminPanelBand";
 
 /**
@@ -108,6 +109,7 @@ export function AdminPanelHeader({
   className,
 }: AdminPanelHeaderProps) {
   const frameOwnsH1 = useContext(AdminFrameHeadingContext);
+  const { messages, locale } = useAdminMessages();
   const regionId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const [collapsed, setCollapsed] = useBandCollapsed(
@@ -168,13 +170,13 @@ export function AdminPanelHeader({
               <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.75" />
             </svg>
             <span className="admin-kit__panel-header-toggle-label">
-              {collapsed ? "Show controls" : "Hide controls"}
+              {collapsed ? messages.band.showControls : messages.band.hideControls}
             </span>
             {collapsed && activeCount > 0 ? (
               <>
                 <span aria-hidden="true">({activeCount})</span>
                 <span className="admin-kit__visually-hidden">
-                  , {activeCount} {activeCount === 1 ? "filter" : "filters"} applied
+                  {messages.band.filtersApplied(activeCount, locale)}
                 </span>
               </>
             ) : null}
@@ -183,7 +185,7 @@ export function AdminPanelHeader({
       </div>
       {band ? (
         <div
-          aria-label="Page controls"
+          aria-label={messages.band.controlsGroup}
           className="admin-kit__panel-header-region"
           hidden={collapsed}
           id={regionId}

@@ -13,6 +13,7 @@ import {
   type PointerEvent,
   type ReactNode,
 } from "react";
+import { useAdminMessages } from "./AdminLabels";
 import { AdminMobileCellLabel } from "./AdminTablePrimitives";
 import { useFillBox } from "./useFillBox";
 import { useHeaderFloors } from "./useHeaderFloors";
@@ -136,7 +137,7 @@ export function AdminDataTable<Row>({
   storageKey,
   busy = false,
   renderDetails,
-  detailsLabel = "Details",
+  detailsLabel: detailsLabelProp,
   expandedKeys,
   onExpandedChange,
   rowBusy,
@@ -147,6 +148,8 @@ export function AdminDataTable<Row>({
   fill = false,
 }: AdminDataTableProps<Row>) {
   const idPrefix = useId();
+  const { messages, locale } = useAdminMessages();
+  const detailsLabel = detailsLabelProp ?? messages.table.detailsLabel;
   const [stored, setStored] = useState(() => ({
     key: storageKey,
     widths: readStoredWidths(storageKey),
@@ -362,7 +365,10 @@ export function AdminDataTable<Row>({
         {
           scrollPaddingBlockStart: fit.stacked || !headHeight ? undefined : `${headHeight}px`,
           ...(fill && fillBox
-            ? { "--admin-kit-fill-top": `${fillBox.top}px`, "--admin-kit-fill-below": `${fillBox.below}px` }
+            ? {
+                "--admin-kit-fill-top": `${fillBox.top}px`,
+                "--admin-kit-fill-below": `${fillBox.below}px`,
+              }
             : {}),
         } as CSSProperties
       }
@@ -427,12 +433,12 @@ export function AdminDataTable<Row>({
                   {resizable ? (
                     <>
                       <span
-                        aria-label={`Resize ${column.header} column`}
+                        aria-label={messages.table.resizeColumn(column.header)}
                         aria-orientation="vertical"
                         aria-valuemax={max}
                         aria-valuemin={min}
                         aria-valuenow={width}
-                        aria-valuetext={`${width} pixels`}
+                        aria-valuetext={messages.table.widthValue(width, locale)}
                         className="admin-kit__column-resizer"
                         data-resize-column={column.id}
                         onClick={() => {
@@ -454,11 +460,11 @@ export function AdminDataTable<Row>({
                         }}
                         role="separator"
                         tabIndex={0}
-                        title="Click for a width menu, or drag or use the arrow keys to resize. Home or double-click resets."
+                        title={messages.table.resizeHint}
                       />
                       {menuOpen ? (
                         <div
-                          aria-label={`${column.header} column width`}
+                          aria-label={messages.table.columnWidth(column.header)}
                           className="admin-kit__column-menu"
                           data-resize-column={column.id}
                           id={menuId}
@@ -466,28 +472,28 @@ export function AdminDataTable<Row>({
                           role="group"
                         >
                           <button
-                            aria-label={`Narrow ${column.header} column`}
+                            aria-label={messages.table.narrowColumn(column.header)}
                             onClick={() => stepWidth(column, -MENU_STEP)}
                             type="button"
                           >
-                            Narrower
+                            {messages.table.narrower}
                           </button>
                           <button
-                            aria-label={`Widen ${column.header} column`}
+                            aria-label={messages.table.widenColumn(column.header)}
                             onClick={() => stepWidth(column, MENU_STEP)}
                             type="button"
                           >
-                            Wider
+                            {messages.table.wider}
                           </button>
                           <button
-                            aria-label={`Reset ${column.header} column width`}
+                            aria-label={messages.table.resetColumn(column.header)}
                             onClick={() => {
                               setWidth(column, undefined, { save: true });
                               closeMenu(column);
                             }}
                             type="button"
                           >
-                            Reset width
+                            {messages.table.resetWidth}
                           </button>
                         </div>
                       ) : null}
@@ -548,7 +554,12 @@ export function AdminDataTable<Row>({
                         aria-expanded={isOpen}
                         aria-label={
                           rowLabel
-                            ? `${isOpen ? "Hide" : "View"} ${detailsLabel.toLowerCase()} for ${rowLabel(row)}`
+                            ? messages.table.toggleDetails(
+                                isOpen,
+                                detailsLabel,
+                                rowLabel(row),
+                                locale,
+                              )
                             : undefined
                         }
                         className="admin-kit__data-table-toggle"
@@ -556,7 +567,7 @@ export function AdminDataTable<Row>({
                         onClick={() => toggle(key)}
                         type="button"
                       >
-                        {isOpen ? "Hide" : "View"}
+                        {isOpen ? messages.table.hide : messages.table.view}
                       </button>
                     </td>
                   ) : null}

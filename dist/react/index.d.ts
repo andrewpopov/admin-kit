@@ -1,6 +1,6 @@
 export { AdminActionButton, type AdminActionButtonProps, type AdminActionTone, } from "./AdminActionButton";
 export { AdminConfirmationDialog, type AdminConfirmationDialogProps, } from "./AdminConfirmationDialog";
-export { AdminLabelsProvider, useAdminLabels, defaultAdminLabels, type AdminLabels, } from "./AdminLabels";
+export { AdminLabelsProvider, useAdminLabels, useAdminMessages, defaultAdminLabels, defaultAdminMessages, adminCountMessage, formatAdminCount, type AdminCountMessage, type AdminLabels, type AdminLabelsOverride, type AdminMessageContext, type AdminMessages, type AdminMessagesOverride, } from "./AdminLabels";
 export { AdminDialog, type AdminDialogProps } from "./AdminDialog";
 export { AdminApp, type AdminAppFrame, type AdminAppProps, type AdminAppReactGroup, type AdminAppReactSection, } from "./AdminApp";
 export { AdminAppShell, type AdminAppShellNavigationContext, type AdminAppShellProps, } from "./AdminAppShell";

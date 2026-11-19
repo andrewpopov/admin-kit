@@ -7,7 +7,7 @@ import {
   formatAdminTimestamp,
   validateAdminEventsPage,
 } from "../core";
-import { useAdminLabels } from "./AdminLabels";
+import { useAdminMessages, useAdminMessagesRef, type AdminMessages } from "./AdminLabels";
 import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
 import { AdminFilterChip } from "./AdminFilterChip";
 import {
@@ -71,9 +71,9 @@ export interface EventsPanelSummaryContext {
 
 export function EventsPanel({
   adapter,
-  title = "Administrative events",
+  title: titleProp,
   headerPresentation = "section",
-  refreshLabel = "Refresh",
+  refreshLabel: refreshLabelProp,
   search,
   pageSize = 25,
   presentation = "feed",
@@ -87,7 +87,10 @@ export function EventsPanel({
   headerSummary,
 }: EventsPanelProps) {
   const show = (column: EventsPanelColumn) => columns.includes(column);
-  const labels = useAdminLabels();
+  const messagesRef = useAdminMessagesRef();
+  const { messages, locale } = messagesRef.current;
+  const title = titleProp ?? messages.events.title;
+  const refreshLabel = refreshLabelProp ?? messages.events.refresh;
   const [query, setQuery] = useState<AdminEventsQuery>({ page: 1, pageSize });
   const [searchInput, setSearchInput] = useState(query.search ?? "");
   const [result, setResult] = useState<AdminEventsPage>();
@@ -107,14 +110,16 @@ export function EventsPanel({
       } catch (reason) {
         if (loadId === latestLoadId.current) {
           setError(
-            reason instanceof Error ? reason.message : "Unable to load administrative events.",
+            reason instanceof Error
+              ? reason.message
+              : messagesRef.current.messages.events.loadFailed,
           );
         }
       } finally {
         if (loadId === latestLoadId.current) setLoading(false);
       }
     },
-    [adapter, query],
+    [adapter, query, messagesRef],
   );
 
   useEffect(() => {
@@ -149,7 +154,7 @@ export function EventsPanel({
   };
   const searchControl = search ? (
     <label className="admin-kit__events-search">
-      <span>Search</span>
+      <span>{messages.events.search}</span>
       <input
         type="search"
         placeholder={search.placeholder}
@@ -172,26 +177,26 @@ export function EventsPanel({
     options?.find((option) => option.value === value)?.label ?? value;
   const appliedFilters: { key: string; label: string; remove: () => void }[] = [
     query.search
-      ? { key: "search", label: `Search: ${query.search}`, remove: clearSearch }
+      ? { key: "search", label: messages.events.chips.search(query.search), remove: clearSearch }
       : undefined,
     query.category
       ? {
           key: "category",
-          label: `Category: ${optionLabel(adapter.categories, query.category)}`,
+          label: messages.events.chips.category(optionLabel(adapter.categories, query.category)),
           remove: () => updateQuery({ category: undefined }),
         }
       : undefined,
     query.severity
       ? {
           key: "severity",
-          label: `Severity: ${optionLabel(adapter.severities, query.severity)}`,
+          label: messages.events.chips.severity(optionLabel(adapter.severities, query.severity)),
           remove: () => updateQuery({ severity: undefined }),
         }
       : undefined,
     query.outcome
       ? {
           key: "outcome",
-          label: `Outcome: ${optionLabel(adapter.outcomes, query.outcome)}`,
+          label: messages.events.chips.outcome(optionLabel(adapter.outcomes, query.outcome)),
           remove: () => updateQuery({ outcome: undefined }),
         }
       : undefined,
@@ -204,12 +209,12 @@ export function EventsPanel({
       <div className="admin-kit__events-filters">
         {adapter.categories ? (
           <label>
-            <span>Category</span>
+            <span>{messages.events.columns.category}</span>
             <select
               value={query.category ?? ""}
               onChange={(event) => updateQuery({ category: event.target.value || undefined })}
             >
-              <option value="">All</option>
+              <option value="">{messages.events.all}</option>
               {adapter.categories.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -220,7 +225,7 @@ export function EventsPanel({
         ) : null}
         {adapter.severities ? (
           <label>
-            <span>Severity</span>
+            <span>{messages.events.columns.severity}</span>
             <select
               value={query.severity ?? ""}
               onChange={(event) =>
@@ -229,7 +234,7 @@ export function EventsPanel({
                 })
               }
             >
-              <option value="">All</option>
+              <option value="">{messages.events.all}</option>
               {adapter.severities.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -240,7 +245,7 @@ export function EventsPanel({
         ) : null}
         {adapter.outcomes ? (
           <label>
-            <span>Outcome</span>
+            <span>{messages.events.columns.outcome}</span>
             <select
               value={query.outcome ?? ""}
               onChange={(event) =>
@@ -249,7 +254,7 @@ export function EventsPanel({
                 })
               }
             >
-              <option value="">All</option>
+              <option value="">{messages.events.all}</option>
               {adapter.outcomes.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -270,7 +275,7 @@ export function EventsPanel({
         {
           summary: (
             <>
-              {result ? <span>{result.total.toLocaleString()} events</span> : null}
+              {result ? <span>{messages.events.total(result.total, locale)}</span> : null}
               {chips}
             </>
           ),
@@ -280,10 +285,12 @@ export function EventsPanel({
       detail={
         result?.source ? (
           <p>
-            Source: {result.source.label}
-            {result.source.updatedAt
-              ? ` · updated ${formatAdminTimestamp(result.source.updatedAt, formatTimestamp)}`
-              : ""}
+            {messages.events.source(
+              result.source.label,
+              result.source.updatedAt
+                ? formatAdminTimestamp(result.source.updatedAt, formatTimestamp)
+                : undefined,
+            )}
           </p>
         ) : null
       }
@@ -318,11 +325,11 @@ export function EventsPanel({
         aria-label={title}
       >
         {panelHeader()}
-        <AdminPanelStateView state={{ kind: "loading", label: "Loading administrative events…" }} />
+        <AdminPanelStateView state={{ kind: "loading", label: messages.events.loading }} />
       </section>
     );
   const pages = Math.max(1, Math.ceil(result.total / result.pageSize));
-  const tableColumns = eventTableColumns(columns, formatTimestamp);
+  const tableColumns = eventTableColumns(columns, messages, formatTimestamp);
 
   return (
     <section
@@ -335,9 +342,7 @@ export function EventsPanel({
       ) : null}
       {result.items.length === 0 ? (
         (emptyState ?? (
-          <AdminPanelStateView
-            state={{ kind: "empty", title: "No administrative events found." }}
-          />
+          <AdminPanelStateView state={{ kind: "empty", title: messages.events.empty }} />
         ))
       ) : presentation === "table" ? (
         <AdminDataTable
@@ -345,7 +350,7 @@ export function EventsPanel({
           className="admin-kit__events-table"
           columns={tableColumns}
           label={title}
-          renderDetails={renderEventDetails}
+          renderDetails={(event) => renderEventDetails(event, messages)}
           rowKey={(event) => event.id}
           rowLabel={(event) =>
             `${event.action} ${formatAdminTimestamp(event.occurredAt, formatTimestamp)}`
@@ -374,14 +379,16 @@ export function EventsPanel({
                     .filter((part) => part !== null)
                     .join(" · ")}
                 </span>
-                {show("actor") && event.actor ? <span> · actor: {event.actor.label}</span> : null}
+                {show("actor") && event.actor ? (
+                  <span>{messages.events.actor(event.actor.label)}</span>
+                ) : null}
                 {show("resource") && event.resource ? (
-                  <span> · resource: {event.resource.label}</span>
+                  <span>{messages.events.resource(event.resource.label)}</span>
                 ) : null}
               </div>
               {event.metadata ? (
                 <details>
-                  <summary>Details</summary>
+                  <summary>{messages.events.details}</summary>
                   <dl>
                     {Object.entries(event.metadata).map(([label, value]) => (
                       <div key={label}>
@@ -398,21 +405,22 @@ export function EventsPanel({
       )}
       <footer className="admin-kit__events-pagination">
         <span>
-          {labels.pageStatus(result.page, pages)} · {result.total} events
+          {messages.common.pageStatus(result.page, pages, locale)} ·{" "}
+          {messages.events.total(result.total, locale)}
         </span>
         <button
           type="button"
           disabled={loading || result.page <= 1}
           onClick={() => setQuery((current) => ({ ...current, page: (current.page ?? 1) - 1 }))}
         >
-          {labels.previousPage}
+          {messages.common.previousPage}
         </button>
         <button
           type="button"
           disabled={loading || result.page >= pages}
           onClick={() => setQuery((current) => ({ ...current, page: (current.page ?? 1) + 1 }))}
         >
-          {labels.nextPage}
+          {messages.common.nextPage}
         </button>
       </footer>
     </section>
@@ -421,7 +429,6 @@ export function EventsPanel({
 
 type AdminEvent = AdminEventsPage["items"][number];
 
-const relativeTime = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
 const RELATIVE_UNITS: readonly [Intl.RelativeTimeFormatUnit, number][] = [
   ["year", 31_536_000],
   ["month", 2_592_000],
@@ -431,7 +438,8 @@ const RELATIVE_UNITS: readonly [Intl.RelativeTimeFormatUnit, number][] = [
   ["minute", 60],
 ];
 
-function formatRelative(iso: string, now = Date.now()): string | undefined {
+function formatRelative(iso: string, locale?: string, now = Date.now()): string | undefined {
+  const relativeTime = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
   const time = Date.parse(iso);
   if (Number.isNaN(time)) return undefined;
   const seconds = Math.round((time - now) / 1000);
@@ -448,7 +456,8 @@ function OccurredCell({
   iso: string;
   formatTimestamp?: (iso: string) => string;
 }) {
-  const relative = formatTimestamp ? undefined : formatRelative(iso);
+  const { locale } = useAdminMessages();
+  const relative = formatTimestamp ? undefined : formatRelative(iso, locale);
   return (
     <time className="admin-kit__event-time" dateTime={iso} title={iso}>
       <span>{formatAdminTimestamp(iso, formatTimestamp)}</span>
@@ -457,21 +466,22 @@ function OccurredCell({
   );
 }
 
-function eventSubline(event: AdminEvent): string {
+function eventSubline(event: AdminEvent, messages: AdminMessages): string {
   const status = Number(event.metadata?.status);
   return Number.isInteger(status) && status >= 100 && status <= 599
-    ? `returned ${status}`
+    ? messages.events.returnedStatus(status)
     : event.message;
 }
 
 function eventTableColumns(
   visible: readonly EventsPanelColumn[],
+  messages: AdminMessages,
   formatTimestamp?: (iso: string) => string,
 ): AdminDataTableColumn<AdminEvent>[] {
   const all: Record<EventsPanelColumn, AdminDataTableColumn<AdminEvent>> = {
     occurred: {
       id: "occurred",
-      header: "Occurred",
+      header: messages.events.columns.occurred,
       ...(formatTimestamp
         ? { defaultWidth: 184, minWidth: 128 }
         : { defaultWidth: TIMESTAMP_COLUMN_WIDTH, minWidth: TIMESTAMP_COLUMN_WIDTH }),
@@ -479,20 +489,20 @@ function eventTableColumns(
     },
     event: {
       id: "event",
-      header: "Event",
+      header: messages.events.columns.event,
       minWidth: 200,
       truncate: true,
       title: (event) => `${event.action}\n${event.message}`,
       cell: (event) => (
         <>
           <strong>{event.action}</strong>
-          <small>{eventSubline(event)}</small>
+          <small>{eventSubline(event, messages)}</small>
         </>
       ),
     },
     actor: {
       id: "actor",
-      header: "Actor",
+      header: messages.events.columns.actor,
       defaultWidth: 168,
       truncate: true,
       title: (event) => event.actor?.label,
@@ -500,7 +510,7 @@ function eventTableColumns(
     },
     resource: {
       id: "resource",
-      header: "Resource",
+      header: messages.events.columns.resource,
       defaultWidth: 240,
       title: (event) => event.resource?.label,
       cell: (event) =>
@@ -512,7 +522,7 @@ function eventTableColumns(
     },
     outcome: {
       id: "outcome",
-      header: "Outcome",
+      header: messages.events.columns.outcome,
       defaultWidth: 136,
       minWidth: 96,
       cell: (event) => (
@@ -530,14 +540,15 @@ function eventTableColumns(
   return ALL_COLUMNS.filter((column) => visible.includes(column)).map((column) => all[column]);
 }
 
-function renderEventDetails(event: AdminEvent) {
+function renderEventDetails(event: AdminEvent, messages: AdminMessages) {
+  const columns = messages.events.columns;
   const fields: [string, ReactNode][] = [
-    ["Action", event.action],
-    ["Message", event.message],
-    ["Occurred", event.occurredAt],
-    ["Actor", event.actor?.label ?? "—"],
-    ["Resource", event.resource?.label ?? "—"],
-    ["Outcome", `${event.outcome} · ${event.severity} · ${event.category}`],
+    [columns.action, event.action],
+    [columns.message, event.message],
+    [columns.occurred, event.occurredAt],
+    [columns.actor, event.actor?.label ?? "—"],
+    [columns.resource, event.resource?.label ?? "—"],
+    [columns.outcome, `${event.outcome} · ${event.severity} · ${event.category}`],
     ...Object.entries(event.metadata ?? {}),
   ];
   return (

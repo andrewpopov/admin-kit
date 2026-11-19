@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminPortal = AdminPortal;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
+const AdminLabels_1 = require("./AdminLabels");
 const AdminSkipLink_1 = require("./AdminSkipLink");
 const AdminThemeContext_1 = require("./AdminThemeContext");
 /**
@@ -11,10 +12,11 @@ const AdminThemeContext_1 = require("./AdminThemeContext");
  * navigation, and authorization; the portal owns grouping, selection,
  * responsive layout, disabled behavior, and accessible page semantics.
  */
-function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationItem, ariaLabel = "Administration sections", mobileNavigationLabel = "Menu", className, emptyState = "No administration sections are available.", inactiveSectionState, stickyMobileToggle = false, }) {
+function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationItem, ariaLabel, mobileNavigationLabel, className, emptyState, inactiveSectionState, stickyMobileToggle = false, }) {
     if (!renderNavigationItem && !onSectionChange) {
         throw new Error("AdminPortal default navigation needs onSectionChange.");
     }
+    const { messages } = (0, AdminLabels_1.useAdminMessages)();
     const [mobileNavigationOpen, setMobileNavigationOpen] = (0, react_1.useState)(false);
     const mobileNavigationId = `admin-kit-portal-navigation-${(0, react_1.useId)().replace(/:/g, "")}`;
     const toggleRef = (0, react_1.useRef)(null);
@@ -58,7 +60,7 @@ function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationI
                 className,
             ]
                 .filter(Boolean)
-                .join(" "), "data-admin-kit-theme": "core", id: contentId, tabIndex: -1, children: (0, jsx_runtime_1.jsx)(AdminSkipLink_1.AdminContentTargetReset, { children: emptyState }) }));
+                .join(" "), "data-admin-kit-theme": "core", id: contentId, tabIndex: -1, children: (0, jsx_runtime_1.jsx)(AdminSkipLink_1.AdminContentTargetReset, { children: emptyState === undefined ? messages.portal.empty : emptyState }) }));
     }
     return ((0, jsx_runtime_1.jsx)(AdminSkipLink_1.AdminContentTargetReset, { children: (0, jsx_runtime_1.jsx)(AdminThemeContext_1.AdminThemeProvider, { theme: "core", children: (0, jsx_runtime_1.jsxs)("section", { className: [
                     "admin-kit",
@@ -74,7 +76,7 @@ function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationI
                                     stickyMobileToggle ? "admin-kit__app-shell-mobile-toggle--sticky" : null,
                                 ]
                                     .filter(Boolean)
-                                    .join(" "), onClick: () => setMobileNavigationOpen((open) => !open), onKeyDown: closeOnEscape, ref: toggleRef, type: "button", children: mobileNavigationLabel }), (0, jsx_runtime_1.jsx)("nav", { "aria-label": ariaLabel, className: "admin-kit__portal-navigation", "data-admin-kit-part": "portal-navigation", "data-open": mobileNavigationOpen ? "" : undefined, id: mobileNavigationId, onClick: closeOnNavigate, onKeyDown: closeOnEscape, children: visibleGroups.map((group) => ((0, jsx_runtime_1.jsxs)("section", { className: "admin-kit__portal-group", children: [(0, jsx_runtime_1.jsxs)("header", { className: "admin-kit__portal-group-header", children: [(0, jsx_runtime_1.jsx)("p", { className: "admin-kit__portal-group-label", children: group.label }), group.description ? (0, jsx_runtime_1.jsx)("p", { children: group.description }) : null] }), (0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__portal-list", children: group.sections.map((section) => {
+                                    .join(" "), onClick: () => setMobileNavigationOpen((open) => !open), onKeyDown: closeOnEscape, ref: toggleRef, type: "button", children: mobileNavigationLabel ?? messages.portal.mobileNavigationLabel }), (0, jsx_runtime_1.jsx)("nav", { "aria-label": ariaLabel ?? messages.shell.navigationLabel, className: "admin-kit__portal-navigation", "data-admin-kit-part": "portal-navigation", "data-open": mobileNavigationOpen ? "" : undefined, id: mobileNavigationId, onClick: closeOnNavigate, onKeyDown: closeOnEscape, children: visibleGroups.map((group) => ((0, jsx_runtime_1.jsxs)("section", { className: "admin-kit__portal-group", children: [(0, jsx_runtime_1.jsxs)("header", { className: "admin-kit__portal-group-header", children: [(0, jsx_runtime_1.jsx)("p", { className: "admin-kit__portal-group-label", children: group.label }), group.description ? (0, jsx_runtime_1.jsx)("p", { children: group.description }) : null] }), (0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__portal-list", children: group.sections.map((section) => {
                                                 const isActive = section.id === active?.id;
                                                 const onClick = (event) => {
                                                     if (section.disabled) {
@@ -97,6 +99,5 @@ function AdminPortal({ activeSection, groups, onSectionChange, renderNavigationI
                             .filter(Boolean)
                             .join(" "), "data-admin-section": active?.id, id: contentId, tabIndex: -1, children: active
                             ? active.render()
-                            : (inactiveSectionState?.(activeSection) ??
-                                "This administration section is unavailable.") })] }) }) }));
+                            : (inactiveSectionState?.(activeSection) ?? messages.portal.unavailable) })] }) }) }));
 }

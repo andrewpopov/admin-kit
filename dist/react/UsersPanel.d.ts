@@ -81,4 +81,4 @@ export interface AdminUserTableCellContext {
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
  */
-export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title, headerPresentation, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderHeaderPrimaryActions, renderUserActions, className, storageKey, tableFill, headerCollapsible, headerSummary, }: UsersPanelProps<User>): import("react").JSX.Element;
+export declare function UsersPanel<User extends AdminUserSummary>({ adapter, title: titleProp, headerPresentation, pageSize, query, search: searchOptions, presentation, columns, defaultSort, renderHeaderActions, renderHeaderPrimaryActions, renderUserActions, className, storageKey, tableFill, headerCollapsible, headerSummary, }: UsersPanelProps<User>): import("react").JSX.Element;

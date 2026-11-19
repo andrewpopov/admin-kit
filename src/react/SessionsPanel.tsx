@@ -8,6 +8,7 @@ import {
 } from "../core";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
 import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
+import { useAdminMessagesRef } from "./AdminLabels";
 import { AdminPanelStateView } from "./AdminPanelState";
 
 export interface SessionsPanelProps<Session extends AdminSessionSummary = AdminSessionSummary> {
@@ -30,7 +31,7 @@ export interface SessionsPanelProps<Session extends AdminSessionSummary = AdminS
 /** Active-session administration with host-owned token and authorization semantics. */
 export function SessionsPanel<Session extends AdminSessionSummary = AdminSessionSummary>({
   adapter,
-  title = "Active sessions",
+  title: titleProp,
   renderSessionActions,
   getRevokeDescription,
   formatTimestamp,
@@ -39,6 +40,9 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
   storageKey,
   tableFill,
 }: SessionsPanelProps<Session>) {
+  const messagesRef = useAdminMessagesRef();
+  const { messages, locale } = messagesRef.current;
+  const title = titleProp ?? messages.sessions.title;
   const [sessions, setSessions] = useState<readonly Session[]>();
   const [loadError, setLoadError] = useState<string>();
   const [actionError, setActionError] = useState<string>();
@@ -102,7 +106,11 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
       }
     } catch (reason) {
       if (loadId === latestLoadId.current && forEpoch === epochRef.current) {
-        setLoadError(reason instanceof Error ? reason.message : "Unable to load active sessions.");
+        setLoadError(
+          reason instanceof Error
+            ? reason.message
+            : messagesRef.current.messages.sessions.loadFailed,
+        );
       }
     }
   };
@@ -128,7 +136,11 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
       if (forEpoch === epochRef.current) setRevokeTarget(undefined);
     } catch (reason) {
       if (forEpoch === epochRef.current) {
-        setActionError(reason instanceof Error ? reason.message : "Unable to revoke the session.");
+        setActionError(
+          reason instanceof Error
+            ? reason.message
+            : messagesRef.current.messages.sessions.revokeFailed,
+        );
         setRevokeTarget(undefined);
       }
     } finally {
@@ -149,7 +161,11 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
       if (forEpoch === epochRef.current) setConfirmBulk(false);
     } catch (reason) {
       if (forEpoch === epochRef.current) {
-        setActionError(reason instanceof Error ? reason.message : "Unable to revoke sessions.");
+        setActionError(
+          reason instanceof Error
+            ? reason.message
+            : messagesRef.current.messages.sessions.revokeAllFailed,
+        );
         setConfirmBulk(false);
       }
     } finally {
@@ -169,7 +185,7 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
     return (
       <AdminPanelStateView
         className={className}
-        state={{ kind: "loading", label: "Loading active sessions…" }}
+        state={{ kind: "loading", label: messages.sessions.loading }}
       />
     );
   }
@@ -183,13 +199,15 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
   const sessionColumns: AdminDataTableColumn<Session>[] = [
     {
       id: "session",
-      header: "Session",
+      header: messages.sessions.columns.session,
       minWidth: 208,
       cell: (session) => (
         <div className="admin-kit__session-identity">
           <strong>{session.label}</strong>
           {session.secondaryLabel ? <span>{session.secondaryLabel}</span> : null}
-          {session.current ? <span className="admin-kit__session-current">Current</span> : null}
+          {session.current ? (
+            <span className="admin-kit__session-current">{messages.sessions.current}</span>
+          ) : null}
         </div>
       ),
     },
@@ -197,7 +215,7 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
       ? [
           {
             id: "details",
-            header: "Details",
+            header: messages.sessions.columns.details,
             defaultWidth: 256,
             minWidth: 160,
             cell: (session: Session) =>
@@ -218,14 +236,14 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
       : []),
     {
       id: "created",
-      header: "Created",
+      header: messages.sessions.columns.created,
       defaultWidth: 176,
       minWidth: 128,
       cell: (session) => formatAdminTimestamp(session.createdAt, formatTimestamp),
     },
     {
       id: "lastActive",
-      header: "Last active",
+      header: messages.sessions.columns.lastActive,
       defaultWidth: 176,
       minWidth: 128,
       cell: (session) =>
@@ -233,7 +251,7 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
     },
     {
       id: "expires",
-      header: "Expires",
+      header: messages.sessions.columns.expires,
       defaultWidth: 176,
       minWidth: 128,
       cell: (session) =>
@@ -243,7 +261,7 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
       ? [
           {
             id: "actions",
-            header: "Actions",
+            header: messages.sessions.columns.actions,
             defaultWidth: 208,
             resizable: false,
             cell: (session: Session) => {
@@ -263,7 +281,7 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
                       type="button"
                       onClick={() => setRevokeTarget(session)}
                     >
-                      Revoke
+                      {messages.sessions.revoke}
                     </button>
                   ) : null}
                 </div>
@@ -282,8 +300,7 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
         <div>
           <h2>{title}</h2>
           <p>
-            {adapter.scope.label} · {sessions.length}{" "}
-            {sessions.length === 1 ? "session" : "sessions"}
+            {adapter.scope.label} · {messages.sessions.count(sessions.length, locale)}
           </p>
         </div>
         {adapter.bulkRevoke && sessions.length > 0 ? (
@@ -308,7 +325,7 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
         </p>
       ) : null}
       {sessions.length === 0 ? (
-        <AdminPanelStateView state={{ kind: "empty", title: "No active sessions." }} />
+        <AdminPanelStateView state={{ kind: "empty", title: messages.sessions.empty }} />
       ) : (
         <AdminDataTable
           className={`admin-kit__sessions-table${hasDetails ? " admin-kit__sessions-table--with-details" : ""}`}
@@ -325,14 +342,14 @@ export function SessionsPanel<Session extends AdminSessionSummary = AdminSession
         <AdminConfirmationDialog
           className={dialogClassName}
           open={Boolean(revokeTarget)}
-          title="Revoke session"
+          title={messages.sessions.revokeTitle}
           description={
             revokeTarget
               ? (getRevokeDescription?.(revokeTarget) ??
-                `Revoke the session for ${revokeTarget.label}? That client will need to sign in again.`)
+                messages.sessions.revokeDescription(revokeTarget.label))
               : ""
           }
-          confirmLabel="Revoke session"
+          confirmLabel={messages.sessions.revokeConfirm}
           danger
           pending={Boolean(revokeTarget && pendingId === revokeTarget.id)}
           onCancel={() => setRevokeTarget(undefined)}

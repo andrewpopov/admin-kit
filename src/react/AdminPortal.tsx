@@ -13,6 +13,7 @@ import type {
   AdminSectionGroupDefinition,
   AdminSectionId,
 } from "../core/contracts";
+import { useAdminMessages } from "./AdminLabels";
 import { AdminContentTargetReset, useAdminContentTargetId } from "./AdminSkipLink";
 import { AdminThemeProvider, useAdminPaletteClass } from "./AdminThemeContext";
 
@@ -73,10 +74,10 @@ export function AdminPortal({
   groups,
   onSectionChange,
   renderNavigationItem,
-  ariaLabel = "Administration sections",
-  mobileNavigationLabel = "Menu",
+  ariaLabel,
+  mobileNavigationLabel,
   className,
-  emptyState = "No administration sections are available.",
+  emptyState,
   inactiveSectionState,
   stickyMobileToggle = false,
 }: AdminPortalProps) {
@@ -84,6 +85,7 @@ export function AdminPortal({
     throw new Error("AdminPortal default navigation needs onSectionChange.");
   }
 
+  const { messages } = useAdminMessages();
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
   const mobileNavigationId = `admin-kit-portal-navigation-${useId().replace(/:/g, "")}`;
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -136,7 +138,9 @@ export function AdminPortal({
         id={contentId}
         tabIndex={-1}
       >
-        <AdminContentTargetReset>{emptyState}</AdminContentTargetReset>
+        <AdminContentTargetReset>
+          {emptyState === undefined ? messages.portal.empty : emptyState}
+        </AdminContentTargetReset>
       </section>
     );
   }
@@ -173,10 +177,10 @@ export function AdminPortal({
                 ref={toggleRef}
                 type="button"
               >
-                {mobileNavigationLabel}
+                {mobileNavigationLabel ?? messages.portal.mobileNavigationLabel}
               </button>
               <nav
-                aria-label={ariaLabel}
+                aria-label={ariaLabel ?? messages.shell.navigationLabel}
                 className="admin-kit__portal-navigation"
                 data-admin-kit-part="portal-navigation"
                 data-open={mobileNavigationOpen ? "" : undefined}
@@ -246,8 +250,7 @@ export function AdminPortal({
           >
             {active
               ? active.render()
-              : (inactiveSectionState?.(activeSection) ??
-                "This administration section is unavailable.")}
+              : (inactiveSectionState?.(activeSection) ?? messages.portal.unavailable)}
           </div>
         </section>
       </AdminThemeProvider>

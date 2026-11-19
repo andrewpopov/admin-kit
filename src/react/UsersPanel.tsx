@@ -7,6 +7,7 @@ import {
   type AdminUserSummary,
   type AdminUsersAdapter,
 } from "../core";
+import { useAdminMessagesRef } from "./AdminLabels";
 import { AdminFilterChip } from "./AdminFilterChip";
 import { AdminPagination } from "./AdminPagination";
 import {
@@ -101,7 +102,7 @@ const CUSTOM_COLUMN_WIDTH = 160;
  */
 export function UsersPanel<User extends AdminUserSummary>({
   adapter,
-  title = "Users",
+  title: titleProp,
   headerPresentation = "section",
   pageSize = 25,
   query,
@@ -118,6 +119,9 @@ export function UsersPanel<User extends AdminUserSummary>({
   headerCollapsible,
   headerSummary,
 }: UsersPanelProps<User>) {
+  const messagesRef = useAdminMessagesRef();
+  const { messages, locale } = messagesRef.current;
+  const title = titleProp ?? messages.users.title;
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState(query?.search ?? "");
   const [result, setResult] = useState<AdminPage<User>>();
@@ -150,12 +154,14 @@ export function UsersPanel<User extends AdminUserSummary>({
       if (loadId === latestLoadId.current) setResult(nextResult);
     } catch (reason) {
       if (loadId === latestLoadId.current) {
-        setLoadError(reason instanceof Error ? reason.message : "Unable to load users.");
+        setLoadError(
+          reason instanceof Error ? reason.message : messagesRef.current.messages.users.loadFailed,
+        );
       }
     } finally {
       if (loadId === latestLoadId.current) setIsLoading(false);
     }
-  }, [adapter, page, pageSize, queryKey, search, sortColumnId, sortDirection]);
+  }, [adapter, page, pageSize, queryKey, search, sortColumnId, sortDirection, messagesRef]);
 
   useEffect(() => {
     void load();
@@ -203,7 +209,11 @@ export function UsersPanel<User extends AdminUserSummary>({
       await adapter.setRole.execute({ userId, role });
       await load();
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Unable to update the user role.");
+      setActionError(
+        reason instanceof Error
+          ? reason.message
+          : messagesRef.current.messages.users.roleUpdateFailed,
+      );
     } finally {
       setPendingUserId(undefined);
     }
@@ -218,7 +228,9 @@ export function UsersPanel<User extends AdminUserSummary>({
       await load();
     } catch (reason) {
       setActionError(
-        reason instanceof Error ? reason.message : "Unable to update the user status.",
+        reason instanceof Error
+          ? reason.message
+          : messagesRef.current.messages.users.statusUpdateFailed,
       );
     } finally {
       setPendingUserId(undefined);
@@ -264,7 +276,7 @@ export function UsersPanel<User extends AdminUserSummary>({
     : [
         {
           id: "user",
-          header: "User",
+          header: messages.users.columns.user,
           minWidth: 200,
           cell: (user) => (
             <div className="admin-kit__user-identity">
@@ -278,7 +290,7 @@ export function UsersPanel<User extends AdminUserSummary>({
           ? [
               {
                 id: "details",
-                header: "Details",
+                header: messages.users.columns.details,
                 defaultWidth: 280,
                 minWidth: 160,
                 cell: (user: User) =>
@@ -299,7 +311,7 @@ export function UsersPanel<User extends AdminUserSummary>({
           : []),
         {
           id: "role",
-          header: "Role",
+          header: messages.users.columns.role,
           defaultWidth: 168,
           minWidth: 160,
           cell: (user) =>
@@ -308,7 +320,7 @@ export function UsersPanel<User extends AdminUserSummary>({
             user.role &&
             user.permissions?.canChangeRole !== false ? (
               <select
-                aria-label={`Role for ${user.label}`}
+                aria-label={messages.users.roleFor(user.label)}
                 disabled={pendingUserId === user.id}
                 value={user.role.value}
                 onChange={(event) => void updateRole(user.id, event.target.value)}
@@ -325,7 +337,7 @@ export function UsersPanel<User extends AdminUserSummary>({
         },
         {
           id: "status",
-          header: "Status",
+          header: messages.users.columns.status,
           defaultWidth: 168,
           minWidth: 160,
           cell: (user) =>
@@ -334,7 +346,7 @@ export function UsersPanel<User extends AdminUserSummary>({
             user.status &&
             user.permissions?.canChangeStatus !== false ? (
               <select
-                aria-label={`Status for ${user.label}`}
+                aria-label={messages.users.statusFor(user.label)}
                 disabled={pendingUserId === user.id}
                 value={user.status.value}
                 onChange={(event) => void updateStatus(user.id, event.target.value)}
@@ -353,7 +365,7 @@ export function UsersPanel<User extends AdminUserSummary>({
           ? [
               {
                 id: "actions",
-                header: "Actions",
+                header: messages.users.columns.actions,
                 defaultWidth: 220,
                 minWidth: 220,
                 maxWidth: 220,
@@ -374,10 +386,10 @@ export function UsersPanel<User extends AdminUserSummary>({
   const searchControl =
     searchOptions !== false ? (
       <label className="admin-kit__users-search">
-        <span>{searchOptions.label ?? "Search users"}</span>
+        <span>{searchOptions.label ?? messages.users.searchLabel}</span>
         <input
           onChange={(event) => setSearchAndResetPage(event.target.value)}
-          placeholder={searchOptions.placeholder ?? "Search by name or email"}
+          placeholder={searchOptions.placeholder ?? messages.users.searchPlaceholder}
           type="search"
           value={search}
         />
@@ -403,7 +415,10 @@ export function UsersPanel<User extends AdminUserSummary>({
       </>
     ) : null;
   const searchChips = search ? (
-    <AdminFilterChip label={`Search: ${search}`} onRemove={() => setSearchAndResetPage("")} />
+    <AdminFilterChip
+      label={messages.users.searchChip(search)}
+      onRemove={() => setSearchAndResetPage("")}
+    />
   ) : null;
 
   return (
@@ -420,24 +435,14 @@ export function UsersPanel<User extends AdminUserSummary>({
           {
             summary: (
               <>
-                {result ? (
-                  <span>
-                    {result.total.toLocaleString()} {result.total === 1 ? "user" : "users"}
-                  </span>
-                ) : null}
+                {result ? <span>{messages.users.count(result.total, locale)}</span> : null}
                 {searchChips}
               </>
             ),
             activeCount: search ? 1 : 0,
           },
         )}
-        detail={
-          result ? (
-            <p>
-              {result.total} {result.total === 1 ? "user" : "users"}
-            </p>
-          ) : null
-        }
+        detail={result ? <p>{messages.users.detailCount(result.total, locale)}</p> : null}
         presentation={headerPresentation}
         summary={headerSummary}
         title={title}
@@ -449,9 +454,9 @@ export function UsersPanel<User extends AdminUserSummary>({
           state={{ kind: "error", detail: loadError, onRetry: () => void load() }}
         />
       ) : !result ? (
-        <AdminPanelStateView state={{ kind: "loading", label: "Loading users…" }} />
+        <AdminPanelStateView state={{ kind: "loading", label: messages.users.loading }} />
       ) : result.items.length === 0 ? (
-        <AdminPanelStateView state={{ kind: "empty", title: "No users found." }} />
+        <AdminPanelStateView state={{ kind: "empty", title: messages.users.empty }} />
       ) : (
         <>
           {loadError ? (
@@ -482,7 +487,7 @@ export function UsersPanel<User extends AdminUserSummary>({
             />
           ) : null}
           <AdminPagination
-            label="User pagination"
+            label={messages.users.pagination}
             page={page}
             pageCount={Math.max(1, Math.ceil(result.total / result.pageSize))}
             onPageChange={setPage}

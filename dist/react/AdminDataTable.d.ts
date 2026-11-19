@@ -55,4 +55,4 @@ export interface AdminDataTableProps<Row> {
     fill?: boolean;
 }
 /** Resizable, sticky-header data table that fits its container: columns shrink, low-priority ones hide, and rows become cards when the primary columns cannot fit. */
-export declare function AdminDataTable<Row>({ columns, rows, rowKey, label, storageKey, busy, renderDetails, detailsLabel, expandedKeys, onExpandedChange, rowBusy, renderExpansion, rowLabel, className, wrapClassName, fill, }: AdminDataTableProps<Row>): import("react").JSX.Element;
+export declare function AdminDataTable<Row>({ columns, rows, rowKey, label, storageKey, busy, renderDetails, detailsLabel: detailsLabelProp, expandedKeys, onExpandedChange, rowBusy, renderExpansion, rowLabel, className, wrapClassName, fill, }: AdminDataTableProps<Row>): import("react").JSX.Element;

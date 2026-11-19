@@ -17,6 +17,7 @@ import {
   validateAdminApiKeyCreated,
   validateAdminApiKeys,
 } from "../core";
+import { useAdminMessagesRef } from "./AdminLabels";
 import { AdminApiKeyForm } from "./AdminApiKeyForm";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
 import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
@@ -157,7 +158,7 @@ export type ApiKeysPanelProps<CreateInput, UpdateInput = never> =
  */
 function ApiKeysPanelImpl({
   adapter,
-  title = "API keys",
+  title: titleProp,
   vocabulary,
   headerPresentation = "section",
   headerActions,
@@ -179,10 +180,15 @@ function ApiKeysPanelImpl({
   storageKey,
   tableFill,
 }: ApiKeysPanelProps<AdminApiKeyCreateRequest, AdminApiKeyScopeUpdate>) {
-  const singular = vocabulary?.singular ?? "API key";
-  const plural = vocabulary?.plural ?? "API keys";
-  const countSingular = vocabulary?.singular ?? "credential";
-  const countPlural = vocabulary?.plural ?? "credentials";
+  const messagesRef = useAdminMessagesRef();
+  const { messages, locale } = messagesRef.current;
+  const title = titleProp ?? messages.apiKeys.title;
+  const singular = vocabulary?.singular ?? messages.apiKeys.singular;
+  const plural = vocabulary?.plural ?? messages.apiKeys.plural;
+  const countSingular = vocabulary?.singular ?? messages.apiKeys.credentialSingular;
+  const countPlural = vocabulary?.plural ?? messages.apiKeys.credentialPlural;
+  const keyNoun = vocabulary?.singular ?? messages.apiKeyForm.defaultNoun;
+  const credentialNoun = vocabulary?.singular ?? messages.apiKeys.credentialSingular;
   const capitalizedSingular = `${singular.charAt(0).toUpperCase()}${singular.slice(1)}`;
   const [keys, setKeys] = useState<readonly AdminApiKey[]>();
   const [secret, setSecret] = useState<string>();
@@ -215,11 +221,13 @@ function ApiKeysPanelImpl({
     } catch (reason) {
       if (loadId === latestLoadId.current) {
         setLoadError(
-          reason instanceof Error ? reason.message : `Unable to load ${pluralRef.current}.`,
+          reason instanceof Error
+            ? reason.message
+            : messagesRef.current.messages.apiKeys.loadFailed(pluralRef.current),
         );
       }
     }
-  }, [adapter]);
+  }, [adapter, messagesRef]);
   useEffect(() => {
     adapterEpoch.current += 1;
     // A failed load under the new adapter must not fall through to
@@ -245,16 +253,16 @@ function ApiKeysPanelImpl({
       collapsible={panelHeaderCollapsible(headerCollapsible, counts, {
         summary: counts ? (
           <span>
-            {counts.total.toLocaleString()} {counts.total === 1 ? countSingular : countPlural}
-            {counts.total > 0 ? ` · ${counts.active} active` : ""}
+            {messages.apiKeys.count(counts.total, countSingular, countPlural, locale)}
+            {counts.total > 0 ? <> · {messages.apiKeys.active(counts.active, locale)}</> : null}
           </span>
         ) : null,
       })}
       detail={
         counts ? (
           <p>
-            {counts.total} {counts.total === 1 ? countSingular : countPlural}
-            {counts.total > 0 ? ` · ${counts.active} active` : ""}
+            {messages.apiKeys.count(counts.total, countSingular, countPlural, locale)}
+            {counts.total > 0 ? <> · {messages.apiKeys.active(counts.active, locale)}</> : null}
           </p>
         ) : null
       }
@@ -282,7 +290,7 @@ function ApiKeysPanelImpl({
         aria-label={title}
       >
         {panelHeader()}
-        <AdminPanelStateView state={{ kind: "loading", label: `Loading ${plural}…` }} />
+        <AdminPanelStateView state={{ kind: "loading", label: messages.apiKeys.loading(plural) }} />
       </section>
     );
   const lifecycleKeys = keys.map((key) => ({
@@ -316,7 +324,11 @@ function ApiKeysPanelImpl({
       await load();
       return true;
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : `Unable to create ${singular}.`);
+      setActionError(
+        reason instanceof Error
+          ? reason.message
+          : messagesRef.current.messages.apiKeys.createFailed(singular),
+      );
       return false;
     } finally {
       setPending(undefined);
@@ -332,7 +344,11 @@ function ApiKeysPanelImpl({
       if (epoch === adapterEpoch.current) await load();
       return true;
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : `Unable to update ${singular}.`);
+      setActionError(
+        reason instanceof Error
+          ? reason.message
+          : messagesRef.current.messages.apiKeys.updateFailed(singular),
+      );
       return false;
     } finally {
       setPending(undefined);
@@ -343,9 +359,9 @@ function ApiKeysPanelImpl({
     try {
       if (!navigator.clipboard) throw new Error("Clipboard access is unavailable.");
       await navigator.clipboard.writeText(secret);
-      setCopyStatus("Copied");
+      setCopyStatus(messagesRef.current.messages.apiKeys.copied);
     } catch {
-      setCopyStatus("Copy failed. Select and copy the secret manually.");
+      setCopyStatus(messagesRef.current.messages.apiKeys.copyFailed);
     }
   };
   const confirmAction = async () => {
@@ -367,7 +383,13 @@ function ApiKeysPanelImpl({
       if (epoch === adapterEpoch.current) await load();
       setConfirmation(undefined);
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : `Unable to ${action} ${singular}.`);
+      setActionError(
+        reason instanceof Error
+          ? reason.message
+          : messagesRef.current.messages.apiKeys[
+              action === "revoke" ? "revokeFailed" : "rotateFailed"
+            ](singular),
+      );
     } finally {
       setPending(undefined);
     }
@@ -390,23 +412,23 @@ function ApiKeysPanelImpl({
           <button
             className="admin-kit__key-edit-btn"
             type="button"
-            aria-label={`Edit scopes for ${key.name}`}
+            aria-label={messages.apiKeys.editScopesFor(key.name)}
             aria-expanded={isEditing}
             aria-controls={`admin-kit-key-edit-${key.id}`}
             disabled={isPending}
             onClick={() => setEditingKeyId(isEditing ? undefined : key.id)}
           >
-            Edit scopes
+            {messages.apiKeys.editScopes}
           </button>
         ) : null}
         {adapter.rotate ? (
           <button
             type="button"
-            aria-label={`Rotate ${key.name}`}
+            aria-label={messages.apiKeys.rotateKey(key.name)}
             disabled={isPending}
             onClick={() => requestRotate?.(key)}
           >
-            Rotate
+            {messages.apiKeys.rotate}
           </button>
         ) : null}
         {adapter.update && renderEdit
@@ -421,11 +443,11 @@ function ApiKeysPanelImpl({
           : null}
         <button
           type="button"
-          aria-label={`Revoke ${key.name}`}
+          aria-label={messages.apiKeys.revokeKey(key.name)}
           disabled={isPending}
           onClick={() => requestRevoke(key)}
         >
-          Revoke
+          {messages.apiKeys.revoke}
         </button>
       </div>
     ) : null;
@@ -435,10 +457,10 @@ function ApiKeysPanelImpl({
         className="admin-kit__key-edit"
         id={`admin-kit-key-edit-${key.id}`}
         role="region"
-        aria-label={`Edit scopes for ${key.name}`}
+        aria-label={messages.apiKeys.editScopesFor(key.name)}
       >
         <div className="admin-kit__key-edit-header">
-          <h3>Edit scopes</h3>
+          <h3>{messages.apiKeys.editScopes}</h3>
           <p>
             {key.name} · {key.maskedKey}
           </p>
@@ -462,7 +484,7 @@ function ApiKeysPanelImpl({
     {
       id: "key",
       cardSlot: "title",
-      header: vocabulary ? capitalizedSingular : "Key",
+      header: vocabulary ? capitalizedSingular : messages.apiKeys.columns.key,
       minWidth: 160,
       cell: (key) => (
         <div className="admin-kit__key-identity">
@@ -474,7 +496,7 @@ function ApiKeysPanelImpl({
     {
       id: "scope",
       cardSlot: "detail",
-      header: "Scope",
+      header: messages.apiKeys.columns.scope,
       defaultWidth: 176,
       minWidth: 128,
       cell: (key) =>
@@ -496,7 +518,7 @@ function ApiKeysPanelImpl({
             id: "details",
             cardSlot: "detail" as const,
             priority: "tertiary" as const,
-            header: "Details",
+            header: messages.apiKeys.columns.details,
             defaultWidth: 176,
             minWidth: 144,
             cell: (key: AdminApiKey) =>
@@ -518,7 +540,7 @@ function ApiKeysPanelImpl({
     {
       id: "state",
       cardSlot: "badge",
-      header: "State",
+      header: messages.apiKeys.columns.state,
       defaultWidth: 96,
       minWidth: 96,
       cell: (key) => (
@@ -531,7 +553,7 @@ function ApiKeysPanelImpl({
       id: "created",
       cardSlot: "meta",
       priority: "tertiary",
-      header: "Created",
+      header: messages.apiKeys.columns.created,
       defaultWidth: 120,
       minWidth: 104,
       className: "admin-kit__key-timestamp",
@@ -541,28 +563,32 @@ function ApiKeysPanelImpl({
       id: "lastUsed",
       cardSlot: "meta",
       priority: "tertiary",
-      header: "Last used",
+      header: messages.apiKeys.columns.lastUsed,
       defaultWidth: 120,
       minWidth: 104,
       className: "admin-kit__key-timestamp",
       cell: (key) =>
-        key.lastUsedAt ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp) : "never",
+        key.lastUsedAt
+          ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp)
+          : messages.apiKeys.never,
     },
     {
       id: "expires",
       cardSlot: "meta",
       priority: "secondary",
-      header: "Expires",
+      header: messages.apiKeys.columns.expires,
       defaultWidth: 120,
       minWidth: 104,
       className: "admin-kit__key-timestamp",
       cell: (key) =>
-        key.expiresAt ? formatAdminTimestamp(key.expiresAt, formatTimestamp) : "never",
+        key.expiresAt
+          ? formatAdminTimestamp(key.expiresAt, formatTimestamp)
+          : messages.apiKeys.never,
     },
     {
       id: "actions",
       cardSlot: "actions",
-      header: "Actions",
+      header: messages.apiKeys.columns.actions,
       defaultWidth: 168,
       resizable: false,
       cell: (key) =>
@@ -589,7 +615,7 @@ function ApiKeysPanelImpl({
       ) : null}
       {secret ? (
         <div className="admin-kit__secret" data-admin-kit-part="api-key-secret" role="alert">
-          <strong>Copy this secret now. It will not be shown again.</strong>
+          <strong>{messages.apiKeys.secretNotice}</strong>
           <code>{secret}</code>
           <div className="admin-kit__secret-actions">
             <button
@@ -597,14 +623,14 @@ function ApiKeysPanelImpl({
               type="button"
               onClick={() => void copySecret()}
             >
-              Copy secret
+              {messages.apiKeys.copySecret}
             </button>
             <button
               className="admin-kit__button"
               type="button"
               onClick={() => setSecret(undefined)}
             >
-              I copied it
+              {messages.apiKeys.secretCopied}
             </button>
             {copyStatus ? (
               <span aria-live="polite" className="admin-kit__secret-status">
@@ -632,7 +658,7 @@ function ApiKeysPanelImpl({
             <span className="admin-kit__key-create-icon" aria-hidden="true">
               ＋
             </span>{" "}
-            Create a new {vocabulary?.singular ?? "key"}
+            {messages.apiKeys.createNew(keyNoun)}
           </summary>
           <div className="admin-kit__key-create-body">
             <AdminApiKeyForm
@@ -651,7 +677,7 @@ function ApiKeysPanelImpl({
           disabled={pending === "create"}
           onClick={() => void create(createInput)}
         >
-          Create {singular}
+          {messages.apiKeys.createButton(singular)}
         </button>
       ) : null}
       {renderKeys ? (
@@ -663,7 +689,7 @@ function ApiKeysPanelImpl({
           pendingKeyId: pending === "create" ? undefined : pending,
         })
       ) : lifecycleKeys.length === 0 ? (
-        <AdminPanelStateView state={{ kind: "empty", title: `No ${plural} yet.` }} />
+        <AdminPanelStateView state={{ kind: "empty", title: messages.apiKeys.empty(plural) }} />
       ) : resolvedPresentation === "table" ? (
         <AdminDataTable
           className="admin-kit__keys-table"
@@ -703,29 +729,29 @@ function ApiKeysPanelImpl({
                 </div>
                 <dl className="admin-kit__key-summary">
                   <div>
-                    <dt>Created</dt>
+                    <dt>{messages.apiKeys.columns.created}</dt>
                     <dd>{formatAdminTimestamp(key.createdAt, formatTimestamp)}</dd>
                   </div>
                   <div>
-                    <dt>Last used</dt>
+                    <dt>{messages.apiKeys.columns.lastUsed}</dt>
                     <dd>
                       {key.lastUsedAt
                         ? formatAdminTimestamp(key.lastUsedAt, formatTimestamp)
-                        : "never"}
+                        : messages.apiKeys.never}
                     </dd>
                   </div>
                   <div>
-                    <dt>Expires</dt>
+                    <dt>{messages.apiKeys.columns.expires}</dt>
                     <dd>
                       {key.expiresAt
                         ? formatAdminTimestamp(key.expiresAt, formatTimestamp)
-                        : "never"}
+                        : messages.apiKeys.never}
                     </dd>
                   </div>
                 </dl>
                 <details className="admin-kit__key-details-disclosure">
-                  <summary aria-label={`Scopes and details for ${key.name}`}>
-                    {key.scopes.length} {key.scopes.length === 1 ? "scope" : "scopes"}
+                  <summary aria-label={messages.apiKeys.scopesAndDetailsFor(key.name)}>
+                    {messages.common.scopeCount(key.scopes.length, locale)}
                   </summary>
                   {key.scopes.length ? (
                     <ul className="admin-kit__scope-chips">
@@ -736,7 +762,7 @@ function ApiKeysPanelImpl({
                       ))}
                     </ul>
                   ) : (
-                    <span className="admin-kit__key-empty">No scopes assigned.</span>
+                    <span className="admin-kit__key-empty">{messages.apiKeys.noScopes}</span>
                   )}
                   {key.details?.length ? (
                     <dl className="admin-kit__key-details">
@@ -759,13 +785,21 @@ function ApiKeysPanelImpl({
       <AdminConfirmationDialog
         open={Boolean(confirmation)}
         className={dialogClassName}
-        title={`${confirmation?.action === "rotate" ? "Rotate" : "Revoke"} ${singular}`}
+        title={
+          confirmation?.action === "rotate"
+            ? messages.apiKeys.rotateTitle(singular)
+            : messages.apiKeys.revokeTitle(singular)
+        }
         description={
           confirmation?.action === "rotate"
-            ? `The current ${vocabulary?.singular ?? "credential"} will stop working. Copy the replacement secret immediately after rotating it.`
-            : `This ${vocabulary?.singular ?? "credential"} will stop working immediately and cannot be restored.`
+            ? messages.apiKeys.rotateDescription(credentialNoun)
+            : messages.apiKeys.revokeDescription(credentialNoun)
         }
-        confirmLabel={`${confirmation?.action === "rotate" ? "Rotate" : "Revoke"} ${vocabulary?.singular ?? "key"}`}
+        confirmLabel={
+          confirmation?.action === "rotate"
+            ? messages.apiKeys.rotateConfirm(keyNoun)
+            : messages.apiKeys.revokeConfirm(keyNoun)
+        }
         danger={confirmation?.action === "revoke"}
         pending={Boolean(confirmation) && pending === confirmation?.key.id}
         onCancel={() => setConfirmation(undefined)}

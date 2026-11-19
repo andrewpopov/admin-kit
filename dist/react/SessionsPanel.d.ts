@@ -17,4 +17,4 @@ export interface SessionsPanelProps<Session extends AdminSessionSummary = AdminS
     tableFill?: boolean;
 }
 /** Active-session administration with host-owned token and authorization semantics. */
-export declare function SessionsPanel<Session extends AdminSessionSummary = AdminSessionSummary>({ adapter, title, renderSessionActions, getRevokeDescription, formatTimestamp, dialogClassName, className, storageKey, tableFill, }: SessionsPanelProps<Session>): import("react").JSX.Element;
+export declare function SessionsPanel<Session extends AdminSessionSummary = AdminSessionSummary>({ adapter, title: titleProp, renderSessionActions, getRevokeDescription, formatTimestamp, dialogClassName, className, storageKey, tableFill, }: SessionsPanelProps<Session>): import("react").JSX.Element;

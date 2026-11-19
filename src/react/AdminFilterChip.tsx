@@ -1,4 +1,5 @@
 "use client";
+import { useAdminMessages } from "./AdminLabels";
 import { useAdminBandFocus } from "./AdminPanelHeader";
 
 export interface AdminFilterChipProps {
@@ -12,11 +13,12 @@ export interface AdminFilterChipProps {
 /** A removable applied-filter chip; inside a collapsed band, removing it returns focus to the band's toggle. */
 export function AdminFilterChip({ label, onRemove, removeLabel }: AdminFilterChipProps) {
   const focusToggle = useAdminBandFocus();
+  const { messages } = useAdminMessages();
   return (
     <span className="admin-kit__filter-chip">
       <span>{label}</span>
       <button
-        aria-label={removeLabel ?? `Remove filter: ${label}`}
+        aria-label={removeLabel ?? messages.filterChip.remove(label)}
         onClick={() => {
           onRemove();
           focusToggle();
