@@ -40,4 +40,4 @@ export interface EventsPanelSummaryContext {
     /** The applied filters as removable chips. */
     chips: ReactNode;
 }
-export declare function EventsPanel({ adapter, title, headerPresentation, refreshLabel, search, pageSize, presentation, className, formatTimestamp, columns, emptyState, storageKey, tableFill, headerCollapsible, headerSummary, }: EventsPanelProps): import("react").JSX.Element;
+export declare function EventsPanel({ adapter, title: titleProp, headerPresentation, refreshLabel: refreshLabelProp, search, pageSize, presentation, className, formatTimestamp, columns, emptyState, storageKey, tableFill, headerCollapsible, headerSummary, }: EventsPanelProps): import("react").JSX.Element;

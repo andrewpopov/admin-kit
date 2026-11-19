@@ -13,4 +13,4 @@ export interface ReleaseNotesPanelProps {
     title?: string;
 }
 /** Mount in the product's signed-in shell, without an AdminApp or an admin-role gate. */
-export declare function ReleaseNotesPanel({ adapter, releaseId, hrefForRelease, listHref, renderNotes, renderLink, pageSize, title, }: ReleaseNotesPanelProps): import("react").JSX.Element;
+export declare function ReleaseNotesPanel({ adapter, releaseId, hrefForRelease, listHref, renderNotes, renderLink, pageSize, title: titleProp, }: ReleaseNotesPanelProps): import("react").JSX.Element;

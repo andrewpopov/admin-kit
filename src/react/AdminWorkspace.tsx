@@ -18,6 +18,8 @@ export interface AdminWorkspaceProps {
   description?: ReactNode;
   actions?: ReactNode;
   summary?: ReactNode;
+  /** Accessible name of the summary region; pass a localized string. AdminWorkspace stays a Server Component, so it does not read AdminLabelsProvider. */
+  summaryLabel?: string;
   toolbar?: ReactNode;
   /** Renders the framed header as a collapsible panel header: `description`, `summary` and `toolbar` collapse; the title and `actions` do not. Ignored when the header is hidden or panel-led. */
   collapsible?: AdminPanelHeaderCollapsible;
@@ -34,6 +36,7 @@ export function AdminWorkspace({
   description,
   actions,
   summary,
+  summaryLabel,
   toolbar,
   collapsible,
   children,
@@ -77,7 +80,10 @@ export function AdminWorkspace({
         </header>
       ) : null}
       {summary && !collapsibleHeader ? (
-        <section className="admin-kit__workspace-summary" aria-label={`${title} summary`}>
+        <section
+          className="admin-kit__workspace-summary"
+          aria-label={summaryLabel ?? `${title} summary`}
+        >
           {summary}
         </section>
       ) : null}

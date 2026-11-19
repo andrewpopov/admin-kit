@@ -7,12 +7,16 @@ const react_1 = require("react");
 const core_1 = require("../core");
 const AdminConfirmationDialog_1 = require("./AdminConfirmationDialog");
 const AdminDataTable_1 = require("./AdminDataTable");
+const AdminLabels_1 = require("./AdminLabels");
 const AdminPanelState_1 = require("./AdminPanelState");
 /**
  * Scoped membership administration. Hosts own identity discovery, invitation
  * delivery, authorization, inheritance, transport, and audit policy.
  */
-function MembershipsPanel({ adapter, title = "Members", renderAddMember, renderMemberActions, getRemoveDescription, dialogClassName, className, storageKey, tableFill, }) {
+function MembershipsPanel({ adapter, title: titleProp, renderAddMember, renderMemberActions, getRemoveDescription, dialogClassName, className, storageKey, tableFill, }) {
+    const messagesRef = (0, AdminLabels_1.useAdminMessagesRef)();
+    const { messages, locale } = messagesRef.current;
+    const title = titleProp ?? messages.memberships.title;
     const [members, setMembers] = (0, react_1.useState)();
     const [loadError, setLoadError] = (0, react_1.useState)();
     const [actionError, setActionError] = (0, react_1.useState)();
@@ -76,7 +80,9 @@ function MembershipsPanel({ adapter, title = "Members", renderAddMember, renderM
         }
         catch (reason) {
             if (loadId === latestLoadId.current && forEpoch === epochRef.current) {
-                setLoadError(reason instanceof Error ? reason.message : "Unable to load members.");
+                setLoadError(reason instanceof Error
+                    ? reason.message
+                    : messagesRef.current.messages.memberships.loadFailed);
             }
         }
     };
@@ -104,7 +110,9 @@ function MembershipsPanel({ adapter, title = "Members", renderAddMember, renderM
         }
         catch (reason) {
             if (forEpoch === epochRef.current) {
-                setActionError(reason instanceof Error ? reason.message : "Unable to add the member.");
+                setActionError(reason instanceof Error
+                    ? reason.message
+                    : messagesRef.current.messages.memberships.addFailed);
             }
             return false;
         }
@@ -129,7 +137,9 @@ function MembershipsPanel({ adapter, title = "Members", renderAddMember, renderM
         }
         catch (reason) {
             if (forEpoch === epochRef.current) {
-                setActionError(reason instanceof Error ? reason.message : "Unable to update the member role.");
+                setActionError(reason instanceof Error
+                    ? reason.message
+                    : messagesRef.current.messages.memberships.roleUpdateFailed);
             }
         }
         finally {
@@ -155,7 +165,9 @@ function MembershipsPanel({ adapter, title = "Members", renderAddMember, renderM
         }
         catch (reason) {
             if (forEpoch === epochRef.current) {
-                setActionError(reason instanceof Error ? reason.message : "Unable to remove the member.");
+                setActionError(reason instanceof Error
+                    ? reason.message
+                    : messagesRef.current.messages.memberships.removeFailed);
                 setRemoveTarget(undefined);
             }
         }
@@ -168,7 +180,7 @@ function MembershipsPanel({ adapter, title = "Members", renderAddMember, renderM
         return ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { className: className, state: { kind: "error", detail: loadError, onRetry: () => void load() } }));
     }
     if (!members) {
-        return ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { className: className, state: { kind: "loading", label: "Loading members…" } }));
+        return ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { className: className, state: { kind: "loading", label: messages.memberships.loading } }));
     }
     const hasActions = Boolean(renderMemberActions ||
         (adapter.remove &&
@@ -176,34 +188,36 @@ function MembershipsPanel({ adapter, title = "Members", renderAddMember, renderM
     const memberColumns = [
         {
             id: "member",
-            header: "Member",
+            header: messages.memberships.columns.member,
             minWidth: 224,
             cell: (member) => ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__membership-identity", children: [(0, jsx_runtime_1.jsx)("strong", { children: member.label }), member.secondaryLabel ? (0, jsx_runtime_1.jsx)("span", { children: member.secondaryLabel }) : null] })),
         },
         {
             id: "access",
-            header: "Access",
+            header: messages.memberships.columns.access,
             defaultWidth: 128,
             minWidth: 96,
-            cell: (member) => ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__membership-source", children: member.source === "inherited" ? "Inherited" : "Direct" })),
+            cell: (member) => ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__membership-source", children: member.source === "inherited"
+                    ? messages.memberships.inherited
+                    : messages.memberships.direct })),
         },
         {
             id: "role",
-            header: "Role",
+            header: messages.memberships.columns.role,
             defaultWidth: 176,
             minWidth: 128,
             cell: (member) => {
                 const pending = pendingMemberId === member.memberId;
                 const canChangeRole = member.mutable && member.permissions?.canChangeRole !== false && Boolean(adapter.setRole);
                 const role = adapter.roles.find((candidate) => candidate.value === member.role);
-                return canChangeRole ? ((0, jsx_runtime_1.jsx)("select", { "aria-label": `Role for ${member.label}`, disabled: pending, value: member.role, onChange: (event) => void updateRole(member.memberId, event.target.value), children: adapter.roles.map((option) => ((0, jsx_runtime_1.jsx)("option", { value: option.value, children: option.label }, option.value))) })) : ((0, jsx_runtime_1.jsx)("span", { className: `admin-kit__membership-role admin-kit__membership-role--${role.tone ?? "neutral"}`, children: role.label }));
+                return canChangeRole ? ((0, jsx_runtime_1.jsx)("select", { "aria-label": messages.memberships.roleFor(member.label), disabled: pending, value: member.role, onChange: (event) => void updateRole(member.memberId, event.target.value), children: adapter.roles.map((option) => ((0, jsx_runtime_1.jsx)("option", { value: option.value, children: option.label }, option.value))) })) : ((0, jsx_runtime_1.jsx)("span", { className: `admin-kit__membership-role admin-kit__membership-role--${role.tone ?? "neutral"}`, children: role.label }));
             },
         },
         ...(hasActions
             ? [
                 {
                     id: "actions",
-                    header: "Actions",
+                    header: messages.memberships.columns.actions,
                     defaultWidth: 208,
                     resizable: false,
                     cell: (member) => {
@@ -213,16 +227,16 @@ function MembershipsPanel({ adapter, title = "Members", renderAddMember, renderM
                             Boolean(adapter.remove);
                         return ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__membership-controls", children: [renderMemberActions
                                     ? renderMemberActions(member, { reload: load, isPending: pending })
-                                    : null, canRemove ? ((0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button", disabled: pending, type: "button", onClick: () => setRemoveTarget(member), children: "Remove" })) : null] }));
+                                    : null, canRemove ? ((0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button", disabled: pending, type: "button", onClick: () => setRemoveTarget(member), children: messages.memberships.remove })) : null] }));
                     },
                 },
             ]
             : []),
     ];
-    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__memberships", className].filter(Boolean).join(" "), "aria-label": title, children: [(0, jsx_runtime_1.jsxs)("header", { className: "admin-kit__memberships-header", children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("h2", { children: title }), (0, jsx_runtime_1.jsxs)("p", { children: [adapter.scope.label, " \u00B7 ", members.length, " ", members.length === 1 ? "member" : "members"] })] }), renderAddMember && adapter.invite
+    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__memberships", className].filter(Boolean).join(" "), "aria-label": title, children: [(0, jsx_runtime_1.jsxs)("header", { className: "admin-kit__memberships-header", children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("h2", { children: title }), (0, jsx_runtime_1.jsxs)("p", { children: [adapter.scope.label, " \u00B7 ", messages.memberships.count(members.length, locale)] })] }), renderAddMember && adapter.invite
                         ? renderAddMember({ submit: submitInvite, reload: load, isPending: isAdding })
-                        : null] }), loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? ((0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError })) : null, members.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: "No members found." } })) : ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { className: "admin-kit__memberships-table", columns: memberColumns, rowBusy: (member) => pendingMemberId === member.memberId, rowKey: (member) => member.memberId, rows: members, storageKey: storageKey, fill: tableFill, wrapClassName: "admin-kit__memberships-table-wrap" })), adapter.remove ? ((0, jsx_runtime_1.jsx)(AdminConfirmationDialog_1.AdminConfirmationDialog, { className: dialogClassName, open: Boolean(removeTarget), title: "Remove member", description: removeTarget
+                        : null] }), loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? ((0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError })) : null, members.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: messages.memberships.empty } })) : ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { className: "admin-kit__memberships-table", columns: memberColumns, rowBusy: (member) => pendingMemberId === member.memberId, rowKey: (member) => member.memberId, rows: members, storageKey: storageKey, fill: tableFill, wrapClassName: "admin-kit__memberships-table-wrap" })), adapter.remove ? ((0, jsx_runtime_1.jsx)(AdminConfirmationDialog_1.AdminConfirmationDialog, { className: dialogClassName, open: Boolean(removeTarget), title: messages.memberships.removeTitle, description: removeTarget
                     ? (getRemoveDescription?.(removeTarget) ??
-                        `Remove ${removeTarget.label} from ${adapter.scope.label}? Their access through this direct membership will end.`)
-                    : "", confirmLabel: "Remove member", danger: true, pending: Boolean(removeTarget && pendingMemberId === removeTarget.memberId), onCancel: () => setRemoveTarget(undefined), onConfirm: () => removeTarget && void remove(removeTarget.memberId) })) : null] }));
+                        messages.memberships.removeDescription(removeTarget.label, adapter.scope.label))
+                    : "", confirmLabel: messages.memberships.removeConfirm, danger: true, pending: Boolean(removeTarget && pendingMemberId === removeTarget.memberId), onCancel: () => setRemoveTarget(undefined), onConfirm: () => removeTarget && void remove(removeTarget.memberId) })) : null] }));
 }

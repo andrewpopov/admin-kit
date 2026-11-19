@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { type AdminAppGroupDefinition, type AdminAppSectionDefinition } from "../core";
-import { type AdminLabels } from "./AdminLabels";
+import { type AdminLabelsOverride } from "./AdminLabels";
 import { type AdminPortalNavigationItemProps, type AdminPortalProps } from "./AdminPortal";
 import { type AdminPaletteName, type AdminThemeName } from "./AdminTheme";
 export interface AdminAppReactSection extends AdminAppSectionDefinition {
@@ -23,13 +23,15 @@ export type AdminAppProps = WithAdminAppGroups<AdminPortalProps> & {
     theme?: AdminThemeName;
     /** Opt-in recolor of the core theme, inherited by every nested Admin Kit boundary. */
     palette?: AdminPaletteName;
-    /** Localizes shared Admin Kit chrome strings (loading/error/pagination copy) for the whole app. */
-    labels?: Partial<AdminLabels>;
+    /** Localizes Admin Kit strings for the whole app: the flat chrome labels and any deep partial of the message catalog. */
+    labels?: AdminLabelsOverride;
+    /** BCP 47 tag for plural rules and number formatting; omit it for the runtime default. */
+    locale?: string;
 };
 /**
  * The canonical Admin Kit application shell. Use this for every host
  * administration area; the lower-level AdminPortal remains available only for
  * product-specific navigation that has no capability registry.
  */
-export declare function AdminApp({ frame, theme, palette, labels, className, ...portalProps }: AdminAppProps): import("react").JSX.Element;
+export declare function AdminApp({ frame, theme, palette, labels, locale, className, ...portalProps }: AdminAppProps): import("react").JSX.Element;
 export type { AdminPortalNavigationItemProps };

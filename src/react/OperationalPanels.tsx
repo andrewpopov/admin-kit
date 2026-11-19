@@ -18,6 +18,7 @@ import {
   type AdminPanelBandOptions,
   type AdminPanelHeaderPresentation,
 } from "./AdminPanelHeader";
+import { useAdminMessagesRef } from "./AdminLabels";
 import { AdminPagination } from "./AdminPagination";
 import { AdminPanelStateView } from "./AdminPanelState";
 import { AdminSwitch } from "./AdminPrimitives";
@@ -71,18 +72,23 @@ export interface OperationalJobsPanelProps {
 /** Displays host-owned scheduled, import, and retention runs without mislabeling them as backups. */
 export function OperationalJobsPanel({
   adapter,
-  title = "Operational jobs",
-  runLabel = "Run now",
+  title: titleProp,
+  runLabel: runLabelProp,
   pageSize = 25,
   className,
   formatTimestamp,
-  emptyState = { title: "No operational runs yet." },
+  emptyState: emptyStateProp,
   storageKey,
   tableFill,
   headerPresentation = "section",
   headerCollapsible,
   headerSummary,
 }: OperationalJobsPanelProps) {
+  const messagesRef = useAdminMessagesRef();
+  const { messages, locale } = messagesRef.current;
+  const title = titleProp ?? messages.jobs.title;
+  const runLabel = runLabelProp ?? messages.jobs.runLabel;
+  const emptyState = emptyStateProp ?? { title: messages.jobs.empty };
   const [result, setResult] = useState<{ items: readonly AdminOperationalJob[]; total: number }>();
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string>();
@@ -98,11 +104,13 @@ export function OperationalJobsPanel({
       if (loadId === latestLoadId.current) setResult({ items: next.items, total: next.total });
     } catch (reason) {
       if (loadId === latestLoadId.current)
-        setError(reason instanceof Error ? reason.message : "Unable to load operational jobs.");
+        setError(
+          reason instanceof Error ? reason.message : messagesRef.current.messages.jobs.loadFailed,
+        );
     } finally {
       if (loadId === latestLoadId.current) setIsLoading(false);
     }
-  }, [adapter, page, pageSize]);
+  }, [adapter, page, pageSize, messagesRef]);
   useEffect(() => {
     void load();
     // See BackupsPanel: invalidate synchronously with the transition so a
@@ -127,7 +135,7 @@ export function OperationalJobsPanel({
   if (!result)
     return (
       <AdminPanelStateView
-        state={{ kind: "loading", label: "Loading operational jobs…" }}
+        state={{ kind: "loading", label: messages.jobs.loading }}
         className={className}
       />
     );
@@ -135,7 +143,7 @@ export function OperationalJobsPanel({
   const jobColumns: AdminDataTableColumn<AdminOperationalJob>[] = [
     {
       id: "job",
-      header: "Job",
+      header: messages.jobs.columns.job,
       minWidth: 224,
       cell: (item) => (
         <span>
@@ -146,25 +154,27 @@ export function OperationalJobsPanel({
     },
     {
       id: "started",
-      header: "Started",
+      header: messages.jobs.columns.started,
       defaultWidth: 184,
       minWidth: 128,
       cell: (item) => <span>{formatAdminTimestamp(item.startedAt, formatTimestamp)}</span>,
     },
     {
       id: "finished",
-      header: "Finished",
+      header: messages.jobs.columns.finished,
       defaultWidth: 184,
       minWidth: 128,
       cell: (item) => (
         <span>
-          {item.finishedAt ? formatAdminTimestamp(item.finishedAt, formatTimestamp) : "In progress"}
+          {item.finishedAt
+            ? formatAdminTimestamp(item.finishedAt, formatTimestamp)
+            : messages.jobs.inProgress}
         </span>
       ),
     },
     {
       id: "status",
-      header: "Status",
+      header: messages.jobs.columns.status,
       defaultWidth: 128,
       minWidth: 96,
       cell: (item) => (
@@ -197,7 +207,7 @@ export function OperationalJobsPanel({
                     setError(
                       reason instanceof Error
                         ? reason.message
-                        : "Unable to run the operational job.",
+                        : messagesRef.current.messages.jobs.runFailed,
                     );
                   } finally {
                     setBusy(false);
@@ -212,9 +222,9 @@ export function OperationalJobsPanel({
         collapsible={panelHeaderCollapsible(
           headerCollapsible,
           { total: result.total },
-          { summary: <span>{result.total.toLocaleString()} recent runs</span> },
+          { summary: <span>{messages.jobs.recentRuns(result.total, locale)}</span> },
         )}
-        detail={<p>{result.total} recent runs</p>}
+        detail={<p>{messages.jobs.recentRuns(result.total, locale)}</p>}
         presentation={headerPresentation}
         summary={headerSummary}
         title={title}
@@ -239,7 +249,7 @@ export function OperationalJobsPanel({
         />
       )}
       <AdminPagination
-        label="Operational jobs pagination"
+        label={messages.jobs.pagination}
         page={page}
         pageCount={totalPages}
         onPageChange={setPage}
@@ -265,14 +275,18 @@ export interface BackupsPanelProps {
 
 export function BackupsPanel({
   adapter,
-  title = "Backups",
-  runLabel = "Run backup",
+  title: titleProp,
+  runLabel: runLabelProp,
   pageSize = 25,
   className,
   formatTimestamp,
   storageKey,
   tableFill,
 }: BackupsPanelProps) {
+  const messagesRef = useAdminMessagesRef();
+  const { messages, locale } = messagesRef.current;
+  const title = titleProp ?? messages.backups.title;
+  const runLabel = runLabelProp ?? messages.backups.runLabel;
   const [result, setResult] = useState<{ items: readonly AdminBackupSummary[]; total: number }>();
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string>();
@@ -289,11 +303,15 @@ export function BackupsPanel({
       if (loadId === latestLoadId.current) setResult({ items: next.items, total: next.total });
     } catch (reason) {
       if (loadId === latestLoadId.current)
-        setError(reason instanceof Error ? reason.message : "Unable to load backups.");
+        setError(
+          reason instanceof Error
+            ? reason.message
+            : messagesRef.current.messages.backups.loadFailed,
+        );
     } finally {
       if (loadId === latestLoadId.current) setIsLoading(false);
     }
-  }, [adapter, page, pageSize]);
+  }, [adapter, page, pageSize, messagesRef]);
   const run = async () => {
     if (!adapter.run) return;
     setBusy(true);
@@ -301,7 +319,9 @@ export function BackupsPanel({
       await adapter.run.execute();
       await load();
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Unable to run backup.");
+      setError(
+        reason instanceof Error ? reason.message : messagesRef.current.messages.backups.runFailed,
+      );
     } finally {
       setBusy(false);
     }
@@ -314,7 +334,11 @@ export function BackupsPanel({
       await load();
       setRestoreTarget(undefined);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Unable to restore backup.");
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : messagesRef.current.messages.backups.restoreFailed,
+      );
       setRestoreTarget(undefined);
     } finally {
       setBusy(false);
@@ -346,7 +370,7 @@ export function BackupsPanel({
   if (!result)
     return (
       <AdminPanelStateView
-        state={{ kind: "loading", label: "Loading backups…" }}
+        state={{ kind: "loading", label: messages.backups.loading }}
         className={className}
       />
     );
@@ -354,7 +378,7 @@ export function BackupsPanel({
   const backupColumns: AdminDataTableColumn<AdminBackupSummary>[] = [
     {
       id: "backup",
-      header: "Backup",
+      header: messages.backups.columns.backup,
       minWidth: 224,
       cell: (item) => (
         <span>
@@ -365,21 +389,21 @@ export function BackupsPanel({
     },
     {
       id: "created",
-      header: "Created",
+      header: messages.backups.columns.created,
       defaultWidth: 184,
       minWidth: 128,
       cell: (item) => <span>{formatAdminTimestamp(item.createdAt, formatTimestamp)}</span>,
     },
     {
       id: "size",
-      header: "Size",
+      header: messages.backups.columns.size,
       defaultWidth: 112,
       minWidth: 80,
       cell: (item) => <span>{item.size ?? "—"}</span>,
     },
     {
       id: "status",
-      header: "Status",
+      header: messages.backups.columns.status,
       defaultWidth: 128,
       minWidth: 96,
       cell: (item) => (
@@ -394,7 +418,7 @@ export function BackupsPanel({
       ? [
           {
             id: "actions",
-            header: "Actions",
+            header: messages.backups.columns.actions,
             defaultWidth: 128,
             resizable: false,
             cell: (item: AdminBackupSummary) => (
@@ -403,7 +427,7 @@ export function BackupsPanel({
                 type="button"
                 onClick={() => setRestoreTarget(item)}
               >
-                Restore
+                {messages.backups.restore}
               </button>
             ),
           },
@@ -418,7 +442,7 @@ export function BackupsPanel({
       <header>
         <div>
           <h2>{title}</h2>
-          <p>{result.total} recent recovery points</p>
+          <p>{messages.backups.recoveryPoints(result.total, locale)}</p>
         </div>
         {adapter.run ? (
           <button
@@ -438,8 +462,8 @@ export function BackupsPanel({
         <AdminPanelStateView
           state={{
             kind: "empty",
-            title: "No backups yet",
-            detail: "Run a backup to create your first recovery point.",
+            title: messages.backups.emptyTitle,
+            detail: messages.backups.emptyDetail,
           }}
         />
       ) : (
@@ -455,7 +479,7 @@ export function BackupsPanel({
         />
       )}
       <AdminPagination
-        label="Backups pagination"
+        label={messages.backups.pagination}
         page={page}
         pageCount={totalPages}
         onPageChange={setPage}
@@ -463,13 +487,11 @@ export function BackupsPanel({
       {adapter.restore ? (
         <AdminConfirmationDialog
           open={Boolean(restoreTarget)}
-          title="Restore backup"
+          title={messages.backups.restoreTitle}
           description={
-            restoreTarget
-              ? `This will overwrite the current database with the recovery point "${restoreTarget.label}". This action is destructive and cannot be reversed.`
-              : ""
+            restoreTarget ? messages.backups.restoreDescription(restoreTarget.label) : ""
           }
-          confirmLabel="Restore backup"
+          confirmLabel={messages.backups.restoreConfirm}
           danger
           pending={busy}
           onCancel={() => setRestoreTarget(undefined)}
@@ -487,7 +509,10 @@ export interface SettingsPanelProps {
   className?: string;
 }
 
-export function SettingsPanel({ adapter, title = "Settings", className }: SettingsPanelProps) {
+export function SettingsPanel({ adapter, title: titleProp, className }: SettingsPanelProps) {
+  const messagesRef = useAdminMessagesRef();
+  const { messages } = messagesRef.current;
+  const title = titleProp ?? messages.settings.title;
   const [fields, setFields] = useState<readonly AdminSettingField[]>();
   const [values, setValues] = useState<Record<string, string | boolean>>({});
   const [initialValues, setInitialValues] = useState<Record<string, string | boolean>>({});
@@ -511,10 +536,14 @@ export function SettingsPanel({ adapter, title = "Settings", className }: Settin
       setInitialValues(loaded);
     } catch (reason) {
       if (loadId === latestLoadId.current) {
-        setError(reason instanceof Error ? reason.message : "Unable to load settings.");
+        setError(
+          reason instanceof Error
+            ? reason.message
+            : messagesRef.current.messages.settings.loadFailed,
+        );
       }
     }
-  }, [adapter]);
+  }, [adapter, messagesRef]);
   useEffect(() => {
     void load();
     // Invalidate synchronously with the transition: without this, a request
@@ -535,7 +564,7 @@ export function SettingsPanel({ adapter, title = "Settings", className }: Settin
   if (!fields)
     return (
       <AdminPanelStateView
-        state={{ kind: "loading", label: "Loading settings…" }}
+        state={{ kind: "loading", label: messages.settings.loading }}
         className={className}
       />
     );
@@ -549,7 +578,9 @@ export function SettingsPanel({ adapter, title = "Settings", className }: Settin
       setInitialValues(values);
       setSaved(true);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Unable to save settings.");
+      setError(
+        reason instanceof Error ? reason.message : messagesRef.current.messages.settings.saveFailed,
+      );
     } finally {
       setSaving(false);
     }
@@ -566,12 +597,14 @@ export function SettingsPanel({ adapter, title = "Settings", className }: Settin
       <header>
         <div>
           <h2>{title}</h2>
-          <p>Changes are applied when saved.</p>
+          <p>{messages.settings.intro}</p>
         </div>
-        <button disabled={saving || !dirty}>{saving ? "Saving…" : "Save changes"}</button>
+        <button disabled={saving || !dirty}>
+          {saving ? messages.settings.saving : messages.settings.save}
+        </button>
       </header>
       <p aria-live="polite" className="admin-kit__settings-feedback">
-        {saved ? "Changes saved." : null}
+        {saved ? messages.settings.saved : null}
       </p>
       {error ? <AdminPanelStateView state={{ kind: "error", detail: error }} /> : null}
       {fields.map((field) =>
@@ -586,7 +619,7 @@ export function SettingsPanel({ adapter, title = "Settings", className }: Settin
               setSaved(false);
               setValues((current) => ({ ...current, [field.id]: !current[field.id] }));
             }}
-            statusLabel={values[field.id] ? "Enabled" : "Disabled"}
+            statusLabel={values[field.id] ? messages.settings.enabled : messages.settings.disabled}
           />
         ) : (
           <label key={field.id}>

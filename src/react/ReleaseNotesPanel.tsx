@@ -7,6 +7,7 @@ import {
   type ReleaseNotesAdapter,
   type ReleaseNotesPage,
 } from "../core/releaseNotes";
+import { useAdminMessages } from "./AdminLabels";
 import { AdminPanelStateView } from "./AdminPanelState";
 import { AdminTheme } from "./AdminTheme";
 
@@ -31,8 +32,8 @@ type State = { key: string } & (
   | { kind: "detail"; data: ReleaseNoteDetail }
 );
 
-function dateLabel(value: string) {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: "long", timeZone: "UTC" }).format(
+function dateLabel(value: string, locale?: string) {
+  return new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" }).format(
     new Date(value),
   );
 }
@@ -46,10 +47,12 @@ export function ReleaseNotesPanel({
   renderNotes,
   renderLink = (href, children) => <a href={href}>{children}</a>,
   pageSize = 10,
-  title = "What's new",
+  title: titleProp,
 }: ReleaseNotesPanelProps) {
   if (!Number.isSafeInteger(pageSize) || pageSize < 1 || pageSize > 50)
     throw new Error("Invalid release page size.");
+  const { messages, locale } = useAdminMessages();
+  const title = titleProp ?? messages.releaseNotes.title;
   const [page, setPage] = useState(1);
   const [retry, setRetry] = useState(0);
   const key = JSON.stringify([releaseId, page, pageSize, retry]);
@@ -88,19 +91,21 @@ export function ReleaseNotesPanel({
     <AdminTheme>
       <section className="admin-kit__release-notes" aria-label={title}>
         {releaseId !== undefined ? (
-          <div className="admin-kit__release-back">{renderLink(listHref, "All updates")}</div>
+          <div className="admin-kit__release-back">
+            {renderLink(listHref, messages.releaseNotes.allUpdates)}
+          </div>
         ) : null}
         {view.kind === "loading" ? (
           <AdminPanelStateView
-            state={{ kind: "loading", label: "Loading release notes…", skeletonRows: 3 }}
+            state={{ kind: "loading", label: messages.releaseNotes.loading, skeletonRows: 3 }}
           />
         ) : null}
         {view.kind === "error" ? (
           <AdminPanelStateView
             state={{
               kind: "error",
-              title: "Couldn't load release notes",
-              detail: "Try again in a moment.",
+              title: messages.releaseNotes.errorTitle,
+              detail: messages.releaseNotes.errorDetail,
               onRetry: () => setRetry((value) => value + 1),
             }}
           />
@@ -109,15 +114,15 @@ export function ReleaseNotesPanel({
           <AdminPanelStateView
             state={{
               kind: "empty",
-              title: "Release notes not found",
-              detail: "Choose another update from the history.",
+              title: messages.releaseNotes.missingTitle,
+              detail: messages.releaseNotes.missingDetail,
             }}
           />
         ) : null}
         {view.kind === "detail" ? (
           <article>
             <time className="admin-kit__release-date" dateTime={view.data.releasedAt}>
-              {dateLabel(view.data.releasedAt)}
+              {dateLabel(view.data.releasedAt, locale)}
             </time>
             <h2>
               {view.data.product} {view.data.version}
@@ -132,8 +137,8 @@ export function ReleaseNotesPanel({
               <AdminPanelStateView
                 state={{
                   kind: "empty",
-                  title: "No updates yet",
-                  detail: "Release notes will appear here when an update ships.",
+                  title: messages.releaseNotes.emptyTitle,
+                  detail: messages.releaseNotes.emptyDetail,
                 }}
               />
             ) : (
@@ -142,36 +147,39 @@ export function ReleaseNotesPanel({
                   <li key={note.id}>
                     <article>
                       <time className="admin-kit__release-date" dateTime={note.releasedAt}>
-                        {dateLabel(note.releasedAt)}
+                        {dateLabel(note.releasedAt, locale)}
                       </time>
                       <h2>
                         {note.product} {note.version}
                       </h2>
                       <p>{note.summary}</p>
-                      {renderLink(hrefForRelease(note.id), "Full release notes")}
+                      {renderLink(hrefForRelease(note.id), messages.releaseNotes.fullNotes)}
                     </article>
                   </li>
                 ))}
               </ol>
             )}
             {page > 1 || view.data.hasMore ? (
-              <nav className="admin-kit__release-paging" aria-label="Release history pages">
+              <nav
+                className="admin-kit__release-paging"
+                aria-label={messages.releaseNotes.pagination}
+              >
                 <button
                   type="button"
                   className="admin-kit__button"
                   disabled={page === 1}
                   onClick={() => setPage((value) => value - 1)}
                 >
-                  Newer
+                  {messages.releaseNotes.newer}
                 </button>
-                <span aria-live="polite">Page {page}</span>
+                <span aria-live="polite">{messages.releaseNotes.page(page, locale)}</span>
                 <button
                   type="button"
                   className="admin-kit__button"
                   disabled={!view.data.hasMore}
                   onClick={() => setPage((value) => value + 1)}
                 >
-                  Older
+                  {messages.releaseNotes.older}
                 </button>
               </nav>
             ) : null}

@@ -7,6 +7,7 @@ import {
 } from "../core";
 import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
 import { AdminDataTable, type AdminDataTableColumn } from "./AdminDataTable";
+import { useAdminMessagesRef } from "./AdminLabels";
 import { AdminPanelStateView } from "./AdminPanelState";
 
 export interface MembershipsPanelProps<
@@ -44,7 +45,7 @@ export function MembershipsPanel<
   Member extends AdminMembershipSummary = AdminMembershipSummary,
 >({
   adapter,
-  title = "Members",
+  title: titleProp,
   renderAddMember,
   renderMemberActions,
   getRemoveDescription,
@@ -53,6 +54,9 @@ export function MembershipsPanel<
   storageKey,
   tableFill,
 }: MembershipsPanelProps<InviteInput, Member>) {
+  const messagesRef = useAdminMessagesRef();
+  const { messages, locale } = messagesRef.current;
+  const title = titleProp ?? messages.memberships.title;
   const [members, setMembers] = useState<readonly Member[]>();
   const [loadError, setLoadError] = useState<string>();
   const [actionError, setActionError] = useState<string>();
@@ -116,7 +120,11 @@ export function MembershipsPanel<
       }
     } catch (reason) {
       if (loadId === latestLoadId.current && forEpoch === epochRef.current) {
-        setLoadError(reason instanceof Error ? reason.message : "Unable to load members.");
+        setLoadError(
+          reason instanceof Error
+            ? reason.message
+            : messagesRef.current.messages.memberships.loadFailed,
+        );
       }
     }
   };
@@ -142,7 +150,11 @@ export function MembershipsPanel<
       return true;
     } catch (reason) {
       if (forEpoch === epochRef.current) {
-        setActionError(reason instanceof Error ? reason.message : "Unable to add the member.");
+        setActionError(
+          reason instanceof Error
+            ? reason.message
+            : messagesRef.current.messages.memberships.addFailed,
+        );
       }
       return false;
     } finally {
@@ -163,7 +175,9 @@ export function MembershipsPanel<
     } catch (reason) {
       if (forEpoch === epochRef.current) {
         setActionError(
-          reason instanceof Error ? reason.message : "Unable to update the member role.",
+          reason instanceof Error
+            ? reason.message
+            : messagesRef.current.messages.memberships.roleUpdateFailed,
         );
       }
     } finally {
@@ -184,7 +198,11 @@ export function MembershipsPanel<
       if (forEpoch === epochRef.current) setRemoveTarget(undefined);
     } catch (reason) {
       if (forEpoch === epochRef.current) {
-        setActionError(reason instanceof Error ? reason.message : "Unable to remove the member.");
+        setActionError(
+          reason instanceof Error
+            ? reason.message
+            : messagesRef.current.messages.memberships.removeFailed,
+        );
         setRemoveTarget(undefined);
       }
     } finally {
@@ -204,7 +222,7 @@ export function MembershipsPanel<
     return (
       <AdminPanelStateView
         className={className}
-        state={{ kind: "loading", label: "Loading members…" }}
+        state={{ kind: "loading", label: messages.memberships.loading }}
       />
     );
   }
@@ -217,7 +235,7 @@ export function MembershipsPanel<
   const memberColumns: AdminDataTableColumn<Member>[] = [
     {
       id: "member",
-      header: "Member",
+      header: messages.memberships.columns.member,
       minWidth: 224,
       cell: (member) => (
         <div className="admin-kit__membership-identity">
@@ -228,18 +246,20 @@ export function MembershipsPanel<
     },
     {
       id: "access",
-      header: "Access",
+      header: messages.memberships.columns.access,
       defaultWidth: 128,
       minWidth: 96,
       cell: (member) => (
         <span className="admin-kit__membership-source">
-          {member.source === "inherited" ? "Inherited" : "Direct"}
+          {member.source === "inherited"
+            ? messages.memberships.inherited
+            : messages.memberships.direct}
         </span>
       ),
     },
     {
       id: "role",
-      header: "Role",
+      header: messages.memberships.columns.role,
       defaultWidth: 176,
       minWidth: 128,
       cell: (member) => {
@@ -249,7 +269,7 @@ export function MembershipsPanel<
         const role = adapter.roles.find((candidate) => candidate.value === member.role)!;
         return canChangeRole ? (
           <select
-            aria-label={`Role for ${member.label}`}
+            aria-label={messages.memberships.roleFor(member.label)}
             disabled={pending}
             value={member.role}
             onChange={(event) => void updateRole(member.memberId, event.target.value)}
@@ -273,7 +293,7 @@ export function MembershipsPanel<
       ? [
           {
             id: "actions",
-            header: "Actions",
+            header: messages.memberships.columns.actions,
             defaultWidth: 208,
             resizable: false,
             cell: (member: Member) => {
@@ -294,7 +314,7 @@ export function MembershipsPanel<
                       type="button"
                       onClick={() => setRemoveTarget(member)}
                     >
-                      Remove
+                      {messages.memberships.remove}
                     </button>
                   ) : null}
                 </div>
@@ -313,7 +333,7 @@ export function MembershipsPanel<
         <div>
           <h2>{title}</h2>
           <p>
-            {adapter.scope.label} · {members.length} {members.length === 1 ? "member" : "members"}
+            {adapter.scope.label} · {messages.memberships.count(members.length, locale)}
           </p>
         </div>
         {renderAddMember && adapter.invite
@@ -331,7 +351,7 @@ export function MembershipsPanel<
         </p>
       ) : null}
       {members.length === 0 ? (
-        <AdminPanelStateView state={{ kind: "empty", title: "No members found." }} />
+        <AdminPanelStateView state={{ kind: "empty", title: messages.memberships.empty }} />
       ) : (
         <AdminDataTable
           className="admin-kit__memberships-table"
@@ -348,14 +368,14 @@ export function MembershipsPanel<
         <AdminConfirmationDialog
           className={dialogClassName}
           open={Boolean(removeTarget)}
-          title="Remove member"
+          title={messages.memberships.removeTitle}
           description={
             removeTarget
               ? (getRemoveDescription?.(removeTarget) ??
-                `Remove ${removeTarget.label} from ${adapter.scope.label}? Their access through this direct membership will end.`)
+                messages.memberships.removeDescription(removeTarget.label, adapter.scope.label))
               : ""
           }
-          confirmLabel="Remove member"
+          confirmLabel={messages.memberships.removeConfirm}
           danger
           pending={Boolean(removeTarget && pendingMemberId === removeTarget.memberId)}
           onCancel={() => setRemoveTarget(undefined)}

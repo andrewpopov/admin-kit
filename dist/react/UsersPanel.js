@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersPanel = UsersPanel;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
+const AdminLabels_1 = require("./AdminLabels");
 const AdminFilterChip_1 = require("./AdminFilterChip");
 const AdminPagination_1 = require("./AdminPagination");
 const AdminPanelHeader_1 = require("./AdminPanelHeader");
@@ -14,7 +15,10 @@ const CUSTOM_COLUMN_WIDTH = 160;
  * A paged, adapter-backed user directory. It only owns normalized role and
  * status changes; hosts keep product-specific fields and destructive flows.
  */
-function UsersPanel({ adapter, title = "Users", headerPresentation = "section", pageSize = 25, query, search: searchOptions = false, presentation = "table", columns, defaultSort, renderHeaderActions, renderHeaderPrimaryActions, renderUserActions, className, storageKey, tableFill, headerCollapsible, headerSummary, }) {
+function UsersPanel({ adapter, title: titleProp, headerPresentation = "section", pageSize = 25, query, search: searchOptions = false, presentation = "table", columns, defaultSort, renderHeaderActions, renderHeaderPrimaryActions, renderUserActions, className, storageKey, tableFill, headerCollapsible, headerSummary, }) {
+    const messagesRef = (0, AdminLabels_1.useAdminMessagesRef)();
+    const { messages, locale } = messagesRef.current;
+    const title = titleProp ?? messages.users.title;
     const [page, setPage] = (0, react_1.useState)(1);
     const [search, setSearch] = (0, react_1.useState)(query?.search ?? "");
     const [result, setResult] = (0, react_1.useState)();
@@ -45,14 +49,14 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
         }
         catch (reason) {
             if (loadId === latestLoadId.current) {
-                setLoadError(reason instanceof Error ? reason.message : "Unable to load users.");
+                setLoadError(reason instanceof Error ? reason.message : messagesRef.current.messages.users.loadFailed);
             }
         }
         finally {
             if (loadId === latestLoadId.current)
                 setIsLoading(false);
         }
-    }, [adapter, page, pageSize, queryKey, search, sortColumnId, sortDirection]);
+    }, [adapter, page, pageSize, queryKey, search, sortColumnId, sortDirection, messagesRef]);
     (0, react_1.useEffect)(() => {
         void load();
         // Invalidate synchronously with the transition: without this, a request
@@ -98,7 +102,9 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
             await load();
         }
         catch (reason) {
-            setActionError(reason instanceof Error ? reason.message : "Unable to update the user role.");
+            setActionError(reason instanceof Error
+                ? reason.message
+                : messagesRef.current.messages.users.roleUpdateFailed);
         }
         finally {
             setPendingUserId(undefined);
@@ -114,7 +120,9 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
             await load();
         }
         catch (reason) {
-            setActionError(reason instanceof Error ? reason.message : "Unable to update the user status.");
+            setActionError(reason instanceof Error
+                ? reason.message
+                : messagesRef.current.messages.users.statusUpdateFailed);
         }
         finally {
             setPendingUserId(undefined);
@@ -156,7 +164,7 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
         : [
             {
                 id: "user",
-                header: "User",
+                header: messages.users.columns.user,
                 minWidth: 200,
                 cell: (user) => ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__user-identity", children: [(0, jsx_runtime_1.jsx)("strong", { children: user.label }), user.secondaryLabel ? (0, jsx_runtime_1.jsx)("span", { children: user.secondaryLabel }) : null, user.badges?.length ? (0, jsx_runtime_1.jsx)("span", { children: user.badges.join(" · ") }) : null] })),
             },
@@ -164,7 +172,7 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
                 ? [
                     {
                         id: "details",
-                        header: "Details",
+                        header: messages.users.columns.details,
                         defaultWidth: 280,
                         minWidth: 160,
                         cell: (user) => user.details?.length ? ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__user-details", children: user.details.map((detail) => ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: detail.label }), (0, jsx_runtime_1.jsx)("dd", { children: detail.value })] }, detail.label))) })) : ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__user-empty", children: "\u2014" })),
@@ -173,29 +181,29 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
                 : []),
             {
                 id: "role",
-                header: "Role",
+                header: messages.users.columns.role,
                 defaultWidth: 168,
                 minWidth: 160,
                 cell: (user) => adapter.roles?.length &&
                     adapter.setRole &&
                     user.role &&
-                    user.permissions?.canChangeRole !== false ? ((0, jsx_runtime_1.jsx)("select", { "aria-label": `Role for ${user.label}`, disabled: pendingUserId === user.id, value: user.role.value, onChange: (event) => void updateRole(user.id, event.target.value), children: adapter.roles.map((role) => ((0, jsx_runtime_1.jsx)("option", { value: role.value, children: role.label }, role.value))) })) : user.role ? ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__user-value", children: user.role.label })) : null,
+                    user.permissions?.canChangeRole !== false ? ((0, jsx_runtime_1.jsx)("select", { "aria-label": messages.users.roleFor(user.label), disabled: pendingUserId === user.id, value: user.role.value, onChange: (event) => void updateRole(user.id, event.target.value), children: adapter.roles.map((role) => ((0, jsx_runtime_1.jsx)("option", { value: role.value, children: role.label }, role.value))) })) : user.role ? ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__user-value", children: user.role.label })) : null,
             },
             {
                 id: "status",
-                header: "Status",
+                header: messages.users.columns.status,
                 defaultWidth: 168,
                 minWidth: 160,
                 cell: (user) => adapter.statuses?.length &&
                     adapter.setStatus &&
                     user.status &&
-                    user.permissions?.canChangeStatus !== false ? ((0, jsx_runtime_1.jsx)("select", { "aria-label": `Status for ${user.label}`, disabled: pendingUserId === user.id, value: user.status.value, onChange: (event) => void updateStatus(user.id, event.target.value), children: adapter.statuses.map((status) => ((0, jsx_runtime_1.jsx)("option", { value: status.value, children: status.label }, status.value))) })) : user.status ? ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__user-value", children: user.status.label })) : null,
+                    user.permissions?.canChangeStatus !== false ? ((0, jsx_runtime_1.jsx)("select", { "aria-label": messages.users.statusFor(user.label), disabled: pendingUserId === user.id, value: user.status.value, onChange: (event) => void updateStatus(user.id, event.target.value), children: adapter.statuses.map((status) => ((0, jsx_runtime_1.jsx)("option", { value: status.value, children: status.label }, status.value))) })) : user.status ? ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__user-value", children: user.status.label })) : null,
             },
             ...(renderUserActions
                 ? [
                     {
                         id: "actions",
-                        header: "Actions",
+                        header: messages.users.columns.actions,
                         defaultWidth: 220,
                         minWidth: 220,
                         maxWidth: 220,
@@ -208,18 +216,18 @@ function UsersPanel({ adapter, title = "Users", headerPresentation = "section", 
                 ]
                 : []),
         ];
-    const searchControl = searchOptions !== false ? ((0, jsx_runtime_1.jsxs)("label", { className: "admin-kit__users-search", children: [(0, jsx_runtime_1.jsx)("span", { children: searchOptions.label ?? "Search users" }), (0, jsx_runtime_1.jsx)("input", { onChange: (event) => setSearchAndResetPage(event.target.value), placeholder: searchOptions.placeholder ?? "Search by name or email", type: "search", value: search })] })) : null;
+    const searchControl = searchOptions !== false ? ((0, jsx_runtime_1.jsxs)("label", { className: "admin-kit__users-search", children: [(0, jsx_runtime_1.jsx)("span", { children: searchOptions.label ?? messages.users.searchLabel }), (0, jsx_runtime_1.jsx)("input", { onChange: (event) => setSearchAndResetPage(event.target.value), placeholder: searchOptions.placeholder ?? messages.users.searchPlaceholder, type: "search", value: search })] })) : null;
     const hostHeaderActions = renderHeaderActions?.({ reload: load, isLoading });
     const primaryHeaderActions = renderHeaderPrimaryActions?.({ reload: load, isLoading });
     const collapsible = headerCollapsible && headerPresentation !== "none";
     const toolbar = (headerPresentation === "page" || collapsible) && (searchControl || hostHeaderActions) ? ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [searchControl, hostHeaderActions] })) : null;
     const inlineHostActions = headerPresentation === "section" && !collapsible ? hostHeaderActions : null;
     const headerActions = primaryHeaderActions || inlineHostActions ? ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [primaryHeaderActions, inlineHostActions] })) : null;
-    const searchChips = search ? ((0, jsx_runtime_1.jsx)(AdminFilterChip_1.AdminFilterChip, { label: `Search: ${search}`, onRemove: () => setSearchAndResetPage("") })) : null;
+    const searchChips = search ? ((0, jsx_runtime_1.jsx)(AdminFilterChip_1.AdminFilterChip, { label: messages.users.searchChip(search), onRemove: () => setSearchAndResetPage("") })) : null;
     return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__users", className].filter(Boolean).join(" "), "aria-label": title, children: [(0, jsx_runtime_1.jsx)(AdminPanelHeader_1.AdminPanelHeader, { actions: headerActions, className: "admin-kit__users-header", collapsible: (0, AdminPanelHeader_1.panelHeaderCollapsible)(headerCollapsible, result ? { search, total: result.total, chips: searchChips } : undefined, {
-                    summary: ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [result ? ((0, jsx_runtime_1.jsxs)("span", { children: [result.total.toLocaleString(), " ", result.total === 1 ? "user" : "users"] })) : null, searchChips] })),
+                    summary: ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [result ? (0, jsx_runtime_1.jsx)("span", { children: messages.users.count(result.total, locale) }) : null, searchChips] })),
                     activeCount: search ? 1 : 0,
-                }), detail: result ? ((0, jsx_runtime_1.jsxs)("p", { children: [result.total, " ", result.total === 1 ? "user" : "users"] })) : null, presentation: headerPresentation, summary: headerSummary, title: title, toolbar: toolbar }), headerPresentation === "section" && !collapsible ? searchControl : null, loadError && !result ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : !result ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "loading", label: "Loading users…" } })) : result.items.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: "No users found." } })) : ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? ((0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError })) : null, presentation === "table" ? ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { busy: isLoading, className: columns?.length
+                }), detail: result ? (0, jsx_runtime_1.jsx)("p", { children: messages.users.detailCount(result.total, locale) }) : null, presentation: headerPresentation, summary: headerSummary, title: title, toolbar: toolbar }), headerPresentation === "section" && !collapsible ? searchControl : null, loadError && !result ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : !result ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "loading", label: messages.users.loading } })) : result.items.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: messages.users.empty } })) : ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? ((0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError })) : null, presentation === "table" ? ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { busy: isLoading, className: columns?.length
                             ? "admin-kit__users-table admin-kit__users-table--custom"
-                            : `admin-kit__users-table${hasDetails ? " admin-kit__users-table--with-details" : ""}`, columns: tableColumns, rowBusy: (user) => pendingUserId === user.id, rowKey: (user) => user.id, rows: result.items, storageKey: storageKey, fill: tableFill, wrapClassName: "admin-kit__users-table-wrap" })) : null, (0, jsx_runtime_1.jsx)(AdminPagination_1.AdminPagination, { label: "User pagination", page: page, pageCount: Math.max(1, Math.ceil(result.total / result.pageSize)), onPageChange: setPage })] }))] }));
+                            : `admin-kit__users-table${hasDetails ? " admin-kit__users-table--with-details" : ""}`, columns: tableColumns, rowBusy: (user) => pendingUserId === user.id, rowKey: (user) => user.id, rows: result.items, storageKey: storageKey, fill: tableFill, wrapClassName: "admin-kit__users-table-wrap" })) : null, (0, jsx_runtime_1.jsx)(AdminPagination_1.AdminPagination, { label: messages.users.pagination, page: page, pageCount: Math.max(1, Math.ceil(result.total / result.pageSize)), onPageChange: setPage })] }))] }));
 }

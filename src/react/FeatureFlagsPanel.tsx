@@ -5,14 +5,8 @@ import {
   type AdminFeatureFlagsSnapshot,
   validateAdminFeatureFlagsSnapshot,
 } from "../core";
+import { useAdminMessagesRef } from "./AdminLabels";
 import { AdminPanelStateView } from "./AdminPanelState";
-
-const sourceLabel: Record<AdminFeatureFlagsSnapshot["flags"][number]["source"], string> = {
-  store: "Store override",
-  environment: "Environment controlled",
-  default: "Default value",
-  "store-error-policy": "Store unavailable policy",
-};
 
 export interface FeatureFlagsPanelProps {
   adapter: AdminFeatureFlagsAdapter;
@@ -24,9 +18,12 @@ export interface FeatureFlagsPanelProps {
 /** A source-aware flag panel that never offers a misleading mutable control. */
 export function FeatureFlagsPanel({
   adapter,
-  title = "Feature flags",
+  title: titleProp,
   className,
 }: FeatureFlagsPanelProps) {
+  const messagesRef = useAdminMessagesRef();
+  const { messages } = messagesRef.current;
+  const title = titleProp ?? messages.featureFlags.title;
   const idBase = useId();
   const [snapshot, setSnapshot] = useState<AdminFeatureFlagsSnapshot>();
   const [loadError, setLoadError] = useState<string>();
@@ -48,10 +45,14 @@ export function FeatureFlagsPanel({
       if (loadId === latestLoadId.current) setSnapshot(next);
     } catch (reason) {
       if (loadId === latestLoadId.current) {
-        setLoadError(reason instanceof Error ? reason.message : "Unable to load feature flags.");
+        setLoadError(
+          reason instanceof Error
+            ? reason.message
+            : messagesRef.current.messages.featureFlags.loadFailed,
+        );
       }
     }
-  }, [adapter]);
+  }, [adapter, messagesRef]);
 
   useEffect(() => {
     adapterEpoch.current += 1;
@@ -78,7 +79,7 @@ export function FeatureFlagsPanel({
   if (!snapshot)
     return (
       <AdminPanelStateView
-        state={{ kind: "loading", label: "Loading feature flags…" }}
+        state={{ kind: "loading", label: messages.featureFlags.loading }}
         className={className}
       />
     );
@@ -93,7 +94,9 @@ export function FeatureFlagsPanel({
       if (epoch === adapterEpoch.current) await load();
     } catch (reason) {
       setActionError(
-        reason instanceof Error ? reason.message : "Unable to update the feature flag.",
+        reason instanceof Error
+          ? reason.message
+          : messagesRef.current.messages.featureFlags.updateFailed,
       );
     } finally {
       setPendingKey(undefined);
@@ -108,7 +111,7 @@ export function FeatureFlagsPanel({
       <header className="admin-kit__flags-header">
         <h2>{title}</h2>
         <p>
-          Store health: <strong>{snapshot.storeHealth}</strong>
+          {messages.featureFlags.storeHealth} <strong>{snapshot.storeHealth}</strong>
         </p>
         {snapshot.storeHealthDetail ? <p role="status">{snapshot.storeHealthDetail}</p> : null}
       </header>
@@ -133,7 +136,9 @@ export function FeatureFlagsPanel({
                 <label htmlFor={controlId}>{flag.label}</label>
                 <code>{flag.key}</code>
                 {flag.description ? <p>{flag.description}</p> : null}
-                <p className="admin-kit__flag-source">Source: {sourceLabel[flag.source]}</p>
+                <p className="admin-kit__flag-source">
+                  {messages.featureFlags.source(messages.featureFlags.sources[flag.source])}
+                </p>
               </div>
               <input
                 checked={flag.enabled}

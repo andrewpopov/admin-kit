@@ -1,6 +1,7 @@
 "use client";
 import type { KeyboardEvent, ReactNode } from "react";
 import { useId, useRef } from "react";
+import { useAdminMessages } from "./AdminLabels";
 import type { AdminSectionDefinition, AdminSectionId } from "../core/contracts";
 
 export interface AdminReactSection extends AdminSectionDefinition {
@@ -26,10 +27,11 @@ export function AdminConsole({
   activeSection,
   sections,
   onSectionChange,
-  ariaLabel = "Administration sections",
+  ariaLabel,
   className,
 }: AdminConsoleProps) {
   const idBase = useId();
+  const { messages } = useAdminMessages();
   const active = sections.find((section) => section.id === activeSection) ?? sections[0];
 
   if (!active) {
@@ -78,7 +80,10 @@ export function AdminConsole({
 
   return (
     <section className={["admin-kit", className].filter(Boolean).join(" ")}>
-      <nav aria-label={ariaLabel} className="admin-kit__navigation">
+      <nav
+        aria-label={ariaLabel ?? messages.shell.navigationLabel}
+        className="admin-kit__navigation"
+      >
         <div role="tablist" aria-orientation="horizontal" className="admin-kit__tabs">
           {sections.map((section) => {
             const selected = section.id === active.id;

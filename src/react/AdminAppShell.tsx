@@ -1,5 +1,6 @@
 "use client";
 import { useId, useState, type ReactNode } from "react";
+import { useAdminMessages } from "./AdminLabels";
 import { AdminTheme, type AdminThemeName } from "./AdminTheme";
 import type { AdminAppFrame } from "./AdminApp";
 import { AdminFrameHeadingProvider } from "./AdminPanelHeader";
@@ -35,12 +36,15 @@ export function AdminAppShell({
   frame,
   renderNavigation,
   children,
-  ariaLabel = "Administration sections",
-  mobileNavigationLabel = "Browse administration",
+  ariaLabel,
+  mobileNavigationLabel,
   mobileNavigation = true,
   theme,
   className,
 }: AdminAppShellProps) {
+  const { messages } = useAdminMessages();
+  const navigationLabel = ariaLabel ?? messages.shell.navigationLabel;
+  const mobileToggleLabel = mobileNavigationLabel ?? messages.shell.mobileNavigationLabel;
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
   const mobileNavigationId = `admin-kit-mobile-navigation-${useId().replace(/:/g, "")}`;
   const closeMobileNavigation = () => setMobileNavigationOpen(false);
@@ -68,12 +72,12 @@ export function AdminAppShell({
           onClick={() => setMobileNavigationOpen((open) => !open)}
           type="button"
         >
-          {mobileNavigationLabel}
+          {mobileToggleLabel}
         </button>
       ) : null}
       {mobileNavigation && mobileNavigationOpen ? (
         <nav
-          aria-label={ariaLabel}
+          aria-label={navigationLabel}
           className="admin-kit__app-shell-mobile-navigation"
           id={mobileNavigationId}
         >
@@ -82,7 +86,9 @@ export function AdminAppShell({
       ) : null}
       <div className="admin-kit__app-shell-body">
         <aside className="admin-kit__app-shell-navigation">
-          <nav aria-label={ariaLabel}>{renderNavigation({ idPrefix: "admin-kit-desktop" })}</nav>
+          <nav aria-label={navigationLabel}>
+            {renderNavigation({ idPrefix: "admin-kit-desktop" })}
+          </nav>
         </aside>
         <main className="admin-kit__app-shell-content">
           <AdminFrameHeadingProvider value={Boolean(frame)}>{children}</AdminFrameHeadingProvider>

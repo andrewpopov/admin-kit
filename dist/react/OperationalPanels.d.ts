@@ -33,7 +33,7 @@ export interface OperationalJobsPanelProps {
     headerSummary?: ReactNode;
 }
 /** Displays host-owned scheduled, import, and retention runs without mislabeling them as backups. */
-export declare function OperationalJobsPanel({ adapter, title, runLabel, pageSize, className, formatTimestamp, emptyState, storageKey, tableFill, headerPresentation, headerCollapsible, headerSummary, }: OperationalJobsPanelProps): import("react").JSX.Element;
+export declare function OperationalJobsPanel({ adapter, title: titleProp, runLabel: runLabelProp, pageSize, className, formatTimestamp, emptyState: emptyStateProp, storageKey, tableFill, headerPresentation, headerCollapsible, headerSummary, }: OperationalJobsPanelProps): import("react").JSX.Element;
 export interface BackupsPanelProps {
     adapter: AdminBackupsAdapter;
     title?: string;
@@ -48,11 +48,11 @@ export interface BackupsPanelProps {
     /** The table fills the viewport and scrolls itself under a pinned header (see `AdminDataTable` `fill`). */
     tableFill?: boolean;
 }
-export declare function BackupsPanel({ adapter, title, runLabel, pageSize, className, formatTimestamp, storageKey, tableFill, }: BackupsPanelProps): import("react").JSX.Element;
+export declare function BackupsPanel({ adapter, title: titleProp, runLabel: runLabelProp, pageSize, className, formatTimestamp, storageKey, tableFill, }: BackupsPanelProps): import("react").JSX.Element;
 export interface SettingsPanelProps {
     adapter: AdminSettingsAdapter;
     title?: string;
     /** Optional host class for local styling without replacing the panel. */
     className?: string;
 }
-export declare function SettingsPanel({ adapter, title, className }: SettingsPanelProps): import("react").JSX.Element;
+export declare function SettingsPanel({ adapter, title: titleProp, className }: SettingsPanelProps): import("react").JSX.Element;

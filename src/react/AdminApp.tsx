@@ -4,7 +4,7 @@ import {
   type AdminAppGroupDefinition,
   type AdminAppSectionDefinition,
 } from "../core";
-import { AdminLabelsProvider, type AdminLabels } from "./AdminLabels";
+import { AdminLabelsProvider, type AdminLabelsOverride } from "./AdminLabels";
 import {
   AdminPortal,
   type AdminPortalNavigationItemProps,
@@ -42,8 +42,10 @@ export type AdminAppProps = WithAdminAppGroups<AdminPortalProps> & {
   theme?: AdminThemeName;
   /** Opt-in recolor of the core theme, inherited by every nested Admin Kit boundary. */
   palette?: AdminPaletteName;
-  /** Localizes shared Admin Kit chrome strings (loading/error/pagination copy) for the whole app. */
-  labels?: Partial<AdminLabels>;
+  /** Localizes Admin Kit strings for the whole app: the flat chrome labels and any deep partial of the message catalog. */
+  labels?: AdminLabelsOverride;
+  /** BCP 47 tag for plural rules and number formatting; omit it for the runtime default. */
+  locale?: string;
 };
 
 /**
@@ -56,12 +58,13 @@ export function AdminApp({
   theme,
   palette,
   labels,
+  locale,
   className,
   ...portalProps
 }: AdminAppProps) {
   defineAdminApp({ groups: portalProps.groups });
   return (
-    <AdminLabelsProvider labels={labels}>
+    <AdminLabelsProvider labels={labels} locale={locale}>
       <AdminTheme as="section" className="admin-kit__app" theme={theme} palette={palette}>
         <AdminContentTargetProvider>
           <AdminSkipLink />

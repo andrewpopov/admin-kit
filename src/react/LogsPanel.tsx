@@ -7,6 +7,7 @@ import {
   type AdminLogsAdapter,
   type AdminLogsSnapshot,
 } from "../core";
+import { useAdminMessagesRef } from "./AdminLabels";
 import { AdminPanelStateView } from "./AdminPanelState";
 
 export interface LogsPanelProps<Entry extends AdminLogEntry = AdminLogEntry> {
@@ -21,12 +22,15 @@ export interface LogsPanelProps<Entry extends AdminLogEntry = AdminLogEntry> {
 /** Runtime output viewer; structured audit and authorization events belong in EventsPanel. */
 export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
   adapter,
-  title = "Runtime logs",
+  title: titleProp,
   pollIntervalMs,
   defaultAutoRefresh = false,
   formatTimestamp,
   className,
 }: LogsPanelProps<Entry>) {
+  const messagesRef = useAdminMessagesRef();
+  const { messages, locale } = messagesRef.current;
+  const title = titleProp ?? messages.logs.title;
   const pollingInterval =
     pollIntervalMs !== undefined && Number.isFinite(pollIntervalMs) && pollIntervalMs > 0
       ? pollIntervalMs
@@ -77,23 +81,22 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
           setSnapshot(next);
           if (announce) {
             setRefreshFeedback(
-              newLineCount === 1
-                ? "Refreshed: 1 new log line."
-                : `Refreshed: ${newLineCount} new log lines.`,
+              messagesRef.current.messages.logs.refreshed(newLineCount, messagesRef.current.locale),
             );
           }
         }
       } catch (reason) {
         if (loadId === latestLoadId.current) {
-          setError(reason instanceof Error ? reason.message : "Unable to load runtime logs.");
-          if (announce)
-            setRefreshFeedback("Refresh failed. The previously loaded output remains available.");
+          setError(
+            reason instanceof Error ? reason.message : messagesRef.current.messages.logs.loadFailed,
+          );
+          if (announce) setRefreshFeedback(messagesRef.current.messages.logs.refreshFailed);
         }
       } finally {
         if (loadId === latestLoadId.current) setIsLoading(false);
       }
     },
-    [adapter, appliedSearch, category, level, limit, source],
+    [adapter, appliedSearch, category, level, limit, source, messagesRef],
   );
 
   useEffect(() => {
@@ -152,9 +155,9 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
       await navigator.clipboard.writeText(
         visibleEntries.map((entry) => entry.raw ?? entry.message).join("\n"),
       );
-      setCopyFeedback("Visible log output copied.");
+      setCopyFeedback(messagesRef.current.messages.logs.copied);
     } catch {
-      setCopyFeedback("Unable to copy log output.");
+      setCopyFeedback(messagesRef.current.messages.logs.copyFailed);
     }
   };
 
@@ -170,7 +173,7 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
     return (
       <AdminPanelStateView
         className={className}
-        state={{ kind: "loading", label: "Loading runtime logs…" }}
+        state={{ kind: "loading", label: messages.logs.loading }}
       />
     );
   }
@@ -193,11 +196,14 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
         <div>
           <h2>{title}</h2>
           <p>
-            {snapshot.total} matching {snapshot.total === 1 ? "line" : "lines"}
-            {sourceDetail ? ` · ${sourceDetail}` : ""}
-            {snapshot.generatedAt
-              ? ` · Updated ${formatAdminTimestamp(snapshot.generatedAt, formatTimestamp)}`
-              : ""}
+            {messages.logs.matching(snapshot.total, locale)}
+            {sourceDetail ? <> · {sourceDetail}</> : null}
+            {snapshot.generatedAt ? (
+              <>
+                {" · "}
+                {messages.logs.updated(formatAdminTimestamp(snapshot.generatedAt, formatTimestamp))}
+              </>
+            ) : null}
           </p>
         </div>
         <div className="admin-kit__logs-actions">
@@ -208,7 +214,7 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
             aria-checked={followLatest}
             onClick={() => setFollowLatest((current) => !current)}
           >
-            Follow latest {followLatest ? "on" : "off"}
+            {messages.logs.followLatest(followLatest)}
           </button>
           {pollingInterval ? (
             <button
@@ -218,7 +224,7 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
               aria-checked={autoRefresh}
               onClick={() => setAutoRefresh((current) => !current)}
             >
-              Auto-refresh {autoRefresh ? "on" : "off"}
+              {messages.logs.autoRefresh(autoRefresh)}
             </button>
           ) : null}
           <button
@@ -227,7 +233,7 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
             type="button"
             onClick={() => void load(true)}
           >
-            Refresh
+            {messages.logs.refresh}
           </button>
         </div>
       </header>
@@ -240,7 +246,7 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
       >
         {snapshot.sources.length > 1 ? (
           <label>
-            <span>Source</span>
+            <span>{messages.logs.source}</span>
             <select
               value={selectedSource}
               onChange={(event) => {
@@ -260,9 +266,9 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
         ) : null}
         {snapshot.levels?.length ? (
           <label>
-            <span>Level</span>
+            <span>{messages.logs.level}</span>
             <select value={level} onChange={(event) => setLevel(event.target.value)}>
-              <option value="">All levels</option>
+              <option value="">{messages.logs.allLevels}</option>
               {snapshot.levels.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -273,9 +279,9 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
         ) : null}
         {snapshot.categories?.length ? (
           <label>
-            <span>Category</span>
+            <span>{messages.logs.category}</span>
             <select value={category} onChange={(event) => setCategory(event.target.value)}>
-              <option value="">All categories</option>
+              <option value="">{messages.logs.allCategories}</option>
               {snapshot.categories.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -285,7 +291,7 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
           </label>
         ) : null}
         <label>
-          <span>Lines</span>
+          <span>{messages.logs.lines}</span>
           <select
             value={limit}
             onChange={(event) => {
@@ -301,45 +307,43 @@ export function LogsPanel<Entry extends AdminLogEntry = AdminLogEntry>({
           </select>
         </label>
         <label className="admin-kit__logs-search">
-          <span>Search logs</span>
+          <span>{messages.logs.search}</span>
           <input
             type="search"
-            placeholder="Message or raw output"
+            placeholder={messages.logs.searchPlaceholder}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
         </label>
         <button className="admin-kit__button" type="submit">
-          Apply
+          {messages.logs.apply}
         </button>
       </form>
       {error ? (
         <AdminPanelStateView state={{ kind: "error", detail: error, onRetry: () => void load() }} />
       ) : null}
       <div className="admin-kit__logs-summary">
-        <span>
-          Showing {visibleEntries.length} of {snapshot.entries.length} loaded
-        </span>
+        <span>{messages.logs.showing(visibleEntries.length, snapshot.entries.length, locale)}</span>
         <button
           className="admin-kit__button"
           disabled={visibleEntries.length === 0}
           type="button"
           onClick={() => void copy()}
         >
-          Copy visible
+          {messages.logs.copyVisible}
         </button>
       </div>
       <p className="admin-kit__logs-feedback" aria-live="polite">
         {refreshFeedback ?? copyFeedback}
       </p>
       {visibleEntries.length === 0 ? (
-        <AdminPanelStateView state={{ kind: "empty", title: "No log lines matched." }} />
+        <AdminPanelStateView state={{ kind: "empty", title: messages.logs.empty }} />
       ) : (
         <div
           ref={outputRef}
           className="admin-kit__logs-output"
           role="region"
-          aria-label={`${title} output`}
+          aria-label={messages.logs.output(title)}
           aria-busy={isLoading}
           tabIndex={0}
           onScroll={(event) => {

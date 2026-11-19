@@ -26,4 +26,4 @@ export interface MembershipsPanelProps<InviteInput = never, Member extends Admin
  * Scoped membership administration. Hosts own identity discovery, invitation
  * delivery, authorization, inheritance, transport, and audit policy.
  */
-export declare function MembershipsPanel<InviteInput = never, Member extends AdminMembershipSummary = AdminMembershipSummary>({ adapter, title, renderAddMember, renderMemberActions, getRemoveDescription, dialogClassName, className, storageKey, tableFill, }: MembershipsPanelProps<InviteInput, Member>): import("react").JSX.Element;
+export declare function MembershipsPanel<InviteInput = never, Member extends AdminMembershipSummary = AdminMembershipSummary>({ adapter, title: titleProp, renderAddMember, renderMemberActions, getRemoveDescription, dialogClassName, className, storageKey, tableFill, }: MembershipsPanelProps<InviteInput, Member>): import("react").JSX.Element;

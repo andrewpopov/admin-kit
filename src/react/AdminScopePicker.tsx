@@ -1,5 +1,6 @@
 "use client";
 import type { AdminScopeGroup } from "../core";
+import { useAdminMessages } from "./AdminLabels";
 
 export interface AdminScopePickerProps {
   groups: readonly AdminScopeGroup[];
@@ -24,6 +25,7 @@ export function AdminScopePicker({
   disabled,
   className,
 }: AdminScopePickerProps) {
+  const { messages } = useAdminMessages();
   const selected = new Set(value);
   const knownScopes = new Set(groups.flatMap((group) => group.scopes.map((scope) => scope.value)));
   const unmatchedScopes = value.filter((scope) => !knownScopes.has(scope));
@@ -65,7 +67,9 @@ export function AdminScopePicker({
                   type="button"
                   onClick={toggleGroup}
                 >
-                  {allSelected ? `Select none in ${group.label}` : `Select all in ${group.label}`}
+                  {allSelected
+                    ? messages.scopePicker.selectNone(group.label)
+                    : messages.scopePicker.selectAll(group.label)}
                 </button>
               ) : null}
             </div>
@@ -104,10 +108,10 @@ export function AdminScopePicker({
       })}
       {unmatchedScopes.length ? (
         <fieldset className="admin-kit__scope-group" disabled={disabled}>
-          <legend className="admin-kit__scope-group-legend">Existing scopes</legend>
-          <p className="admin-kit__scope-group-description">
-            These scopes are not part of the current vocabulary. Keep or remove them explicitly.
-          </p>
+          <legend className="admin-kit__scope-group-legend">
+            {messages.scopePicker.existingScopes}
+          </legend>
+          <p className="admin-kit__scope-group-description">{messages.scopePicker.unmatchedHelp}</p>
           <ul className="admin-kit__scope-options">
             {unmatchedScopes.map((scope) => (
               <li key={scope}>
@@ -120,7 +124,9 @@ export function AdminScopePicker({
                     onChange={() => toggle(scope)}
                   />
                   <span className="admin-kit__scope-option-copy">
-                    <span className="admin-kit__scope-option-label">Existing scope</span>
+                    <span className="admin-kit__scope-option-label">
+                      {messages.scopePicker.existingScope}
+                    </span>
                     <code className="admin-kit__scope-option-value">{scope}</code>
                   </span>
                 </label>

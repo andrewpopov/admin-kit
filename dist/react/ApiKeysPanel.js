@@ -5,6 +5,7 @@ exports.ApiKeysPanel = ApiKeysPanel;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const core_1 = require("../core");
+const AdminLabels_1 = require("./AdminLabels");
 const AdminApiKeyForm_1 = require("./AdminApiKeyForm");
 const AdminConfirmationDialog_1 = require("./AdminConfirmationDialog");
 const AdminDataTable_1 = require("./AdminDataTable");
@@ -16,11 +17,16 @@ const AdminPanelState_1 = require("./AdminPanelState");
  * boundary), so `adapter`, `create`, and `update` are concrete inside the body
  * and the built-in create/edit wiring needs no casts.
  */
-function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPresentation = "section", headerActions, headerCollapsible, headerSummary, presentation = "responsive", createInput, renderCreate, renderEdit, renderKeyActions, renderKeys, renderPosture, renderShortcuts, scopeGroups, minimumScopeCount, className, dialogClassName, formatTimestamp, storageKey, tableFill, }) {
-    const singular = vocabulary?.singular ?? "API key";
-    const plural = vocabulary?.plural ?? "API keys";
-    const countSingular = vocabulary?.singular ?? "credential";
-    const countPlural = vocabulary?.plural ?? "credentials";
+function ApiKeysPanelImpl({ adapter, title: titleProp, vocabulary, headerPresentation = "section", headerActions, headerCollapsible, headerSummary, presentation = "responsive", createInput, renderCreate, renderEdit, renderKeyActions, renderKeys, renderPosture, renderShortcuts, scopeGroups, minimumScopeCount, className, dialogClassName, formatTimestamp, storageKey, tableFill, }) {
+    const messagesRef = (0, AdminLabels_1.useAdminMessagesRef)();
+    const { messages, locale } = messagesRef.current;
+    const title = titleProp ?? messages.apiKeys.title;
+    const singular = vocabulary?.singular ?? messages.apiKeys.singular;
+    const plural = vocabulary?.plural ?? messages.apiKeys.plural;
+    const countSingular = vocabulary?.singular ?? messages.apiKeys.credentialSingular;
+    const countPlural = vocabulary?.plural ?? messages.apiKeys.credentialPlural;
+    const keyNoun = vocabulary?.singular ?? messages.apiKeyForm.defaultNoun;
+    const credentialNoun = vocabulary?.singular ?? messages.apiKeys.credentialSingular;
     const capitalizedSingular = `${singular.charAt(0).toUpperCase()}${singular.slice(1)}`;
     const [keys, setKeys] = (0, react_1.useState)();
     const [secret, setSecret] = (0, react_1.useState)();
@@ -52,10 +58,12 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
         }
         catch (reason) {
             if (loadId === latestLoadId.current) {
-                setLoadError(reason instanceof Error ? reason.message : `Unable to load ${pluralRef.current}.`);
+                setLoadError(reason instanceof Error
+                    ? reason.message
+                    : messagesRef.current.messages.apiKeys.loadFailed(pluralRef.current));
             }
         }
-    }, [adapter]);
+    }, [adapter, messagesRef]);
     (0, react_1.useEffect)(() => {
         adapterEpoch.current += 1;
         // A failed load under the new adapter must not fall through to
@@ -75,12 +83,12 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
         setCopyStatus(undefined);
     }, [adapter]);
     const panelHeader = (counts) => ((0, jsx_runtime_1.jsx)(AdminPanelHeader_1.AdminPanelHeader, { actions: headerActions, className: "admin-kit__keys-header", collapsible: (0, AdminPanelHeader_1.panelHeaderCollapsible)(headerCollapsible, counts, {
-            summary: counts ? ((0, jsx_runtime_1.jsxs)("span", { children: [counts.total.toLocaleString(), " ", counts.total === 1 ? countSingular : countPlural, counts.total > 0 ? ` · ${counts.active} active` : ""] })) : null,
-        }), detail: counts ? ((0, jsx_runtime_1.jsxs)("p", { children: [counts.total, " ", counts.total === 1 ? countSingular : countPlural, counts.total > 0 ? ` · ${counts.active} active` : ""] })) : null, presentation: headerPresentation, summary: headerSummary, title: title }));
+            summary: counts ? ((0, jsx_runtime_1.jsxs)("span", { children: [messages.apiKeys.count(counts.total, countSingular, countPlural, locale), counts.total > 0 ? (0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [" \u00B7 ", messages.apiKeys.active(counts.active, locale)] }) : null] })) : null,
+        }), detail: counts ? ((0, jsx_runtime_1.jsxs)("p", { children: [messages.apiKeys.count(counts.total, countSingular, countPlural, locale), counts.total > 0 ? (0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [" \u00B7 ", messages.apiKeys.active(counts.active, locale)] }) : null] })) : null, presentation: headerPresentation, summary: headerSummary, title: title }));
     if (loadError && !keys)
         return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__keys", className].filter(Boolean).join(" "), "aria-label": title, children: [panelHeader(), (0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })] }));
     if (!keys)
-        return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__keys", className].filter(Boolean).join(" "), "aria-label": title, children: [panelHeader(), (0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "loading", label: `Loading ${plural}…` } })] }));
+        return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__keys", className].filter(Boolean).join(" "), "aria-label": title, children: [panelHeader(), (0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "loading", label: messages.apiKeys.loading(plural) } })] }));
     const lifecycleKeys = keys.map((key) => ({
         ...key,
         state: (0, core_1.resolveAdminApiKeyState)(key),
@@ -108,7 +116,9 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
             return true;
         }
         catch (reason) {
-            setActionError(reason instanceof Error ? reason.message : `Unable to create ${singular}.`);
+            setActionError(reason instanceof Error
+                ? reason.message
+                : messagesRef.current.messages.apiKeys.createFailed(singular));
             return false;
         }
         finally {
@@ -128,7 +138,9 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
             return true;
         }
         catch (reason) {
-            setActionError(reason instanceof Error ? reason.message : `Unable to update ${singular}.`);
+            setActionError(reason instanceof Error
+                ? reason.message
+                : messagesRef.current.messages.apiKeys.updateFailed(singular));
             return false;
         }
         finally {
@@ -142,10 +154,10 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
             if (!navigator.clipboard)
                 throw new Error("Clipboard access is unavailable.");
             await navigator.clipboard.writeText(secret);
-            setCopyStatus("Copied");
+            setCopyStatus(messagesRef.current.messages.apiKeys.copied);
         }
         catch {
-            setCopyStatus("Copy failed. Select and copy the secret manually.");
+            setCopyStatus(messagesRef.current.messages.apiKeys.copyFailed);
         }
     };
     const confirmAction = async () => {
@@ -171,7 +183,9 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
             setConfirmation(undefined);
         }
         catch (reason) {
-            setActionError(reason instanceof Error ? reason.message : `Unable to ${action} ${singular}.`);
+            setActionError(reason instanceof Error
+                ? reason.message
+                : messagesRef.current.messages.apiKeys[action === "revoke" ? "revokeFailed" : "rotateFailed"](singular));
         }
         finally {
             setPending(undefined);
@@ -188,7 +202,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
     // `scopeGroups`, did not override edit rendering, and the adapter can persist
     // an update (`adapter.update` is optional — without it Save would no-op).
     const builtInEditEnabled = Boolean(scopeGroups) && !renderEdit && Boolean(adapter.update);
-    const renderActions = (key, isEditing, isPending) => key.state === "active" ? ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-actions", children: [builtInEditEnabled ? ((0, jsx_runtime_1.jsx)("button", { className: "admin-kit__key-edit-btn", type: "button", "aria-label": `Edit scopes for ${key.name}`, "aria-expanded": isEditing, "aria-controls": `admin-kit-key-edit-${key.id}`, disabled: isPending, onClick: () => setEditingKeyId(isEditing ? undefined : key.id), children: "Edit scopes" })) : null, adapter.rotate ? ((0, jsx_runtime_1.jsx)("button", { type: "button", "aria-label": `Rotate ${key.name}`, disabled: isPending, onClick: () => requestRotate?.(key), children: "Rotate" })) : null, adapter.update && renderEdit
+    const renderActions = (key, isEditing, isPending) => key.state === "active" ? ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-actions", children: [builtInEditEnabled ? ((0, jsx_runtime_1.jsx)("button", { className: "admin-kit__key-edit-btn", type: "button", "aria-label": messages.apiKeys.editScopesFor(key.name), "aria-expanded": isEditing, "aria-controls": `admin-kit-key-edit-${key.id}`, disabled: isPending, onClick: () => setEditingKeyId(isEditing ? undefined : key.id), children: messages.apiKeys.editScopes })) : null, adapter.rotate ? ((0, jsx_runtime_1.jsx)("button", { type: "button", "aria-label": messages.apiKeys.rotateKey(key.name), disabled: isPending, onClick: () => requestRotate?.(key), children: messages.apiKeys.rotate })) : null, adapter.update && renderEdit
                 ? renderEdit({ key, update: (input) => update(key, input), pending: isPending })
                 : null, renderKeyActions
                 ? renderKeyActions({
@@ -196,8 +210,8 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
                     update: adapter.update ? (input) => update(key, input) : undefined,
                     pending: isPending,
                 })
-                : null, (0, jsx_runtime_1.jsx)("button", { type: "button", "aria-label": `Revoke ${key.name}`, disabled: isPending, onClick: () => requestRevoke(key), children: "Revoke" })] })) : null;
-    const renderEditor = (key, isEditing, isPending) => isEditing && scopeGroups ? ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-edit", id: `admin-kit-key-edit-${key.id}`, role: "region", "aria-label": `Edit scopes for ${key.name}`, children: [(0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-edit-header", children: [(0, jsx_runtime_1.jsx)("h3", { children: "Edit scopes" }), (0, jsx_runtime_1.jsxs)("p", { children: [key.name, " \u00B7 ", key.maskedKey] })] }), (0, jsx_runtime_1.jsx)(AdminApiKeyForm_1.AdminApiKeyForm, { mode: "edit", itemNoun: vocabulary?.singular, scopeGroups: scopeGroups, minimumScopeCount: minimumScopeCount, pending: isPending, initialScopes: key.scopes, onSubmit: async (request) => {
+                : null, (0, jsx_runtime_1.jsx)("button", { type: "button", "aria-label": messages.apiKeys.revokeKey(key.name), disabled: isPending, onClick: () => requestRevoke(key), children: messages.apiKeys.revoke })] })) : null;
+    const renderEditor = (key, isEditing, isPending) => isEditing && scopeGroups ? ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-edit", id: `admin-kit-key-edit-${key.id}`, role: "region", "aria-label": messages.apiKeys.editScopesFor(key.name), children: [(0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-edit-header", children: [(0, jsx_runtime_1.jsx)("h3", { children: messages.apiKeys.editScopes }), (0, jsx_runtime_1.jsxs)("p", { children: [key.name, " \u00B7 ", key.maskedKey] })] }), (0, jsx_runtime_1.jsx)(AdminApiKeyForm_1.AdminApiKeyForm, { mode: "edit", itemNoun: vocabulary?.singular, scopeGroups: scopeGroups, minimumScopeCount: minimumScopeCount, pending: isPending, initialScopes: key.scopes, onSubmit: async (request) => {
                     const ok = await update(key, request);
                     if (ok)
                         setEditingKeyId(undefined);
@@ -206,14 +220,14 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
         {
             id: "key",
             cardSlot: "title",
-            header: vocabulary ? capitalizedSingular : "Key",
+            header: vocabulary ? capitalizedSingular : messages.apiKeys.columns.key,
             minWidth: 160,
             cell: (key) => ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-identity", children: [(0, jsx_runtime_1.jsx)("strong", { children: key.name }), (0, jsx_runtime_1.jsx)("code", { children: key.maskedKey })] })),
         },
         {
             id: "scope",
             cardSlot: "detail",
-            header: "Scope",
+            header: messages.apiKeys.columns.scope,
             defaultWidth: 176,
             minWidth: 128,
             cell: (key) => key.scopes.length ? ((0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__scope-chips", children: key.scopes.map((scope) => ((0, jsx_runtime_1.jsx)("li", { className: "admin-kit__scope-chip", "data-admin-kit-part": "scope-chip", children: scope }, scope))) })) : ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-empty", children: "\u2014" })),
@@ -224,7 +238,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
                     id: "details",
                     cardSlot: "detail",
                     priority: "tertiary",
-                    header: "Details",
+                    header: messages.apiKeys.columns.details,
                     defaultWidth: 176,
                     minWidth: 144,
                     cell: (key) => key.details?.length ? ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__key-details", children: key.details.map((detail) => ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: detail.label }), (0, jsx_runtime_1.jsx)("dd", { children: detail.value })] }, detail.label))) })) : ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-empty", children: "\u2014" })),
@@ -234,7 +248,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
         {
             id: "state",
             cardSlot: "badge",
-            header: "State",
+            header: messages.apiKeys.columns.state,
             defaultWidth: 96,
             minWidth: 96,
             cell: (key) => ((0, jsx_runtime_1.jsx)("span", { className: `admin-kit__state-pill admin-kit__state-pill--key-${key.state}`, children: key.state })),
@@ -243,7 +257,7 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
             id: "created",
             cardSlot: "meta",
             priority: "tertiary",
-            header: "Created",
+            header: messages.apiKeys.columns.created,
             defaultWidth: 120,
             minWidth: 104,
             className: "admin-kit__key-timestamp",
@@ -253,53 +267,61 @@ function ApiKeysPanelImpl({ adapter, title = "API keys", vocabulary, headerPrese
             id: "lastUsed",
             cardSlot: "meta",
             priority: "tertiary",
-            header: "Last used",
+            header: messages.apiKeys.columns.lastUsed,
             defaultWidth: 120,
             minWidth: 104,
             className: "admin-kit__key-timestamp",
-            cell: (key) => key.lastUsedAt ? (0, core_1.formatAdminTimestamp)(key.lastUsedAt, formatTimestamp) : "never",
+            cell: (key) => key.lastUsedAt
+                ? (0, core_1.formatAdminTimestamp)(key.lastUsedAt, formatTimestamp)
+                : messages.apiKeys.never,
         },
         {
             id: "expires",
             cardSlot: "meta",
             priority: "secondary",
-            header: "Expires",
+            header: messages.apiKeys.columns.expires,
             defaultWidth: 120,
             minWidth: 104,
             className: "admin-kit__key-timestamp",
-            cell: (key) => key.expiresAt ? (0, core_1.formatAdminTimestamp)(key.expiresAt, formatTimestamp) : "never",
+            cell: (key) => key.expiresAt
+                ? (0, core_1.formatAdminTimestamp)(key.expiresAt, formatTimestamp)
+                : messages.apiKeys.never,
         },
         {
             id: "actions",
             cardSlot: "actions",
-            header: "Actions",
+            header: messages.apiKeys.columns.actions,
             defaultWidth: 168,
             resizable: false,
             cell: (key) => renderActions(key, builtInEditEnabled && editingKeyId === key.id, pending === key.id) ?? ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-empty", children: "\u2014" })),
         },
     ];
-    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__keys", className].filter(Boolean).join(" "), "aria-label": title, children: [panelHeader({ total: lifecycleKeys.length, active: activeCount }), loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? ((0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError })) : null, secret ? ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__secret", "data-admin-kit-part": "api-key-secret", role: "alert", children: [(0, jsx_runtime_1.jsx)("strong", { children: "Copy this secret now. It will not be shown again." }), (0, jsx_runtime_1.jsx)("code", { children: secret }), (0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__secret-actions", children: [(0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button admin-kit__button--primary", type: "button", onClick: () => void copySecret(), children: "Copy secret" }), (0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button", type: "button", onClick: () => setSecret(undefined), children: "I copied it" }), copyStatus ? ((0, jsx_runtime_1.jsx)("span", { "aria-live": "polite", className: "admin-kit__secret-status", children: copyStatus })) : null] })] })) : null, renderPosture && postureControls ? renderPosture(postureControls) : null, renderShortcuts && postureControls ? renderShortcuts(postureControls) : null, renderCreate ? (renderCreate({
+    return ((0, jsx_runtime_1.jsxs)("section", { className: ["admin-kit__keys", className].filter(Boolean).join(" "), "aria-label": title, children: [panelHeader({ total: lifecycleKeys.length, active: activeCount }), loadError ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "error", detail: loadError, onRetry: () => void load() } })) : null, actionError ? ((0, jsx_runtime_1.jsx)("p", { className: "admin-kit__action-error", role: "alert", children: actionError })) : null, secret ? ((0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__secret", "data-admin-kit-part": "api-key-secret", role: "alert", children: [(0, jsx_runtime_1.jsx)("strong", { children: messages.apiKeys.secretNotice }), (0, jsx_runtime_1.jsx)("code", { children: secret }), (0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__secret-actions", children: [(0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button admin-kit__button--primary", type: "button", onClick: () => void copySecret(), children: messages.apiKeys.copySecret }), (0, jsx_runtime_1.jsx)("button", { className: "admin-kit__button", type: "button", onClick: () => setSecret(undefined), children: messages.apiKeys.secretCopied }), copyStatus ? ((0, jsx_runtime_1.jsx)("span", { "aria-live": "polite", className: "admin-kit__secret-status", children: copyStatus })) : null] })] })) : null, renderPosture && postureControls ? renderPosture(postureControls) : null, renderShortcuts && postureControls ? renderShortcuts(postureControls) : null, renderCreate ? (renderCreate({
                 create,
                 pending: pending === "create",
-            })) : scopeGroups ? ((0, jsx_runtime_1.jsxs)("details", { className: "admin-kit__key-create", "data-admin-kit-part": "api-key-create", open: createOpen, onToggle: (event) => setCreateOpen(event.currentTarget.open), children: [(0, jsx_runtime_1.jsxs)("summary", { children: [(0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-create-icon", "aria-hidden": "true", children: "\uFF0B" }), " ", "Create a new ", vocabulary?.singular ?? "key"] }), (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__key-create-body", children: (0, jsx_runtime_1.jsx)(AdminApiKeyForm_1.AdminApiKeyForm, { mode: "create", itemNoun: vocabulary?.singular, scopeGroups: scopeGroups, minimumScopeCount: minimumScopeCount, pending: pending === "create", onSubmit: (request) => void create(request) }) })] })) : createInput !== undefined ? ((0, jsx_runtime_1.jsxs)("button", { type: "button", disabled: pending === "create", onClick: () => void create(createInput), children: ["Create ", singular] })) : null, renderKeys ? (renderKeys({
+            })) : scopeGroups ? ((0, jsx_runtime_1.jsxs)("details", { className: "admin-kit__key-create", "data-admin-kit-part": "api-key-create", open: createOpen, onToggle: (event) => setCreateOpen(event.currentTarget.open), children: [(0, jsx_runtime_1.jsxs)("summary", { children: [(0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-create-icon", "aria-hidden": "true", children: "\uFF0B" }), " ", messages.apiKeys.createNew(keyNoun)] }), (0, jsx_runtime_1.jsx)("div", { className: "admin-kit__key-create-body", children: (0, jsx_runtime_1.jsx)(AdminApiKeyForm_1.AdminApiKeyForm, { mode: "create", itemNoun: vocabulary?.singular, scopeGroups: scopeGroups, minimumScopeCount: minimumScopeCount, pending: pending === "create", onSubmit: (request) => void create(request) }) })] })) : createInput !== undefined ? ((0, jsx_runtime_1.jsx)("button", { type: "button", disabled: pending === "create", onClick: () => void create(createInput), children: messages.apiKeys.createButton(singular) })) : null, renderKeys ? (renderKeys({
                 keys: lifecycleKeys,
                 requestRevoke,
                 requestRotate,
                 update: adapter.update ? update : undefined,
                 pendingKeyId: pending === "create" ? undefined : pending,
-            })) : lifecycleKeys.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: `No ${plural} yet.` } })) : resolvedPresentation === "table" ? ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { className: "admin-kit__keys-table", columns: keyColumns, renderExpansion: (key) => builtInEditEnabled && editingKeyId === key.id
+            })) : lifecycleKeys.length === 0 ? ((0, jsx_runtime_1.jsx)(AdminPanelState_1.AdminPanelStateView, { state: { kind: "empty", title: messages.apiKeys.empty(plural) } })) : resolvedPresentation === "table" ? ((0, jsx_runtime_1.jsx)(AdminDataTable_1.AdminDataTable, { className: "admin-kit__keys-table", columns: keyColumns, renderExpansion: (key) => builtInEditEnabled && editingKeyId === key.id
                     ? renderEditor(key, true, pending === key.id)
                     : null, rowBusy: (key) => pending === key.id, rowKey: (key) => key.id, rows: lifecycleKeys, storageKey: storageKey, fill: tableFill, wrapClassName: "admin-kit__keys-table-wrap" })) : ((0, jsx_runtime_1.jsx)("ol", { className: "admin-kit__key-cards", children: lifecycleKeys.map((key) => {
                     const isEditing = builtInEditEnabled && editingKeyId === key.id;
                     const isPending = pending === key.id;
-                    return ((0, jsx_runtime_1.jsxs)("li", { "aria-busy": isPending, className: "admin-kit__key-card", "data-admin-kit-part": "api-key-card", children: [(0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-card-header", children: [(0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-identity", children: [(0, jsx_runtime_1.jsx)("strong", { children: key.name }), (0, jsx_runtime_1.jsx)("code", { children: key.maskedKey })] }), (0, jsx_runtime_1.jsx)("span", { className: `admin-kit__state-pill admin-kit__state-pill--key-${key.state}`, children: key.state })] }), (0, jsx_runtime_1.jsxs)("dl", { className: "admin-kit__key-summary", children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: "Created" }), (0, jsx_runtime_1.jsx)("dd", { children: (0, core_1.formatAdminTimestamp)(key.createdAt, formatTimestamp) })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: "Last used" }), (0, jsx_runtime_1.jsx)("dd", { children: key.lastUsedAt
+                    return ((0, jsx_runtime_1.jsxs)("li", { "aria-busy": isPending, className: "admin-kit__key-card", "data-admin-kit-part": "api-key-card", children: [(0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-card-header", children: [(0, jsx_runtime_1.jsxs)("div", { className: "admin-kit__key-identity", children: [(0, jsx_runtime_1.jsx)("strong", { children: key.name }), (0, jsx_runtime_1.jsx)("code", { children: key.maskedKey })] }), (0, jsx_runtime_1.jsx)("span", { className: `admin-kit__state-pill admin-kit__state-pill--key-${key.state}`, children: key.state })] }), (0, jsx_runtime_1.jsxs)("dl", { className: "admin-kit__key-summary", children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: messages.apiKeys.columns.created }), (0, jsx_runtime_1.jsx)("dd", { children: (0, core_1.formatAdminTimestamp)(key.createdAt, formatTimestamp) })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: messages.apiKeys.columns.lastUsed }), (0, jsx_runtime_1.jsx)("dd", { children: key.lastUsedAt
                                                     ? (0, core_1.formatAdminTimestamp)(key.lastUsedAt, formatTimestamp)
-                                                    : "never" })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: "Expires" }), (0, jsx_runtime_1.jsx)("dd", { children: key.expiresAt
+                                                    : messages.apiKeys.never })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: messages.apiKeys.columns.expires }), (0, jsx_runtime_1.jsx)("dd", { children: key.expiresAt
                                                     ? (0, core_1.formatAdminTimestamp)(key.expiresAt, formatTimestamp)
-                                                    : "never" })] })] }), (0, jsx_runtime_1.jsxs)("details", { className: "admin-kit__key-details-disclosure", children: [(0, jsx_runtime_1.jsxs)("summary", { "aria-label": `Scopes and details for ${key.name}`, children: [key.scopes.length, " ", key.scopes.length === 1 ? "scope" : "scopes"] }), key.scopes.length ? ((0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__scope-chips", children: key.scopes.map((scope) => ((0, jsx_runtime_1.jsx)("li", { className: "admin-kit__scope-chip", "data-admin-kit-part": "scope-chip", children: scope }, scope))) })) : ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-empty", children: "No scopes assigned." })), key.details?.length ? ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__key-details", children: key.details.map((detail) => ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: detail.label }), (0, jsx_runtime_1.jsx)("dd", { children: detail.value })] }, detail.label))) })) : null] }), renderActions(key, isEditing, isPending), renderEditor(key, isEditing, isPending)] }, key.id));
-                }) })), (0, jsx_runtime_1.jsx)(AdminConfirmationDialog_1.AdminConfirmationDialog, { open: Boolean(confirmation), className: dialogClassName, title: `${confirmation?.action === "rotate" ? "Rotate" : "Revoke"} ${singular}`, description: confirmation?.action === "rotate"
-                    ? `The current ${vocabulary?.singular ?? "credential"} will stop working. Copy the replacement secret immediately after rotating it.`
-                    : `This ${vocabulary?.singular ?? "credential"} will stop working immediately and cannot be restored.`, confirmLabel: `${confirmation?.action === "rotate" ? "Rotate" : "Revoke"} ${vocabulary?.singular ?? "key"}`, danger: confirmation?.action === "revoke", pending: Boolean(confirmation) && pending === confirmation?.key.id, onCancel: () => setConfirmation(undefined), onConfirm: () => void confirmAction() })] }));
+                                                    : messages.apiKeys.never })] })] }), (0, jsx_runtime_1.jsxs)("details", { className: "admin-kit__key-details-disclosure", children: [(0, jsx_runtime_1.jsx)("summary", { "aria-label": messages.apiKeys.scopesAndDetailsFor(key.name), children: messages.common.scopeCount(key.scopes.length, locale) }), key.scopes.length ? ((0, jsx_runtime_1.jsx)("ul", { className: "admin-kit__scope-chips", children: key.scopes.map((scope) => ((0, jsx_runtime_1.jsx)("li", { className: "admin-kit__scope-chip", "data-admin-kit-part": "scope-chip", children: scope }, scope))) })) : ((0, jsx_runtime_1.jsx)("span", { className: "admin-kit__key-empty", children: messages.apiKeys.noScopes })), key.details?.length ? ((0, jsx_runtime_1.jsx)("dl", { className: "admin-kit__key-details", children: key.details.map((detail) => ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("dt", { children: detail.label }), (0, jsx_runtime_1.jsx)("dd", { children: detail.value })] }, detail.label))) })) : null] }), renderActions(key, isEditing, isPending), renderEditor(key, isEditing, isPending)] }, key.id));
+                }) })), (0, jsx_runtime_1.jsx)(AdminConfirmationDialog_1.AdminConfirmationDialog, { open: Boolean(confirmation), className: dialogClassName, title: confirmation?.action === "rotate"
+                    ? messages.apiKeys.rotateTitle(singular)
+                    : messages.apiKeys.revokeTitle(singular), description: confirmation?.action === "rotate"
+                    ? messages.apiKeys.rotateDescription(credentialNoun)
+                    : messages.apiKeys.revokeDescription(credentialNoun), confirmLabel: confirmation?.action === "rotate"
+                    ? messages.apiKeys.rotateConfirm(keyNoun)
+                    : messages.apiKeys.revokeConfirm(keyNoun), danger: confirmation?.action === "revoke", pending: Boolean(confirmation) && pending === confirmation?.key.id, onCancel: () => setConfirmation(undefined), onConfirm: () => void confirmAction() })] }));
 }
 /**
  * Lists safe metadata and reveals a raw secret only from a create/rotate

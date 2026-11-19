@@ -208,6 +208,30 @@ surfaces, responsive controls, clear primary/destructive action hierarchy, and
 matching light and dark palettes. Hosts can tune it without forking component
 styles by overriding the `--admin-kit-*` variables on an app or admin wrapper.
 
+## Message catalog
+
+Every string the React surface renders (text, `aria-label`, `title`, `placeholder`) comes from one typed catalog, `AdminMessages`, grouped by component or panel: `common`, `dialog`, `shell`, `portal`, `band`, `table`, `scopePicker`, `apiKeyForm`, `users`, `events`, `logs`, `sessions`, `memberships`, `featureFlags`, `releaseNotes`, `jobs`, `backups`, `settings` and `apiKeys`. The English defaults are the frozen `defaultAdminMessages`. Host data (labels, names, adapter messages) is never part of the catalog, and props such as `title` and `refreshLabel` still win over their catalog default. `AdminWorkspace` is the one exception: it stays a Server Component, so it cannot read the provider; pass its `summaryLabel` localized.
+
+Hosts override entries through `AdminLabelsProvider` (or `AdminApp`'s `labels` prop) with a deep partial, and pass `locale` for plural rules and number formatting; omit it to use the runtime default. Providers compose, and an `undefined` value keeps the inherited string.
+
+```tsx
+<AdminLabelsProvider
+  locale="fr"
+  labels={{
+    cancel: "Annuler", // the original flat keys still work: loading, errorTitle, retry, cancel, previousPage, nextPage, skipToContent, pageStatus
+    dialog: { close: "Fermer" },
+    users: {
+      title: "Utilisateurs",
+      count: (count, locale) => `${new Intl.NumberFormat(locale).format(count)} utilisateur${count === 1 ? "" : "s"}`,
+    },
+  }}
+>
+  <UsersPanel adapter={usersAdapter} />
+</AdminLabelsProvider>
+```
+
+Entries that depend on a count are functions `(count, locale) => string`; the defaults use `Intl.PluralRules` (build your own with `adminCountMessage({ one, other })`) and `Intl.NumberFormat`, so counts read `1,234 users`. Other parameterized entries take the values they interpolate, such as `users.roleFor(label)`. `useAdminMessages()` returns `{ messages, locale }` for custom sections, and `useAdminLabels()` keeps returning the flat labels.
+
 ## Styling contract
 
 ### Enforcement

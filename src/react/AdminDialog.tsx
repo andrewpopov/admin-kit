@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useAdminMessages } from "./AdminLabels";
 import { AdminThemeLayer } from "./AdminThemeContext";
 import { useModalKeyClaim } from "./useModalKeyClaim";
 
@@ -42,6 +43,7 @@ export function AdminDialog({
   const descriptionId = useId();
   const [mounted, setMounted] = useState(false);
   const claimKey = useModalKeyClaim(open);
+  const { messages } = useAdminMessages();
 
   useEffect(() => setMounted(true), []);
 
@@ -117,7 +119,7 @@ export function AdminDialog({
         <header className="admin-kit__dialog-header">
           <h2 id={titleId}>{title}</h2>
           <button
-            aria-label="Close dialog"
+            aria-label={messages.dialog.close}
             className="admin-kit__dialog-close"
             disabled={closeDisabled}
             onClick={onClose}

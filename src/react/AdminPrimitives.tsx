@@ -1,4 +1,6 @@
+"use client";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { useAdminMessages } from "./AdminLabels";
 
 export interface AdminCardProps {
   title?: ReactNode;
@@ -89,6 +91,7 @@ export function AdminSwitch({
   type = "button",
   ...props
 }: AdminSwitchProps) {
+  const { messages } = useAdminMessages();
   return (
     <button
       {...props}
@@ -105,7 +108,9 @@ export function AdminSwitch({
         <strong>{label}</strong>
         {description ? <span>{description}</span> : null}
       </span>
-      <span className="admin-kit__switch-status">{statusLabel ?? (checked ? "On" : "Off")}</span>
+      <span className="admin-kit__switch-status">
+        {statusLabel ?? (checked ? messages.switch.on : messages.switch.off)}
+      </span>
     </button>
   );
 }

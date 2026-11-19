@@ -10,8 +10,17 @@ export {
 export {
   AdminLabelsProvider,
   useAdminLabels,
+  useAdminMessages,
   defaultAdminLabels,
+  defaultAdminMessages,
+  adminCountMessage,
+  formatAdminCount,
+  type AdminCountMessage,
   type AdminLabels,
+  type AdminLabelsOverride,
+  type AdminMessageContext,
+  type AdminMessages,
+  type AdminMessagesOverride,
 } from "./AdminLabels";
 export { AdminDialog, type AdminDialogProps } from "./AdminDialog";
 export {
