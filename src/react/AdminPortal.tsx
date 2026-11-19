@@ -178,6 +178,7 @@ export function AdminPortal({
               <nav
                 aria-label={ariaLabel}
                 className="admin-kit__portal-navigation"
+                data-admin-kit-part="portal-navigation"
                 data-open={mobileNavigationOpen ? "" : undefined}
                 id={mobileNavigationId}
                 onClick={closeOnNavigate}

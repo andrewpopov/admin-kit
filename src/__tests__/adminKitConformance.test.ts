@@ -551,3 +551,61 @@ describe("admin-kit-conformance theme contrast", () => {
     expect(result.stderr).toContain("WARN");
   });
 });
+
+describe("admin-kit-conformance private class selectors (PKG-372)", () => {
+  function runWithHostCss(css: string, args: string[] = []) {
+    const root = createConsumerFixture();
+    writeFileSync(join(root, "src", "host.css"), css);
+    return spawnSync(
+      process.execPath,
+      [resolve(process.cwd(), "scripts", "admin-kit-conformance.mjs"), ...args],
+      { cwd: root, encoding: "utf8" },
+    );
+  }
+
+  const canaryCss = "/* host */\n.page { color: red; }\n.sidebar .admin-kit__portal-link-label {\n  display: none;\n}\n";
+
+  it("warns, naming file:line, on a host selector that targets a private class", () => {
+    const result = runWithHostCss(canaryCss);
+
+    expect(result.status).toBe(0);
+    expect(result.stderr).toContain("[admin-kit-conformance] WARN: src/host.css:3:");
+    expect(result.stderr).toContain(".admin-kit__portal-link-label");
+  });
+
+  it("fails under --strict", () => {
+    const result = runWithHostCss(canaryCss, ["--strict"]);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("src/host.css:3: host selector targets the private class .admin-kit__portal-link-label");
+  });
+
+  it("flags every selector in a list, inside media queries and class attribute selectors", () => {
+    const result = runWithHostCss(
+      "@media (max-width: 600px) {\n  .a .admin-kit__events-list,\n  .b .admin-kit__events-filters label { gap: 0; }\n}\n[class*=\"admin-kit__pagination\"] { margin: 0; }\n",
+    );
+
+    expect(result.stderr).toContain("src/host.css:2:");
+    expect(result.stderr).toContain("src/host.css:3:");
+    expect(result.stderr).toContain("src/host.css:5:");
+  });
+
+  it("ignores comments, declarations, public parts and the layer order statement", () => {
+    const result = runWithHostCss(
+      "@layer theme, base, admin-kit;\n/* .admin-kit__table was removed */\n[data-admin-kit-part=\"portal-navigation\"] { display: none; }\n.x { content: \".admin-kit__table\"; }\n.admin-kit.admin-kit--theme-core { --admin-kit-radius: 0.25rem; }\n",
+    );
+
+    expect(result.status).toBe(0);
+    expect(result.stderr).not.toContain("private class");
+  });
+
+  it("accepts the public muted tokens and checks their contrast", () => {
+    const ok = runWithHostCss(":root { --admin-kit-muted: #4a5568; }");
+    expect(ok.status).toBe(0);
+
+    const pale = runWithHostCss(":root {\n  --admin-kit-muted: #b0b8c4;\n}");
+    expect(pale.status).toBe(1);
+    expect(pale.stderr).toContain("light muted/surface");
+    expect(pale.stderr).toContain("--admin-kit-muted #b0b8c4 (src/host.css:2)");
+  });
+});

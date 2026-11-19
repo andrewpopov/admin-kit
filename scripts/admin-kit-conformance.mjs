@@ -60,7 +60,12 @@ const PUBLIC_THEME_TOKENS = new Set([
   'weight-strong',
   'table-heading-transform',
   'app-min-block-size',
+  'muted',
+  'dark-muted',
 ]);
+// Private `.admin-kit__*` classes a host may target. Empty on purpose: every need has a public part, token or prop.
+const PRIVATE_CLASS_ALLOWLIST = new Set([]);
+const strict = process.argv.includes('--strict');
 const sourceFiles = [];
 const packageManifests = [];
 
@@ -139,7 +144,7 @@ function fail(messages) {
 }
 
 // ---- Contrast of the public rebrand tokens (PKG-370) ----
-const CONTRAST_MINIMUMS = { accentOnAccent: 4.5, accentSurface: 3, textSurface: 4.5 };
+const CONTRAST_MINIMUMS = { accentOnAccent: 4.5, accentSurface: 3, textSurface: 4.5, mutedSurface: 4.5 };
 const WARNINGS = [];
 const CSS_NAMED_COLORS = { white: [1, 1, 1, 1], black: [0, 0, 0, 1], transparent: [0, 0, 0, 0] };
 
@@ -341,13 +346,13 @@ function contrastRatio(foreground, background) {
 }
 
 const SCOPE_TOKENS = {
-  light: { accent: ['accent'], onAccent: ['on-accent'], surface: ['surface'], text: ['text'] },
-  dark: { accent: ['dark-accent', 'accent'], onAccent: ['on-accent'], surface: ['dark-surface', 'surface'], text: ['dark-text', 'text'] },
-  auto: { accent: ['dark-accent', 'accent'], onAccent: ['on-accent'], surface: ['dark-surface', 'surface'], text: ['dark-text', 'text'] },
+  light: { accent: ['accent'], onAccent: ['on-accent'], surface: ['surface'], text: ['text'], muted: ['muted'] },
+  dark: { accent: ['dark-accent', 'accent'], onAccent: ['on-accent'], surface: ['dark-surface', 'surface'], text: ['dark-text', 'text'], muted: ['dark-muted', 'muted'] },
+  auto: { accent: ['dark-accent', 'accent'], onAccent: ['on-accent'], surface: ['dark-surface', 'surface'], text: ['dark-text', 'text'], muted: ['dark-muted', 'muted'] },
 };
 const KIT_DEFAULT_NAMES = {
-  light: { accent: 'accent', onAccent: 'on-accent', surface: 'surface', text: 'text' },
-  dark: { accent: 'dark-accent', onAccent: 'dark-on-accent', surface: 'dark-surface', text: 'dark-text' },
+  light: { accent: 'accent', onAccent: 'on-accent', surface: 'surface', text: 'text', muted: 'muted' },
+  dark: { accent: 'dark-accent', onAccent: 'dark-on-accent', surface: 'dark-surface', text: 'dark-text', muted: 'dark-muted' },
 };
 KIT_DEFAULT_NAMES.auto = KIT_DEFAULT_NAMES.dark;
 const SCOPE_LABELS = { light: 'light', dark: '.dark', auto: 'data-admin-kit-theme="auto"' };
@@ -412,7 +417,7 @@ function resolveScopeColors(scope, declarations, kitDefaults) {
         names.some((name) => declaration.name === `admin-kit-${name}`) &&
         (declaration.scopes.has(scope) || (declaration.name.startsWith('admin-kit-dark-') && declaration.scopes.has('light'))),
     );
-    if (winner && (role === 'accent' || role === 'onAccent')) hostDeclaresAccent = true;
+    if (winner && ['accent', 'onAccent', 'muted'].includes(role)) hostDeclaresAccent = true;
     const token = winner ? winner.name.replace(/^admin-kit-/, '') : KIT_DEFAULT_NAMES[scope][role];
     const raw = winner ? winner.value : kit.get(`--admin-kit-${token}`);
     const location = winner ? winner.location : 'kit default';
@@ -441,6 +446,7 @@ function checkThemeContrast(cssFiles) {
       ['accent', 'onAccent', 'accent/on-accent', CONTRAST_MINIMUMS.accentOnAccent],
       ['accent', 'surface', 'accent/surface', CONTRAST_MINIMUMS.accentSurface],
       ['text', 'surface', 'text/surface', CONTRAST_MINIMUMS.textSurface],
+      ['muted', 'surface', 'muted/surface', CONTRAST_MINIMUMS.mutedSurface],
     ];
     for (const [foregroundRole, backgroundRole, name, minimum] of pairs) {
       const [foreground, background] = [colors[foregroundRole], colors[backgroundRole]];
@@ -510,11 +516,43 @@ for (const { path, text } of files) {
     const name = match[1];
     if (!PUBLIC_THEME_TOKENS.has(name)) {
       errors.push(
-        `${rel}: --admin-kit-${name} is an internal Admin Kit token and cannot be overridden; only the public theme, type and layout tokens may be set (accent, accent-strong, accent-soft, on-accent, radius, radius-sm, dark-accent, dark-accent-strong, dark-accent-soft, font-family, text-{page-title,title,body,body-sm,caption}-{size,leading}, weight-title, weight-strong, table-heading-transform, app-min-block-size).`,
+        `${rel}: --admin-kit-${name} is an internal Admin Kit token and cannot be overridden; only the public theme, type and layout tokens may be set (accent, accent-strong, accent-soft, on-accent, radius, radius-sm, dark-accent, dark-accent-strong, dark-accent-soft, font-family, text-{page-title,title,body,body-sm,caption}-{size,leading}, weight-title, weight-strong, table-heading-transform, app-min-block-size, muted, dark-muted).`,
       );
     }
   }
 }
+// ---- Private class selectors in host CSS (PKG-372) ----
+function findPrivateClassSelectors(cssFiles) {
+  const found = [];
+  for (const { path, text } of cssFiles) {
+    const css = maskComments(text);
+    let preludeStart = 0;
+    let quote = '';
+    for (let i = 0; i < css.length; i += 1) {
+      const ch = css[i];
+      if (quote) {
+        if (ch === quote && css[i - 1] !== '\\') quote = '';
+      } else if (ch === '"' || ch === "'") quote = ch;
+      else if (ch === ';' || ch === '}') preludeStart = i + 1;
+      else if (ch === '{') {
+        const prelude = css.slice(preludeStart, i);
+        if (!prelude.trimStart().startsWith('@')) {
+          for (const match of prelude.matchAll(/\.(admin-kit__[\w-]+)|\[\s*class\s*[*^~|$]?=\s*["']?(admin-kit__[\w-]*)/g)) {
+            const name = match[1] ?? match[2];
+            if (PRIVATE_CLASS_ALLOWLIST.has(name)) continue;
+            const line = css.slice(0, preludeStart + match.index).split('\n').length;
+            found.push(`${relativePosix(path)}:${line}: host selector targets the private class .${name}; use a documented data-admin-kit-part, public token or prop (docs/styling-surface.md).`);
+          }
+        }
+        preludeStart = i + 1;
+      }
+    }
+  }
+  return found;
+}
+const privateClassFindings = findPrivateClassSelectors(files.filter(({ path }) => /\.css$/.test(path)));
+if (strict) errors.push(...privateClassFindings);
+else for (const finding of privateClassFindings) WARNINGS.push(finding);
 errors.push(...checkThemeContrast(files.filter(({ path }) => /\.css$/.test(path))));
 for (const warning of WARNINGS) console.warn(`[admin-kit-conformance] WARN: ${warning}`);
 if (errors.length) fail(errors);

@@ -32,6 +32,8 @@ export function AdminStatusSummary({ items }: AdminStatusSummaryProps) {
       {items.map((item) => (
         <div
           className={`admin-kit__status admin-kit__status--${item.tone ?? "neutral"}`}
+          data-admin-kit-part="status"
+          data-admin-kit-tone={item.tone ?? "neutral"}
           key={item.label}
         >
           <dt>{item.label}</dt>
