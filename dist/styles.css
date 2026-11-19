@@ -848,6 +848,7 @@
 .admin-kit__key-summary { display: grid; gap: var(--admin-kit-space-3) var(--admin-kit-space-6); grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); margin: var(--admin-kit-space-4) 0 0; }
 .admin-kit__key-summary dt, .admin-kit__key-details dt { color: var(--admin-kit-muted); font-size: var(--admin-kit-text-caption-size); line-height: var(--admin-kit-text-caption-leading); }
 .admin-kit__key-summary dd, .admin-kit__key-details dd { margin: var(--admin-kit-space-0-5) 0 0; overflow-wrap: anywhere; }
+.admin-kit__user-details dt, .admin-kit__key-details dt, .admin-kit__key-summary dt, .admin-kit__session-details dt, .admin-kit__event-details dt, .admin-kit__data-table-hidden-values dt, .admin-kit__status-summary dt { overflow-wrap: normal; word-break: normal; }
 .admin-kit__key-details-disclosure { border-block-start: 1px solid var(--admin-kit-border); margin-block-start: var(--admin-kit-space-4); padding-block-start: var(--admin-kit-space-3); }
 .admin-kit__key-details-disclosure summary { color: var(--admin-kit-accent); cursor: pointer; font-size: var(--admin-kit-text-body-sm-size); line-height: var(--admin-kit-text-body-sm-leading); font-weight: var(--admin-kit-weight-strong); width: fit-content; }
 .admin-kit__key-details-disclosure summary:hover { text-decoration: underline; }
