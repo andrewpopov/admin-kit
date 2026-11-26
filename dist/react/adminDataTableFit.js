@@ -7,8 +7,8 @@ exports.resolveTableFit = resolveTableFit;
 exports.DEFAULT_MIN_WIDTH = 64;
 exports.DEFAULT_MAX_WIDTH = 960;
 exports.DETAILS_COLUMN_WIDTH = 96;
-/** A column that holds the default `formatAdminTimestamp` text on one line: its widest form (e.g. "May 30, 2026, 12:59 AM", about 178px in the kit font) plus the cell's 2 x 16px padding. */
-exports.TIMESTAMP_COLUMN_WIDTH = 216;
+/** A column that holds the default `formatAdminTimestamp` text on one line: its widest form (e.g. "May 30, 2026, 12:59 AM", about 178px in macOS system-ui and 196px in DejaVu Sans, the Linux fallback) plus the cell's 2 x 16px padding. */
+exports.TIMESTAMP_COLUMN_WIDTH = 232;
 /** Below this container width a stacked card puts each label above its value. */
 exports.NARROW_CARD_WIDTH = 340;
 const FILL_MIN_WIDTH = exports.DEFAULT_MIN_WIDTH * 3;

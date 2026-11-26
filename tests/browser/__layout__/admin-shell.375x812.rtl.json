@@ -507,7 +507,7 @@
    "font-weight": "400"
   },
   "admin-kit__table:nth-of-type(1)": {
-   "left": -431,
+   "left": -416,
    "top": 367,
    "width": 756,
    "height": 163,
@@ -518,7 +518,7 @@
    "font-weight": "400"
   },
   "admin-kit__data-table-heading:nth-of-type(1)": {
-   "left": 125,
+   "left": 140,
    "top": 367,
    "width": 200,
    "height": 43,
@@ -540,7 +540,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(2)": {
-   "left": -43,
+   "left": -28,
    "top": 367,
    "width": 168,
    "height": 43,
@@ -573,7 +573,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(3)": {
-   "left": -211,
+   "left": -196,
    "top": 367,
    "width": 168,
    "height": 43,
@@ -606,7 +606,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(4)": {
-   "left": -431,
+   "left": -416,
    "top": 367,
    "width": 220,
    "height": 43,
@@ -1079,9 +1079,9 @@
    "font-weight": "400"
   },
   "admin-kit__table:nth-of-type(2)": {
-   "left": -323,
+   "left": -324,
    "top": 2788,
-   "width": 648,
+   "width": 664,
    "height": 116,
    "display": "table",
    "justify-content": "normal",
@@ -1090,9 +1090,9 @@
    "font-weight": "400"
   },
   "admin-kit__data-table-heading:nth-of-type(5)": {
-   "left": 109,
+   "left": 108,
    "top": 2788,
-   "width": 216,
+   "width": 232,
    "height": 43,
    "display": "table-cell",
    "justify-content": "normal",
@@ -1103,7 +1103,7 @@
   "admin-kit__data-table-heading-text:nth-of-type(5)": {
    "left": 16,
    "top": 12,
-   "width": 184,
+   "width": 200,
    "height": 18,
    "display": "block",
    "justify-content": "normal",
@@ -1123,7 +1123,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(6)": {
-   "left": -91,
+   "left": -92,
    "top": 2788,
    "width": 200,
    "height": 43,
@@ -1145,7 +1145,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(7)": {
-   "left": -227,
+   "left": -228,
    "top": 2788,
    "width": 136,
    "height": 43,
@@ -1178,7 +1178,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(8)": {
-   "left": -323,
+   "left": -324,
    "top": 2788,
    "width": 96,
    "height": 43,
@@ -1213,7 +1213,7 @@
   "admin-kit__cell-value:nth-of-type(5)": {
    "left": 16,
    "top": 12,
-   "width": 184,
+   "width": 200,
    "height": 46,
    "display": "block",
    "justify-content": "normal",
@@ -1224,7 +1224,7 @@
   "admin-kit__event-time:nth-of-type(1)": {
    "left": 16,
    "top": 12,
-   "width": 184,
+   "width": 200,
    "height": 46,
    "display": "inline",
    "justify-content": "normal",
@@ -1497,7 +1497,7 @@
    "font-weight": "400"
   },
   "admin-kit__table:nth-of-type(4)": {
-   "left": -395,
+   "left": -380,
    "top": 3791,
    "width": 720,
    "height": 175,
@@ -1508,7 +1508,7 @@
    "font-weight": "400"
   },
   "admin-kit__data-table-heading:nth-of-type(9)": {
-   "left": 101,
+   "left": 116,
    "top": 3791,
    "width": 224,
    "height": 43,
@@ -1530,7 +1530,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(10)": {
-   "left": -83,
+   "left": -68,
    "top": 3791,
    "width": 184,
    "height": 43,
@@ -1563,7 +1563,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(11)": {
-   "left": -267,
+   "left": -252,
    "top": 3791,
    "width": 184,
    "height": 43,
@@ -1596,7 +1596,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(12)": {
-   "left": -395,
+   "left": -380,
    "top": 3791,
    "width": 128,
    "height": 43,
@@ -1893,7 +1893,7 @@
    "font-weight": "400"
   },
   "admin-kit__table:nth-of-type(5)": {
-   "left": -635,
+   "left": -620,
    "top": 4487,
    "width": 960,
    "height": 305,
@@ -1937,7 +1937,7 @@
    "font-weight": "400"
   },
   "admin-kit__data-table-heading:nth-of-type(13)": {
-   "left": 165,
+   "left": 180,
    "top": 4487,
    "width": 160,
    "height": 43,
@@ -1959,7 +1959,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(14)": {
-   "left": -11,
+   "left": 4,
    "top": 4487,
    "width": 176,
    "height": 43,
@@ -1992,7 +1992,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(15)": {
-   "left": -107,
+   "left": -92,
    "top": 4487,
    "width": 96,
    "height": 43,
@@ -2025,7 +2025,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(16)": {
-   "left": -227,
+   "left": -212,
    "top": 4487,
    "width": 120,
    "height": 43,
@@ -2058,7 +2058,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(17)": {
-   "left": -347,
+   "left": -332,
    "top": 4487,
    "width": 120,
    "height": 43,
@@ -2091,7 +2091,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(18)": {
-   "left": -467,
+   "left": -452,
    "top": 4487,
    "width": 120,
    "height": 43,
@@ -2124,7 +2124,7 @@
    "font-weight": "600"
   },
   "admin-kit__data-table-heading:nth-of-type(19)": {
-   "left": -635,
+   "left": -620,
    "top": 4487,
    "width": 168,
    "height": 43,

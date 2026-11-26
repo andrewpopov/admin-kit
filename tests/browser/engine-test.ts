@@ -6,10 +6,21 @@ export { expect } from "@playwright/test";
 // so a worker's WebKit browser is relaunched before that. Tests in a worker run in turn, so its earlier contexts are closed.
 const WEBKIT_PAGES_PER_BROWSER = 40;
 
-export const test = base.extend<object, { browser: Browser }>({
+// Firefox does not support `isMobile` (it hangs `setViewportSize`), so `(pointer: coarse)` comes from its pointer-capabilities pref (1 = coarse).
+const FIREFOX_COARSE_POINTER = { "ui.primaryPointerCapabilities": 1 };
+
+export const test = base.extend<object, { browser: Browser; coarsePointer: boolean }>({
+  coarsePointer: [false, { option: true, scope: "worker" }],
+  hasTouch: async ({ coarsePointer }, use) => use(coarsePointer),
+  isMobile: async ({ browserName, coarsePointer }, use) => use(coarsePointer && browserName !== "firefox"),
   browser: [
-    async ({ playwright, browserName, launchOptions }, use) => {
-      const launch = () => playwright[browserName].launch(launchOptions);
+    async ({ playwright, browserName, launchOptions, coarsePointer }, use) => {
+      const launch = () =>
+        playwright[browserName].launch(
+          browserName === "firefox" && coarsePointer
+            ? { ...launchOptions, firefoxUserPrefs: FIREFOX_COARSE_POINTER }
+            : launchOptions,
+        );
       let current = await launch();
       let pages = 0;
       const rotating = new Proxy(current, {

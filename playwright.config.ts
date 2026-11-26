@@ -13,5 +13,8 @@ export default defineConfig({
       use: { browserName: "chromium" },
     },
     { name: "webkit", testMatch: crossEngineSpecs, use: { browserName: "webkit" } },
+    ...(process.env.ADMIN_KIT_FIREFOX
+      ? [{ name: "firefox", testMatch: crossEngineSpecs, use: { browserName: "firefox" as const } }]
+      : []),
   ],
 });

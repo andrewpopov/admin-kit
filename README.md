@@ -1323,8 +1323,17 @@ wide font and 1.3x longer text at 1280, 768 and 375px, and fails on clipped text
 untitled truncation, overlapping controls or sideways page scroll. `npm run test:browser`
 installs the WebKit browser before it runs.
 
-Firefox is not yet automated: it cannot launch on the current runner (a
-`sandbox_extension` error), so Firefox is tracked as PKG-391 until a runner can host it.
+Firefox runs the same cross-engine specs on a Linux pull runner, because it cannot launch on
+the maintainer's Mac (`browserType.launch` times out on a `sandbox_extension` error). The
+`firefox` project exists only when `ADMIN_KIT_FIREFOX` is set, so `npm run test:browser` never
+needs Firefox locally. Run it through the remote `firefox` lane in `.lane-broker.json`, which
+installs dependencies on the runner. The lane requires the `firefox` runner tag, which only the
+Linux runners carry: on macOS runners, two concurrent headless Firefox instances leave a focused
+dialog field short of its scroll target, so a Mac placement fails `admin-shell.spec.ts` at random.
+
+```sh
+lane run --repo admin-kit --lane firefox -- npm run test:browser:firefox
+```
 
 ### Layout snapshots
 

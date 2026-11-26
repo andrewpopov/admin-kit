@@ -551,7 +551,7 @@
 .admin-kit__filter-chip button { appearance: none; background: none; border: 0; border-radius: 999px; color: inherit; cursor: pointer; font: inherit; font-size: var(--admin-kit-text-title-size); line-height: 1; min-block-size: 1.75rem; min-inline-size: 1.75rem; padding: 0; }
 .admin-kit__filter-chip button:hover { background: var(--admin-kit-border); }
 @media (pointer: coarse) { .admin-kit__panel-header-toggle, .admin-kit__filter-chip button { min-block-size: var(--admin-kit-target-size); min-inline-size: var(--admin-kit-target-size); } }
-.admin-kit__events-search, .admin-kit__users-search { min-inline-size: min(20rem, 100%); }
+.admin-kit__events-search, .admin-kit__users-search { min-inline-size: min(22rem, 100%); }
 .admin-kit__users-header > .admin-kit__panel-toolbar { flex: 1 1 auto; min-inline-size: 0; }
 .admin-kit__event-time > span { white-space: nowrap; }
 .admin-kit__events-resource { -webkit-box-orient: vertical; -webkit-line-clamp: 2; display: -webkit-box; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
@@ -727,6 +727,7 @@
 .admin-kit__dialog-description { color: var(--admin-kit-muted); flex: 0 0 auto; margin: var(--admin-kit-space-3) 0 0; }
 /* The 0.25rem padding (pulled back out by the negative inline margin and a smaller top margin, so spacing is unchanged) keeps a focus ring at the body edge from being clipped by its own scrollport. */
 .admin-kit__dialog-body { flex: 1 1 auto; margin: var(--admin-kit-space-4) calc(var(--admin-kit-space-1) * -1) 0; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--admin-kit-space-1); scroll-padding-block: var(--admin-kit-space-4); }
+.admin-kit__dialog-body :where(a, button, input, select, textarea, summary, [tabindex]) { scroll-margin-block: var(--admin-kit-space-4); }
 .admin-kit__dialog-body--message > p { margin: 0; }
 .admin-kit__dialog-actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; gap: var(--admin-kit-space-3); justify-content: flex-end; margin-top: var(--admin-kit-space-7); }
 /* Portaled dialogs sit outside the host's themed wrapper, so they re-enter the theme through this element. It carries the theme classes (tokens, host overrides) but must not gain a box or change inherited type: the dialog already renders against the document's own font and color. */
@@ -923,6 +924,7 @@
 /* Opt-in narrow stacked table: same card layout as --stack, but only on true phone widths (30rem),
    so a landscape phone keeps the table. Put --stack-narrow on the wrap and the table. */
 @media (max-width: 30rem) {
+  .admin-kit__panel-header--collapsible.admin-kit__panel-header--page h1, .admin-kit__panel-header--collapsible.admin-kit__panel-header--page h2 { font-size: var(--admin-kit-text-title-size); line-height: var(--admin-kit-text-title-leading); }
   .admin-kit__panel-header-toggle-label { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: hidden; position: absolute; white-space: nowrap; }
   .admin-kit__table-wrap--stack-narrow { overflow-x: visible; }
   .admin-kit__table--stack-narrow { display: block; min-width: 0; }

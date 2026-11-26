@@ -62,6 +62,7 @@
     "test:watch": "vitest",
     "test:pre-push-hook": "sh .githooks/test-pre-push.sh",
     "test:browser": "npm run compile && node scripts/render-browser-fixture.mjs && playwright install chromium webkit && playwright test",
+    "test:browser:firefox": "npm run compile && node scripts/render-browser-fixture.mjs && playwright install firefox && ADMIN_KIT_FIREFOX=1 playwright test --project=firefox",
     "verify:pack": "node scripts/verify-pack.mjs",
     "verify:dist-fresh": "node scripts/verify-dist-fresh.mjs",
     "verify": "npm run lint && npm run typecheck && npm test && npm run test:pre-push-hook && npm run test:browser && npm run compile && npm run verify:dist-fresh && npm run verify:pack && npm run verify:bins && npm audit --omit=dev --audit-level=moderate && npm audit --audit-level=high",

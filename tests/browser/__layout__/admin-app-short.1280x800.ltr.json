@@ -80,7 +80,7 @@
   "admin-kit__portal-group:nth-of-type(1)": {
    "left": 16,
    "top": 16,
-   "width": 254,
+   "width": 239,
    "height": 120,
    "display": "block",
    "justify-content": "normal",
@@ -91,7 +91,7 @@
   "admin-kit__portal-group-header:nth-of-type(1)": {
    "left": 16,
    "top": 16,
-   "width": 254,
+   "width": 239,
    "height": 18,
    "display": "block",
    "justify-content": "normal",
@@ -102,7 +102,7 @@
   "admin-kit__portal-group-label:nth-of-type(1)": {
    "left": 16,
    "top": 16,
-   "width": 254,
+   "width": 239,
    "height": 18,
    "display": "block",
    "justify-content": "normal",
@@ -113,7 +113,7 @@
   "admin-kit__portal-list:nth-of-type(1)": {
    "left": 16,
    "top": 46,
-   "width": 254,
+   "width": 239,
    "height": 90,
    "display": "grid",
    "justify-content": "normal",
@@ -124,7 +124,7 @@
   "admin-kit__portal-link:nth-of-type(1)": {
    "left": 16,
    "top": 46,
-   "width": 254,
+   "width": 239,
    "height": 44,
    "display": "grid",
    "justify-content": "stretch",
@@ -135,7 +135,7 @@
   "admin-kit__portal-link:nth-of-type(2)": {
    "left": 16,
    "top": 92,
-   "width": 254,
+   "width": 239,
    "height": 44,
    "display": "grid",
    "justify-content": "stretch",

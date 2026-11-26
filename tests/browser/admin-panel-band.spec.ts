@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./engine-test";
 import { mount, serveDataTable, usersPanel } from "./data-table-harness";
+import { chipsBand } from "./panel-band-fixtures";
 
 const REQUEST_PATH = "/api/projects/CAIRN/tickets/cmp9x3q0e0001abcdefghijkl/comments/cmp9x3q0e0002";
 const SEARCH_PLACEHOLDER = "Search actor, request method, or route…";
@@ -56,23 +57,6 @@ const composedBand = mount(
    const columns = [{ id: "name", header: "Name", cell: (row) => row.name }];`,
 );
 
-const chipsBand = mount(
-  `React.createElement(Kit.AdminPanelHeader, {
-    title: "Audit events",
-    presentation: "page",
-    actions: React.createElement("button", { type: "button" }, "Refresh"),
-    toolbar: React.createElement("input", { "aria-label": "Search", type: "search" }),
-    collapsible: {
-      storageKey: "chips",
-      defaultCollapsed: true,
-      collapsedSummary: React.createElement(React.Fragment, null,
-        React.createElement("span", null, "48,213 events"),
-        ["Severity: Error (5xx)", "Outcome: Failure", "Search: /api/agent/sessions", "Category: Request"].map((label) =>
-          React.createElement(Kit.AdminFilterChip, { key: label, label, onRemove() {} }))),
-    },
-  })`,
-);
-
 const phoneBand = mount(
   `React.createElement(React.Fragment, null,
     React.createElement(Kit.AdminPanelHeader, {
@@ -119,8 +103,6 @@ const eventsPlain = mount(
 );
 
 const toggle = (page: Page) => page.getByRole("button", { name: /controls/ });
-// WebKit reports a 44px target as 43.99997 after fractional layout.
-const LAYOUT_EPSILON = 0.01;
 const region = (page: Page) => page.locator(".admin-kit__panel-header-region");
 const tableTop = (page: Page) =>
   page.locator(".admin-kit__data-table-wrap").evaluate((wrap) => wrap.getBoundingClientRect().top);
@@ -604,24 +586,6 @@ test.describe("filter chip remove target", () => {
     expect(box.width).toBeGreaterThanOrEqual(28);
     const fontSize = await remove.evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
     expect(fontSize).toBeGreaterThanOrEqual(18);
-  });
-
-  test.describe("on a coarse pointer", () => {
-    test.use({ hasTouch: true, isMobile: true });
-
-    test("is at least 44px tall and wide", async ({ page }) => {
-      await page.setViewportSize({ width: 390, height: 844 });
-      await serveDataTable(page, { script: chipsBand });
-      expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(true);
-      const boxes = await page
-        .locator(".admin-kit__filter-chip button")
-        .evaluateAll((buttons) => buttons.map((node) => node.getBoundingClientRect().toJSON()));
-      expect(boxes).toHaveLength(4);
-      for (const box of boxes) {
-        expect(box.height).toBeGreaterThanOrEqual(44 - LAYOUT_EPSILON);
-        expect(box.width).toBeGreaterThanOrEqual(44 - LAYOUT_EPSILON);
-      }
-    });
   });
 });
 
