@@ -28,7 +28,7 @@
    "width": 343,
    "height": 23,
    "display": "flex",
-   "justify-content": "flex-start",
+   "justify-content": "flow-start",
    "align-items": "baseline",
    "text-align": "start",
    "font-weight": "400"
@@ -39,7 +39,7 @@
    "width": 60,
    "height": 21,
    "display": "flex",
-   "justify-content": "flex-start",
+   "justify-content": "flow-start",
    "align-items": "baseline",
    "text-align": "start",
    "font-weight": "400"

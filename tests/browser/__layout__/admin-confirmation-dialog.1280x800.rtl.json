@@ -39,7 +39,7 @@
    "width": 494,
    "height": 44,
    "display": "flex",
-   "justify-content": "flex-end",
+   "justify-content": "flow-end",
    "align-items": "normal",
    "text-align": "start",
    "font-weight": "400"
