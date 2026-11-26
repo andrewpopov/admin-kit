@@ -28,7 +28,7 @@
    "width": 67,
    "height": 24,
    "display": "flex",
-   "justify-content": "flex-end",
+   "justify-content": "flow-end",
    "align-items": "start",
    "text-align": "start",
    "font-weight": "400"
