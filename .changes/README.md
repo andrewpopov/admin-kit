@@ -37,6 +37,7 @@ which subsection a fragment's bullet lands in.
   provenance).
 - **Check hygiene:** `npm run release:hygiene -- --base origin/main` verifies
   that a change touching `src/` (or other relevant paths) shipped with a
-  fragment, so nothing merges without a changelog entry.
+  fragment, so nothing merges without a changelog entry. `.githooks/pre-push` runs it on every push
+  (GitHub Actions is disabled), so a missing fragment blocks the push.
 
 See `RELEASING.md` at the repo root for the full release process.

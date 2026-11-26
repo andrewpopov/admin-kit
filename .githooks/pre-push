@@ -30,13 +30,18 @@ set -e
 # GIT_CONFIG, the direct mutation hazard. This cannot drift as git adds vars.
 for v in $(git rev-parse --local-env-vars) GIT_QUARANTINE_PATH; do unset "$v"; done
 
+# Capture the pushed refs: the delete-only check and the release-tag check both read them.
+pushed_refs="$(cat)"
+
 # A push that only deletes refs has nothing to verify.
 only_deletes=1
 while read -r _local_ref local_sha _remote_ref _remote_sha; do
   case "$local_sha" in
     *[!0]*) only_deletes=0 ;;
   esac
-done
+done <<EOF
+$pushed_refs
+EOF
 if [ "$only_deletes" = "1" ]; then
   exit 0
 fi
@@ -48,6 +53,37 @@ fail() {
   for line in "$@"; do printf '  %s\n' "$line"; done
   exit 1
 }
+
+# A release tag must name the version it ships: the tagged commit's package.json
+# version, and a `## X.Y.Z` CHANGELOG heading in that same commit.
+while read -r _local_ref local_sha remote_ref _remote_sha; do
+  case "$remote_ref" in refs/tags/v*) ;; *) continue ;; esac
+  case "$local_sha" in *[!0]*) ;; *) continue ;; esac
+  tag_version="${remote_ref#refs/tags/v}"
+  package_version="$(git show "$local_sha^{commit}:package.json" | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).version')" ||
+    fail "release tag $remote_ref" 'Could not read package.json at the tagged commit.'
+  [ "$tag_version" = "$package_version" ] ||
+    fail "release tag $remote_ref" \
+      "Tag version $tag_version does not equal package.json version $package_version at the tagged commit."
+  git show "$local_sha^{commit}:CHANGELOG.md" 2>/dev/null | grep -Fxq "## $tag_version" ||
+    fail "release tag $remote_ref" \
+      "CHANGELOG.md has no '## $tag_version' heading at the tagged commit. Run npm run release:cut."
+done <<EOF
+$pushed_refs
+EOF
+
+# Release hygiene diffs against origin/main (release-kit.config.js); refresh it, best effort.
+git fetch -q origin main >/dev/null 2>&1 || true
+
+# Hygiene runs before the install below and needs node_modules/.bin/release-kit,
+# which a fresh worktree lacks.
+[ -x node_modules/.bin/release-kit ] || npm install --prefer-offline || fail 'install' \
+  'release hygiene needs node_modules/.bin/release-kit.'
+
+step 'release-hygiene'
+npm run -s release:hygiene || fail 'release hygiene' \
+  'A release-relevant change needs a .changes/unreleased fragment.' \
+  'Add one with `npm run release:note -- --kind fixed --slug short-slug --summary "..."`.'
 
 # Reconcile node_modules with the lockfile BEFORE verifying anything. Most of
 # the drift found across this fleet was not a bad bump — it was a tree that had

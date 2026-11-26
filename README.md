@@ -1349,7 +1349,7 @@ UPDATE_LAYOUT=1 npx playwright test tests/browser/layout-snapshots.spec.ts
 toggles for manual review; serve the repository over HTTP to use it (see the page).
 
 GitHub Actions is disabled for this repository; the local `.githooks/pre-push`
-gate runs `npm run verify` (lint, typecheck, unit, Chromium and WebKit, compile, dist
+gate runs release hygiene, checks any pushed `v*` tag, then runs `npm run verify` (lint, typecheck, unit, Chromium and WebKit, compile, dist
 freshness, pack, bins, and the production and full-tree audits). A release tag
 must equal the package version and have a matching changelog heading. After a
 tag is published, consumers bump their exact registry pin, verify the installed

@@ -32,7 +32,11 @@ format.
    bumps `package.json`, and archives the consumed fragments.
 4. **Commit the result**, open the reviewed pull request, and merge it.
    GitHub Actions is disabled fleet-wide, so `.githooks/pre-push` (enabled by
-   `npm run hooks`, it runs `npm run verify`) is the gate; there is no hosted CI.
+   `npm run hooks`) is the gate; there is no hosted CI. It runs
+   `npm run release:hygiene` against `origin/main` (a release-relevant change
+   needs a `.changes/unreleased` fragment), blocks a pushed `v*` tag whose
+   version differs from `package.json` or whose `## X.Y.Z` CHANGELOG heading is
+   missing, then runs `npm run verify`.
 5. **Create the annotated tag:** `git tag -a vX.Y.Z -m vX.Y.Z` matching the
    version `release:cut` produced, and push it. The tag must equal
    `package.json` and the `## X.Y.Z` CHANGELOG heading; the fleet registry
