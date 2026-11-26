@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "undeclaredLanes": "allow",
+  "lanes": {
+    "firefox": {
+      "weight": 1,
+      "cpuCores": 2,
+      "minCpuCores": 1,
+      "memoryBytes": 3221225472,
+      "remote": true,
+      "localRefused": true,
+      "remoteDeps": [
+        "."
+      ],
+      "requiresTags": [
+        "firefox"
+      ]
+    }
+  }
+}

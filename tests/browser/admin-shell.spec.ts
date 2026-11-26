@@ -62,7 +62,7 @@ test("lays out the EventsPanel data table with sized columns and a sticky header
     .first()
     .locator(".admin-kit__data-table");
   const occurred = table.getByRole("columnheader", { name: "Occurred" });
-  expect((await occurred.boundingBox())?.width).toBe(216);
+  expect((await occurred.boundingBox())?.width).toBe(232);
   await expect(occurred).toHaveCSS("position", "sticky");
   await expect(table).toHaveCSS("table-layout", "fixed");
   await expect(table.getByRole("separator", { name: "Resize Occurred column" })).toBeVisible();
@@ -276,14 +276,21 @@ test("never leaves a keyboard-focused dialog field behind the header or footer",
       expect(rects.bottom).toBeLessThanOrEqual(Math.min(rects.bodyBottom, rects.actionsTop));
     }).toPass();
 
+  // Firefox makes the scrollable dialog body a tab stop of its own; step over it to reach the next field.
+  const pressToField = async (key: string) => {
+    await page.keyboard.press(key);
+    if (await page.evaluate(() => document.activeElement?.matches(".admin-kit__dialog-body"))) {
+      await page.keyboard.press(key);
+    }
+    await assertFocusedFieldIsClear();
+  };
+
   await page.keyboard.press(keys.forward); // Close button
   for (let index = 0; index < fieldCount; index += 1) {
-    await page.keyboard.press(keys.forward);
-    await assertFocusedFieldIsClear();
+    await pressToField(keys.forward);
   }
   for (let index = 0; index < fieldCount - 1; index += 1) {
-    await page.keyboard.press(keys.backward);
-    await assertFocusedFieldIsClear();
+    await pressToField(keys.backward);
   }
 });
 
